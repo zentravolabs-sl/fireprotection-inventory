@@ -1,10 +1,14 @@
 // ============================================================
 // src/app/(Main)/layout.tsx
 // Protected layout for all main application pages.
+// Includes the collapsible FireGuard sidebar.
 // Any unauthenticated request is redirected to /login.
 // ============================================================
 
 import { requireSession } from "@/lib/session";
+import { Sidebar, SidebarProvider } from "@/components/ui/Sidebar";
+import "../sidebar.css";
+import { SidebarOffsetWrapper } from "@/components/ui/SidebarOffsetWrapper";
 
 export default async function MainLayout({
   children,
@@ -12,12 +16,16 @@ export default async function MainLayout({
   children: React.ReactNode;
 }) {
   // requireSession redirects to /login if no valid session exists.
-  // The session is available here if needed for navigation etc.
   await requireSession();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {children}
-    </div>
+    <SidebarProvider>
+      <div className="app-shell">
+        <Sidebar />
+        <SidebarOffsetWrapper>
+          {children}
+        </SidebarOffsetWrapper>
+      </div>
+    </SidebarProvider>
   );
 }

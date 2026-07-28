@@ -1,0 +1,275 @@
+"use client";
+
+// ============================================================
+// src/components/ui/Sidebar.tsx
+// Collapsible sidebar navigation for FireGuard ERP.
+// Color theme: dark navy/charcoal bg (#0f1117 / #161b27),
+// red accent (#e02020 / #ff2d2d), muted text (#8b929e).
+// ============================================================
+
+import React, { useState, createContext, useContext } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  badge?: number;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
+// ─── Context ──────────────────────────────────────────────────────────────────
+
+interface SidebarContextValue {
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
+}
+
+const SidebarContext = createContext<SidebarContextValue>({
+  collapsed: false,
+  setCollapsed: () => {},
+});
+
+export function useSidebar() {
+  return useContext(SidebarContext);
+}
+
+// ─── Icons (inline SVG to avoid extra deps) ───────────────────────────────────
+
+const Icons = {
+  dashboard: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+    </svg>
+  ),
+  projects: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+    </svg>
+  ),
+  materialRequests: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+  ),
+  projectStock: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  ),
+  inventory: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+    </svg>
+  ),
+  pipe: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  ),
+  issueNotes: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
+    </svg>
+  ),
+  returns: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-3.51" />
+    </svg>
+  ),
+  expiry: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  tools: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </svg>
+  ),
+  suppliers: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    </svg>
+  ),
+  customers: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  quotations: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  ),
+  reports: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
+  users: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
+  audit: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  ),
+  chevronLeft: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  ),
+  chevronRight: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  ),
+  fire: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C12 2 7 8 7 13a5 5 0 0 0 10 0C17 8 12 2 12 2zm0 15a3 3 0 0 1-3-3c0-2.5 3-7 3-7s3 4.5 3 7a3 3 0 0 1-3 3z"/>
+    </svg>
+  ),
+};
+
+// ─── Navigation Data ──────────────────────────────────────────────────────────
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    title: "PROJECT MANAGEMENT",
+    items: [
+      { label: "Projects",          href: "/dashboard/projects",         icon: Icons.projects,         badge: 12 },
+      { label: "Material Requests", href: "/dashboard/material-requests", icon: Icons.materialRequests, badge: 2 },
+      { label: "Project Stock",     href: "/dashboard/project-stock",    icon: Icons.projectStock },
+    ],
+  },
+  {
+    title: "WAREHOUSE",
+    items: [
+      { label: "Inventory",         href: "/admin/inventory",        icon: Icons.inventory },
+      { label: "Pipe & Cut Pieces", href: "/dashboard/pipe-cut-pieces",  icon: Icons.pipe },
+      { label: "Issue Notes",       href: "/dashboard/issue-notes",      icon: Icons.issueNotes },
+      { label: "Returns & Transfers",href: "/dashboard/returns-transfers",icon: Icons.returns },
+      { label: "Expiry Management", href: "/dashboard/expiry-management",icon: Icons.expiry,           badge: 2 },
+    ],
+  },
+  {
+    title: "ASSETS & BUSINESS",
+    items: [
+      { label: "Tools",             href: "/admin/tools",            icon: Icons.tools },
+      { label: "Suppliers",         href: "/admin/suppliers",        icon: Icons.suppliers },
+      { label: "Customers",         href: "/admin/customers",        icon: Icons.customers },
+      { label: "Quotations",        href: "/dashboard/quotations",       icon: Icons.quotations },
+    ],
+  },
+  {
+    title: "MANAGEMENT",
+    items: [
+      { label: "Reports",           href: "/dashboard/reports",          icon: Icons.reports },
+      { label: "Users & Roles",     href: "/dashboard/users-roles",      icon: Icons.users },
+      { label: "Audit Log",         href: "/dashboard/audit-log",        icon: Icons.audit },
+    ],
+  },
+];
+
+// ─── NavItem Component ─────────────────────────────────────────────────────────
+
+function SidebarNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+  const pathname = usePathname();
+  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+
+  return (
+    <Link href={item.href} className={`sidebar-nav-item ${isActive ? "active" : ""}`}>
+      <span className="sidebar-nav-icon">{item.icon}</span>
+      {!collapsed && (
+        <>
+          <span className="sidebar-nav-label">{item.label}</span>
+          {item.badge !== undefined && (
+            <span className="sidebar-nav-badge">{item.badge}</span>
+          )}
+        </>
+      )}
+      {collapsed && item.badge !== undefined && (
+        <span className="sidebar-nav-badge-dot" />
+      )}
+    </Link>
+  );
+}
+
+// ─── Main Sidebar Component ────────────────────────────────────────────────────
+
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false);
+  return (
+    <SidebarContext.Provider value={{ collapsed, setCollapsed }}>
+      {children}
+    </SidebarContext.Provider>
+  );
+}
+
+export function Sidebar() {
+  const { collapsed, setCollapsed } = useSidebar();
+
+  return (
+    <aside className={`sidebar ${collapsed ? "sidebar--collapsed" : ""}`}>
+      {/* ── Logo + Collapse Toggle ── */}
+      <div className="sidebar-logo">
+        <div className="sidebar-logo-icon">
+          <span className="sidebar-logo-fire">{Icons.fire}</span>
+        </div>
+        {!collapsed && (
+          <div className="sidebar-logo-text">
+            <span className="sidebar-logo-brand">FireGuard</span>
+            <span className="sidebar-logo-sub">ERP SYSTEM</span>
+          </div>
+        )}
+        <button
+          className="sidebar-toggle sidebar-toggle--top"
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? Icons.chevronRight : Icons.chevronLeft}
+        </button>
+      </div>
+
+      {/* ── Dashboard link ── */}
+      <div className="sidebar-dashboard-link">
+        <SidebarNavItem
+          item={{ label: "Dashboard", href: "/dashboard", icon: Icons.dashboard }}
+          collapsed={collapsed}
+        />
+      </div>
+
+      {/* ── Nav Groups ── */}
+      <nav className="sidebar-nav">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.title} className="sidebar-group">
+            {!collapsed && (
+              <p className="sidebar-group-title">{group.title}</p>
+            )}
+            {collapsed && <div className="sidebar-group-divider" />}
+            {group.items.map((item) => (
+              <SidebarNavItem key={item.href} item={item} collapsed={collapsed} />
+            ))}
+          </div>
+        ))}
+      </nav>
+
+
+    </aside>
+  );
+}

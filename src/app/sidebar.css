@@ -1,0 +1,355 @@
+/* ============================================================
+   src/app/sidebar.css
+   FireGuard Sidebar — dark navy theme with red accent
+   Color tokens from the reference screenshot:
+     bg-sidebar    : #0f1117
+     bg-sidebar-2  : #161b27   (hover / active track)
+     accent        : #e02424
+     accent-hover  : #ff2d2d
+     text-primary  : #e8ecf2
+     text-muted    : #6b7280
+     text-group    : #4b5563
+     border        : #1e2535
+   ============================================================ */
+
+/* ── CSS Variables ─────────────────────────────────────────── */
+:root {
+  --sb-width:          220px;
+  --sb-width-collapsed: 64px;
+  --sb-bg:             #0d1117;
+  --sb-bg-hover:       #161d2e;
+  --sb-bg-active:      #1a2035;
+  --sb-accent:         #e02424;
+  --sb-accent-glow:    rgba(224, 36, 36, 0.18);
+  --sb-border:         #1e2a3d;
+  --sb-text:           #dce3ef;
+  --sb-text-muted:     #5a657a;
+  --sb-text-group:     #3d4c62;
+  --sb-transition:     220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Shell Layout ──────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: #080c12;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  transition: margin-left var(--sb-transition);
+}
+
+/* ── Sidebar Base ──────────────────────────────────────────── */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sb-width);
+  background: var(--sb-bg);
+  border-right: 1px solid var(--sb-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 50;
+  transition: width var(--sb-transition);
+  /* Subtle inner glow on the right edge */
+  box-shadow: 1px 0 0 0 var(--sb-border), 4px 0 24px rgba(0,0,0,0.45);
+}
+
+.sidebar--collapsed {
+  width: var(--sb-width-collapsed);
+}
+
+/* ── Logo ──────────────────────────────────────────────────── */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 14px 14px;
+  border-bottom: 1px solid var(--sb-border);
+  flex-shrink: 0;
+  min-height: 64px;
+}
+
+.sidebar-logo-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--sb-accent);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px var(--sb-accent-glow);
+}
+
+.sidebar-logo-fire {
+  color: #fff;
+  display: flex;
+}
+
+.sidebar-logo-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-logo-brand {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sb-text);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.sidebar-logo-sub {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--sb-text-muted);
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+}
+
+/* ── Dashboard quick link ──────────────────────────────────── */
+.sidebar-dashboard-link {
+  padding: 10px 8px 4px;
+  border-bottom: 1px solid var(--sb-border);
+  flex-shrink: 0;
+}
+
+/* ── Nav scroll area ───────────────────────────────────────── */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-border) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: var(--sb-border);
+  border-radius: 4px;
+}
+
+/* ── Group ─────────────────────────────────────────────────── */
+.sidebar-group {
+  margin-bottom: 4px;
+}
+
+.sidebar-group-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--sb-text-group);
+  padding: 14px 8px 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  margin: 0;
+}
+
+.sidebar-group-divider {
+  height: 1px;
+  background: var(--sb-border);
+  margin: 10px 6px;
+}
+
+/* ── Nav Item ──────────────────────────────────────────────── */
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  color: var(--sb-text-muted);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  position: relative;
+  transition:
+    background var(--sb-transition),
+    color var(--sb-transition);
+  margin-bottom: 2px;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--sb-bg-hover);
+  color: var(--sb-text);
+}
+
+.sidebar-nav-item.active {
+  background: var(--sb-bg-active);
+  color: var(--sb-text);
+}
+
+/* Red left bar on active */
+.sidebar-nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--sb-accent);
+  box-shadow: 0 0 8px var(--sb-accent-glow);
+}
+
+/* Icon */
+.sidebar-nav-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: color var(--sb-transition);
+}
+
+.sidebar-nav-item.active .sidebar-nav-icon,
+.sidebar-nav-item:hover .sidebar-nav-icon {
+  color: var(--sb-text);
+}
+
+.sidebar-nav-item.active .sidebar-nav-icon {
+  color: var(--sb-accent);
+}
+
+/* Label */
+.sidebar-nav-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge (number) */
+.sidebar-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: var(--sb-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+/* Badge dot (collapsed mode) */
+.sidebar-nav-badge-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  background: var(--sb-accent);
+  border-radius: 50%;
+  border: 1.5px solid var(--sb-bg);
+  box-shadow: 0 0 6px var(--sb-accent-glow);
+}
+
+/* ── Collapsed — icon-only tooltip ────────────────────────── */
+.sidebar--collapsed .sidebar-nav-item {
+  justify-content: center;
+  padding: 10px 0;
+  gap: 0;
+}
+
+.sidebar--collapsed .sidebar-nav-item:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1e2a3d;
+  color: var(--sb-text);
+  font-size: 12px;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 100;
+  border: 1px solid var(--sb-border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+/* ── Toggle Button ─────────────────────────────────────────── */
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--sb-bg-hover);
+  border: 1px solid var(--sb-border);
+  color: var(--sb-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--sb-transition),
+    color var(--sb-transition),
+    box-shadow var(--sb-transition);
+}
+
+.sidebar-toggle:hover {
+  background: var(--sb-accent);
+  color: #fff;
+  border-color: var(--sb-accent);
+  box-shadow: 0 0 10px var(--sb-accent-glow);
+}
+
+/* Inside logo row — push to far right */
+.sidebar-toggle--top {
+  margin-left: auto;
+}
+
+/* Collapsed: the logo row is centred, so stack icon + toggle vertically */
+.sidebar--collapsed .sidebar-toggle--top {
+  margin-left: 0;
+  margin-top: 8px;
+}
+
+/* ── Collapsed logo area ─────────────────────────────────────────── */
+.sidebar--collapsed .sidebar-logo {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 0;
+  gap: 8px;
+}
+
+/* ── Collapsed dashboard link ──────────────────────────────── */
+.sidebar--collapsed .sidebar-dashboard-link {
+  padding: 10px 0 4px;
+}
+
+/* ── Offset main content ───────────────────────────────────── */
+.sidebar-offset {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--sb-width);
+  transition: margin-left var(--sb-transition);
+  width: calc(100% - var(--sb-width));
+}
+
+.sidebar-offset--collapsed {
+  margin-left: var(--sb-width-collapsed);
+  width: calc(100% - var(--sb-width-collapsed));
+}

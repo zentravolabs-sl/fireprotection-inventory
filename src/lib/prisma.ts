@@ -17,7 +17,12 @@ function createPrismaClient() {
   } as ConstructorParameters<typeof PrismaClient>[0]);
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+// Force re-initialization if new models were added to generated client
+export const prisma =
+  process.env.NODE_ENV === "production"
+    ? globalForPrisma.prisma ?? createPrismaClient()
+    : createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
 

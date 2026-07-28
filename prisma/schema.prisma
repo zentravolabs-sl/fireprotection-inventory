@@ -127,3 +127,175 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_log")
 }
+
+// ============================================================
+// Inventory Classification Models
+// ============================================================
+
+/// Top-level product/equipment category.
+model Category {
+  id           Int           @id @default(autoincrement())
+  categoryName String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  subCategories SubCategory[]
+  inventories   Inventory[]
+
+  @@index([categoryName])
+  @@map("category")
+}
+
+/// Sub-category belonging to a parent Category.
+/// (categoryId, name) must be unique — same name is allowed across different categories.
+model SubCategory {
+  id          Int         @id @default(autoincrement())
+  name        String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  categoryId  Int
+  category    Category    @relation(fields: [categoryId], references: [id])
+  inventories Inventory[]
+
+  @@unique([categoryId, name])
+  @@index([categoryId])
+  @@map("sub_category")
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum IssueLocation {
+  Warehouse
+  Shop
+}
+
+// ============================================================
+// Supplier Model
+// ============================================================
+
+model Supplier {
+  Id            Int         @id @default(autoincrement())
+  Company       String      @unique
+  ContactPerson String?
+  Phone         String?
+  Email         String?
+  Address       String?
+
+  inventories   Inventory[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([Company])
+  @@map("supplier")
+}
+
+// ============================================================
+// Inventory Management Model
+// ============================================================
+
+model Inventory {
+  Id            Int           @id @default(autoincrement())
+  ItemCode      String        @unique
+  Name          String
+  CategoryId    Int
+  SubCategoryId Int
+  Brand         String?
+  Unit          String
+  Qty           Float         @default(0)
+  MinStock      Float         @default(0)
+  RackLocation  String?
+  Warehouse     String?
+  BuyPrice      Float         @default(0)
+  SellPrice     Float         @default(0)
+  SupplierId    Int?
+  Barcode       String?       @unique
+  ExpiryDate    DateTime?
+  image_url     String?
+  issueLocation IssueLocation @default(Warehouse)
+
+  // Relations
+  category      Category      @relation(fields: [CategoryId], references: [id])
+  subCategory   SubCategory   @relation(fields: [SubCategoryId], references: [id])
+  supplier      Supplier?     @relation(fields: [SupplierId], references: [Id], onDelete: Restrict)
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([ItemCode])
+  @@index([Barcode])
+  @@index([Name])
+  @@index([CategoryId])
+  @@index([SubCategoryId])
+  @@map("inventory")
+}
+
+// ============================================================
+// Tool Enums & Model
+// ============================================================
+
+enum ToolCondition {
+  New
+  Good
+  Fair
+  Damaged
+  UnderRepair
+}
+
+enum ToolStatus {
+  Available
+  InUse
+  Maintenance
+  Lost
+  Retired
+}
+
+model Tool {
+  Id        Int           @id @default(autoincrement())
+  ToolCode  String        @unique
+  Name      String
+  SerialNo  String        @unique
+  Condition ToolCondition
+  Status    ToolStatus
+  image_url String?
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([ToolCode])
+  @@index([Name])
+  @@index([SerialNo])
+  @@index([Status])
+  @@map("tool")
+}
+
+// ============================================================
+// Customer Model
+// ============================================================
+
+model Customer {
+  Id            Int      @id @default(autoincrement())
+  CompanyName   String   @unique
+  ContactPerson String?
+  Phone         String?
+  Email         String?
+  Address       String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([CompanyName])
+  @@index([ContactPerson])
+  @@index([Phone])
+  @@index([Email])
+  @@map("customer")
+}
+
+
+
+
