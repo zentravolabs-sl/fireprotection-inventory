@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ToastProvider from "@/components/auth/ToastProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -8,8 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sign In - CDN Fire Engineering (Pvt) Ltd",
-  description: "CDN Fire Engineering Inventory & ERP Management System Portal",
+  title: "CDN Fire Engineering — Inventory & ERP Portal",
+  description:
+    "Secure inventory and ERP management system for CDN Fire Engineering (Pvt) Ltd.",
 };
 
 export default function RootLayout({
@@ -21,6 +23,8 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full font-sans bg-gray-50 text-gray-900 selection:bg-red-500 selection:text-white">
         {children}
+        {/* Global toast notification container */}
+        <ToastProvider />
       </body>
     </html>
   );
