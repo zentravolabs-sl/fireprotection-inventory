@@ -95,7 +95,7 @@ export default function ChangePasswordPage() {
           </div>
 
           {/* Form */}
-          <div className="px-8 py-6">
+          <div className="px-5 sm:px-8 py-6">
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
               <FormInput
                 id="currentPassword"

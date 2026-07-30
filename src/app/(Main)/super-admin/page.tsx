@@ -18,7 +18,7 @@ export default async function SuperAdminPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-gray-100">
       <nav className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-red-600 transition-colors"
@@ -34,8 +34,8 @@ export default async function SuperAdminPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-black text-gray-900 mb-2">Super Admin Panel</h1>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">Super Admin Panel</h1>
         <p className="text-gray-500 mb-8">
           Logged in as <strong>{user.name}</strong> ({user.role})
         </p>

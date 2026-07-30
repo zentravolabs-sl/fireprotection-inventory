@@ -31,8 +31,8 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#080c12]">
       {/* Top navigation */}
-      <nav className="bg-[#0d1117] border-b border-[#1e2a3d] shadow-[0_1px_0_0_#1e2a3d,0_4px_24px_rgba(0,0,0,0.45)] sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className="bg-[#0F1524] border-b border-[#1e2a3d] shadow-[0_1px_0_0_#1e2a3d,0_4px_24px_rgba(0,0,0,0.45)] sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ShieldCheck size={24} className="text-[#e02424]" />
             <span className="font-black text-[#dce3ef] text-lg tracking-tight">
@@ -64,12 +64,12 @@ export default async function DashboardPage() {
       </nav>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-[#dce3ef]">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#dce3ef]">
             Welcome back, {user.name.split(" ")[0]}! 👋
           </h1>
-          <p className="text-[#5a657a] mt-1">{user.email}</p>
+          <p className="text-[#5a657a] mt-1 text-sm sm:text-base break-all">{user.email}</p>
         </div>
 
         {/* Stat cards */}
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
           ].map((card) => (
             <div
               key={card.label}
-              className={`rounded-2xl border shadow-sm p-6 ${card.bg} bg-[#0d1117]`}
+              className={`rounded-2xl border shadow-sm p-6 ${card.bg} bg-[#0F1524]`}
             >
               <p className="text-sm text-[#5a657a] font-medium">{card.label}</p>
               <p className={`text-2xl font-black mt-1 ${card.color}`}>{card.value}</p>
@@ -90,7 +90,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick links */}
-        <div className="mt-8 bg-[#0d1117] rounded-2xl border border-[#1e2a3d] shadow-sm p-6">
+        <div className="mt-8 bg-[#0F1524] rounded-2xl border border-[#1e2a3d] shadow-sm p-6">
           <h2 className="text-lg font-bold text-[#dce3ef] mb-4">Quick Actions</h2>
           <div className="flex flex-wrap gap-3">
             <Link

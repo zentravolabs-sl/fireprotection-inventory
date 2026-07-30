@@ -97,19 +97,138 @@ export default function InventoryTable({ inventories, categories }: InventoryTab
           id="add-inventory-item-btn"
           type="button"
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors"
         >
           <span className="text-lg leading-none">+</span>
           Add Inventory Item
         </button>
       </div>
 
-      {/* Table Card */}
-      <div className="bg-[#0d1117] rounded-2xl border border-[#1e2a3d] shadow-sm overflow-hidden">
+      {/* ──────────────────────────────────────────────
+          MOBILE CARD VIEW  (hidden on sm+)
+         ────────────────────────────────────────────── */}
+      <div className="sm:hidden space-y-3">
+        {inventories.length === 0 ? (
+          <div className="bg-[#0F1524] rounded-2xl border border-[#1e2a3d] p-10 flex flex-col items-center gap-3">
+            <div className="w-14 h-14 rounded-full bg-[#161d2e] flex items-center justify-center">
+              <Package size={24} className="text-[#3d4c62]" />
+            </div>
+            <p className="text-[#5a657a] font-medium text-sm">No inventory items found.</p>
+            <button type="button" onClick={openCreate} className="text-[#e02424] text-sm font-semibold hover:underline">
+              Add a new inventory item
+            </button>
+          </div>
+        ) : (
+          inventories.map((item, idx) => {
+            const isOutOfStock = item.Qty === 0;
+            const isLowStock = !isOutOfStock && item.Qty <= item.MinStock;
+            let isExpired = false;
+            let isExpiringSoon = false;
+            if (item.ExpiryDate) {
+              const exp = new Date(item.ExpiryDate);
+              exp.setHours(0, 0, 0, 0);
+              if (exp < today) isExpired = true;
+              else if (exp <= thirtyDaysFromNow) isExpiringSoon = true;
+            }
+            return (
+              <div key={item.Id} className="bg-[#0F1524] rounded-2xl border border-[#1e2a3d] p-4">
+                {/* Card header */}
+                <div className="flex items-start gap-3">
+                  {/* Image */}
+                  <div className="flex-shrink-0">
+                    {item.image_url ? (
+                      <button
+                        type="button"
+                        onClick={() => setPreviewImage({ url: item.image_url!, title: item.Name, code: item.ItemCode })}
+                        className="w-12 h-12 rounded-xl bg-[#161d2e] border border-[#1e2a3d] hover:border-red-500 overflow-hidden flex items-center justify-center transition-all"
+                      >
+                        <img src={item.image_url} alt={item.Name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/50x50?text=NA"; }} />
+                      </button>
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-[#161d2e] border border-[#1e2a3d] flex items-center justify-center">
+                        <ImageIcon size={18} className="text-[#3d4c62]" />
+                      </div>
+                    )}
+                  </div>
+                  {/* Name + Code */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-mono font-bold text-[#e02424] text-xs">{item.ItemCode}</p>
+                    <p className="font-semibold text-[#dce3ef] text-sm truncate">{item.Name}</p>
+                    <p className="text-[#5a657a] text-xs mt-0.5">
+                      {item.category?.categoryName}{item.subCategory ? ` › ${item.subCategory.name}` : ""}
+                    </p>
+                  </div>
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button type="button" onClick={() => openEdit(item)} className="p-2 rounded-lg text-[#5a657a] hover:text-blue-400 hover:bg-blue-900/30 transition-colors">
+                      <Pencil size={15} />
+                    </button>
+                    <button type="button" onClick={() => setDeleteTarget(item)} className="p-2 rounded-lg text-[#5a657a] hover:text-[#e02424] hover:bg-[#e02424]/10 transition-colors">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Card body — key stats */}
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="bg-[#161d2e] rounded-xl p-2.5">
+                    <p className="text-[10px] font-semibold text-[#3d4c62] uppercase tracking-wide mb-1">Stock</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-[#dce3ef] text-sm">{item.Qty}</span>
+                      {isOutOfStock && <span className="px-1.5 py-0.5 text-[10px] font-bold text-red-400 bg-red-950/60 rounded border border-red-800/60">Out</span>}
+                      {isLowStock && <span className="px-1.5 py-0.5 text-[10px] font-bold text-amber-300 bg-amber-950/60 rounded border border-amber-800/60">Low</span>}
+                    </div>
+                  </div>
+                  <div className="bg-[#161d2e] rounded-xl p-2.5">
+                    <p className="text-[10px] font-semibold text-[#3d4c62] uppercase tracking-wide mb-1">Sell Price</p>
+                    <span className="font-bold text-emerald-400 text-sm">${item.SellPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="bg-[#161d2e] rounded-xl p-2.5">
+                    <p className="text-[10px] font-semibold text-[#3d4c62] uppercase tracking-wide mb-1">Location</p>
+                    <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${
+                      item.issueLocation === "Warehouse"
+                        ? "bg-blue-950/50 text-blue-300 border border-blue-800/50"
+                        : "bg-purple-950/50 text-purple-300 border border-purple-800/50"
+                    }`}>{item.issueLocation}</span>
+                  </div>
+                  <div className="bg-[#161d2e] rounded-xl p-2.5">
+                    <p className="text-[10px] font-semibold text-[#3d4c62] uppercase tracking-wide mb-1">Expiry</p>
+                    {item.ExpiryDate ? (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-[#5a657a] text-xs">{formatDate(item.ExpiryDate)}</span>
+                        {isExpired && <span className="px-1 py-0.5 text-[10px] font-bold text-red-400 bg-red-950/60 rounded border border-red-800/60">Exp</span>}
+                        {isExpiringSoon && <span className="px-1 py-0.5 text-[10px] font-bold text-purple-300 bg-purple-950/60 rounded border border-purple-800/60">Soon</span>}
+                      </div>
+                    ) : <span className="text-[#3d4c62] italic text-xs">—</span>}
+                  </div>
+                </div>
+
+                {/* Supplier row */}
+                {item.supplier && (
+                  <div className="mt-2 flex items-center gap-1.5 text-xs text-blue-300">
+                    <Building2 size={12} className="text-blue-400" />
+                    <span className="font-medium">{item.supplier.Company}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+        {inventories.length > 0 && (
+          <p className="text-xs text-[#3d4c62] font-medium text-center py-2">
+            {inventories.length} {inventories.length === 1 ? "item" : "items"} total
+          </p>
+        )}
+      </div>
+
+      {/* ──────────────────────────────────────────────
+          DESKTOP TABLE VIEW  (hidden on mobile)
+         ────────────────────────────────────────────── */}
+      <div className="hidden sm:block bg-[#0F1524] rounded-2xl border border-[#1e2a3d] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-xs min-w-[900px]">
             <thead>
-              <tr className="bg-[#080c12] border-b border-[#1e2a3d]">
+              <tr className="bg-[#0F1524] border-b border-[#1e2a3d]">
                 <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide w-10">#</th>
                 <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap">Item Code</th>
                 <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide w-12">Image</th>

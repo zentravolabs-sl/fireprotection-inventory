@@ -6,6 +6,9 @@
 //
 // useSearchParams is wrapped in a Suspense boundary via the
 // LoginForm component to satisfy Next.js SSR requirements.
+//
+// Mobile: single-column form (fire panel hidden).
+// Desktop: split layout with fire scene on left, form on right.
 // ============================================================
 
 import React, { Suspense, useActionState, useEffect, startTransition } from "react";
@@ -106,6 +109,8 @@ function LoginForm() {
           alignItems: "center",
           justifyContent: "space-between",
           marginBottom: 22,
+          flexWrap: "wrap",
+          gap: 8,
         }}
       >
         <label
@@ -190,9 +195,10 @@ export default function LoginPage() {
       }}
     >
       {/* ════════════════════════════════════════════════════
-          LEFT PANEL — Fire scene background
+          LEFT PANEL — Fire scene background (hidden on mobile)
       ════════════════════════════════════════════════════ */}
       <div
+        className="hidden sm:block"
         style={{
           position: "relative",
           width: "52%",
@@ -252,9 +258,10 @@ export default function LoginPage() {
       </div>
 
       {/* ════════════════════════════════════════════════════
-          3D Fire Extinguisher — foreground
+          3D Fire Extinguisher — foreground (hidden on mobile)
       ════════════════════════════════════════════════════ */}
       <div
+        className="hidden sm:block"
         style={{
           position: "absolute",
           left: "35%",
@@ -281,9 +288,80 @@ export default function LoginPage() {
       </div>
 
       {/* ════════════════════════════════════════════════════
-          RIGHT PANEL — White sign-in form (diagonal clip)
+          RIGHT PANEL — White sign-in form
+          Desktop: diagonal clip, 55% width, absolute positioned
+          Mobile:  full width, no clip-path, centered
       ════════════════════════════════════════════════════ */}
+
+      {/* Mobile layout — full screen white form */}
       <div
+        className="flex sm:hidden"
+        style={{
+          position: "relative",
+          width: "100%",
+          minHeight: "100vh",
+          backgroundColor: "white",
+          flexDirection: "column",
+        }}
+      >
+        {/* Mobile logo header */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #b91c1c, #7f1d1d)",
+            padding: "28px 24px 20px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ position: "relative", width: 48, height: 40, margin: "0 auto 10px" }}>
+            <Image
+              src="/images/cdn-fire-icon.png"
+              alt="CDN Fire Logo"
+              fill
+              priority
+              style={{ objectFit: "contain", filter: "brightness(0) invert(1)" }}
+            />
+          </div>
+          <h1 style={{ color: "#fff", fontSize: "1.6rem", fontWeight: 900, margin: 0, letterSpacing: "-0.02em" }}>
+            Welcome Back!
+          </h1>
+          <p style={{ color: "#fca5a5", fontSize: "0.84rem", marginTop: 4 }}>
+            Sign in to continue to your account
+          </p>
+        </div>
+
+        {/* Mobile form body */}
+        <div style={{ flex: 1, padding: "28px 24px", overflowY: "auto" }}>
+          <Suspense
+            fallback={
+              <div className="animate-pulse space-y-4">
+                <div className="h-12 bg-gray-100 rounded-xl" />
+                <div className="h-12 bg-gray-100 rounded-xl" />
+                <div className="h-12 bg-gray-100 rounded-xl" />
+              </div>
+            }
+          >
+            <LoginForm />
+          </Suspense>
+        </div>
+
+        {/* Mobile footer */}
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: "0.74rem",
+            color: "#9ca3af",
+            padding: "12px 24px 24px",
+            borderTop: "1px solid #f3f4f6",
+          }}
+        >
+          <p style={{ margin: 0 }}>© 2026 CDN Fire Engineering (Pvt) Ltd.</p>
+          <p style={{ margin: "2px 0 0" }}>All rights reserved.</p>
+        </div>
+      </div>
+
+      {/* Desktop layout — diagonal clipped panel */}
+      <div
+        className="hidden sm:flex"
         style={{
           position: "absolute",
           top: 0,
@@ -293,7 +371,6 @@ export default function LoginPage() {
           backgroundColor: "white",
           clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0% 100%)",
           zIndex: 20,
-          display: "flex",
           flexDirection: "column",
           boxShadow: "-24px 0 70px rgba(0,0,0,0.3)",
         }}

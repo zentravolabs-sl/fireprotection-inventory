@@ -3,11 +3,12 @@
 // ============================================================
 // src/components/ui/Sidebar.tsx
 // Collapsible sidebar navigation for FireGuard ERP.
-// Color theme: dark navy/charcoal bg (#0f1117 / #161b27),
-// red accent (#e02020 / #ff2d2d), muted text (#8b929e).
+// Color theme: dark navy/charcoal bg (#0F1524 / #161d2e),
+// red accent (#e02424 / #ff2d2d), muted text (#5a657a).
+// Mobile: slide-in drawer with overlay backdrop.
 // ============================================================
 
-import React, { useState, createContext, useContext } from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -30,11 +31,15 @@ interface NavGroup {
 interface SidebarContextValue {
   collapsed: boolean;
   setCollapsed: (v: boolean) => void;
+  mobileOpen: boolean;
+  setMobileOpen: (v: boolean) => void;
 }
 
 const SidebarContext = createContext<SidebarContextValue>({
   collapsed: false,
   setCollapsed: () => {},
+  mobileOpen: false,
+  setMobileOpen: () => {},
 });
 
 export function useSidebar() {
@@ -144,6 +149,19 @@ const Icons = {
       <path d="M12 2C12 2 7 8 7 13a5 5 0 0 0 10 0C17 8 12 2 12 2zm0 15a3 3 0 0 1-3-3c0-2.5 3-7 3-7s3 4.5 3 7a3 3 0 0 1-3 3z"/>
     </svg>
   ),
+  hamburger: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  ),
+  close: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  ),
 };
 
 // ─── Navigation Data ──────────────────────────────────────────────────────────
@@ -188,12 +206,24 @@ const NAV_GROUPS: NavGroup[] = [
 
 // ─── NavItem Component ─────────────────────────────────────────────────────────
 
-function SidebarNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+function SidebarNavItem({
+  item,
+  collapsed,
+  onNavigate,
+}: {
+  item: NavItem;
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
 
   return (
-    <Link href={item.href} className={`sidebar-nav-item ${isActive ? "active" : ""}`}>
+    <Link
+      href={item.href}
+      className={`sidebar-nav-item ${isActive ? "active" : ""}`}
+      onClick={onNavigate}
+    >
       <span className="sidebar-nav-icon">{item.icon}</span>
       {!collapsed && (
         <>
@@ -210,66 +240,135 @@ function SidebarNavItem({ item, collapsed }: { item: NavItem; collapsed: boolean
   );
 }
 
-// ─── Main Sidebar Component ────────────────────────────────────────────────────
+// ─── Context Provider ─────────────────────────────────────────────────────────
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   return (
-    <SidebarContext.Provider value={{ collapsed, setCollapsed }}>
+    <SidebarContext.Provider value={{ collapsed, setCollapsed, mobileOpen, setMobileOpen }}>
       {children}
     </SidebarContext.Provider>
   );
 }
 
+// ─── Mobile Hamburger Button (exported for use in layouts) ────────────────────
+
+export function MobileMenuButton() {
+  const { mobileOpen, setMobileOpen } = useSidebar();
+  return (
+    <button
+      className="mobile-hamburger"
+      onClick={() => setMobileOpen(!mobileOpen)}
+      aria-label={mobileOpen ? "Close menu" : "Open menu"}
+    >
+      {mobileOpen ? Icons.close : Icons.hamburger}
+    </button>
+  );
+}
+
+// ─── Mobile Top Bar ───────────────────────────────────────────────────────────
+
+export function MobileTopBar() {
+  const { mobileOpen, setMobileOpen } = useSidebar();
+  return (
+    <div className="mobile-topbar">
+      <button
+        className="mobile-hamburger"
+        onClick={() => setMobileOpen(!mobileOpen)}
+        aria-label={mobileOpen ? "Close menu" : "Open menu"}
+      >
+        {mobileOpen ? Icons.close : Icons.hamburger}
+      </button>
+      <div className="mobile-topbar-brand">
+        <div className="mobile-topbar-brand-icon">
+          <span style={{ color: "#fff", display: "flex" }}>{Icons.fire}</span>
+        </div>
+        <span className="mobile-topbar-brand-name">FireGuard ERP</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Sidebar Component ────────────────────────────────────────────────────
+
 export function Sidebar() {
-  const { collapsed, setCollapsed } = useSidebar();
+  const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
+
+  const closeMobile = () => setMobileOpen(false);
 
   return (
-    <aside className={`sidebar ${collapsed ? "sidebar--collapsed" : ""}`}>
-      {/* ── Logo + Collapse Toggle ── */}
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <span className="sidebar-logo-fire">{Icons.fire}</span>
+    <>
+      {/* Overlay backdrop (mobile only) */}
+      <div
+        className={`sidebar-overlay ${mobileOpen ? "sidebar-overlay--visible" : ""}`}
+        onClick={closeMobile}
+        aria-hidden="true"
+      />
+
+      <aside className={`sidebar ${collapsed ? "sidebar--collapsed" : ""} ${mobileOpen ? "sidebar--mobile-open" : ""}`}>
+        {/* ── Logo + Collapse Toggle ── */}
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">
+            <span className="sidebar-logo-fire">{Icons.fire}</span>
+          </div>
+          {!collapsed && (
+            <div className="sidebar-logo-text">
+              <span className="sidebar-logo-brand">FireGuard</span>
+              <span className="sidebar-logo-sub">ERP SYSTEM</span>
+            </div>
+          )}
+          <button
+            className="sidebar-toggle sidebar-toggle--top"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? Icons.chevronRight : Icons.chevronLeft}
+          </button>
         </div>
-        {!collapsed && (
-          <div className="sidebar-logo-text">
-            <span className="sidebar-logo-brand">FireGuard</span>
-            <span className="sidebar-logo-sub">ERP SYSTEM</span>
-          </div>
-        )}
-        <button
-          className="sidebar-toggle sidebar-toggle--top"
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? Icons.chevronRight : Icons.chevronLeft}
-        </button>
-      </div>
 
-      {/* ── Dashboard link ── */}
-      <div className="sidebar-dashboard-link">
-        <SidebarNavItem
-          item={{ label: "Dashboard", href: "/dashboard", icon: Icons.dashboard }}
-          collapsed={collapsed}
-        />
-      </div>
+        {/* ── Dashboard link ── */}
+        <div className="sidebar-dashboard-link">
+          <SidebarNavItem
+            item={{ label: "Dashboard", href: "/dashboard", icon: Icons.dashboard }}
+            collapsed={collapsed}
+            onNavigate={closeMobile}
+          />
+        </div>
 
-      {/* ── Nav Groups ── */}
-      <nav className="sidebar-nav">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.title} className="sidebar-group">
-            {!collapsed && (
-              <p className="sidebar-group-title">{group.title}</p>
-            )}
-            {collapsed && <div className="sidebar-group-divider" />}
-            {group.items.map((item) => (
-              <SidebarNavItem key={item.href} item={item} collapsed={collapsed} />
-            ))}
-          </div>
-        ))}
-      </nav>
-
-
-    </aside>
+        {/* ── Nav Groups ── */}
+        <nav className="sidebar-nav">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.title} className="sidebar-group">
+              {!collapsed && (
+                <p className="sidebar-group-title">{group.title}</p>
+              )}
+              {collapsed && <div className="sidebar-group-divider" />}
+              {group.items.map((item) => (
+                <SidebarNavItem
+                  key={item.href}
+                  item={item}
+                  collapsed={collapsed}
+                  onNavigate={closeMobile}
+                />
+              ))}
+            </div>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }

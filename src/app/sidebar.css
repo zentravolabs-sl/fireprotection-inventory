@@ -16,7 +16,7 @@
 :root {
   --sb-width:          220px;
   --sb-width-collapsed: 64px;
-  --sb-bg:             #0d1117;
+  --sb-bg:             #0F1524;
   --sb-bg-hover:       #161d2e;
   --sb-bg-active:      #1a2035;
   --sb-accent:         #e02424;
@@ -34,7 +34,7 @@
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  background: #080c12;
+  background: #0F1524;
 }
 
 .app-main {
@@ -353,3 +353,149 @@
   margin-left: var(--sb-width-collapsed);
   width: calc(100% - var(--sb-width-collapsed));
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE  (≤ 767px)
+   - Sidebar becomes a slide-in overlay drawer
+   - A fixed top bar with hamburger + brand appears
+   - Main content fills full width
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Mobile Top Bar ────────────────────────────────────────── */
+.mobile-topbar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  /* Show mobile topbar */
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--sb-bg);
+    border-bottom: 1px solid var(--sb-border);
+    box-shadow: 0 1px 0 0 var(--sb-border), 0 4px 16px rgba(0,0,0,0.4);
+    padding: 0 16px;
+    z-index: 60;
+  }
+
+  .mobile-topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .mobile-topbar-brand-icon {
+    width: 30px;
+    height: 30px;
+    background: var(--sb-accent);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px var(--sb-accent-glow);
+    flex-shrink: 0;
+  }
+
+  .mobile-topbar-brand-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sb-text);
+    letter-spacing: 0.02em;
+  }
+
+  /* Hamburger button */
+  .mobile-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--sb-bg-hover);
+    border: 1px solid var(--sb-border);
+    color: var(--sb-text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background var(--sb-transition), color var(--sb-transition);
+  }
+
+  .mobile-hamburger:hover {
+    background: var(--sb-accent);
+    color: #fff;
+    border-color: var(--sb-accent);
+  }
+
+  /* Sidebar — off-canvas on mobile */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--sb-transition);
+    width: var(--sb-width) !important;
+    z-index: 70;
+    top: 0;
+  }
+
+  .sidebar--mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Overlay backdrop */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 65;
+    animation: fadeInOverlay 200ms ease;
+  }
+
+  .sidebar-overlay--visible {
+    display: block;
+  }
+
+  @keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Main content — no sidebar offset on mobile, add top padding for topbar */
+  .sidebar-offset,
+  .sidebar-offset--collapsed {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-top: 56px;
+  }
+
+  /* Hide desktop-only sidebar toggle */
+  .sidebar-toggle--top {
+    display: none;
+  }
+
+  /* App shell no side-scroll */
+  .app-shell {
+    overflow-x: hidden;
+  }
+}
+
+/* Hide mobile hamburger on desktop */
+@media (min-width: 768px) {
+  .mobile-topbar {
+    display: none !important;
+  }
+
+  .mobile-hamburger {
+    display: none !important;
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+  }
+}
+

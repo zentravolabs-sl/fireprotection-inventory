@@ -4,6 +4,7 @@
 // src/components/ui/SidebarOffsetWrapper.tsx
 // Client wrapper that reads the sidebar collapsed state and
 // applies the correct margin-left to the main content area.
+// Mobile: no offset, padding-top for mobile topbar (via CSS).
 // ============================================================
 
 import React from "react";
@@ -19,7 +20,6 @@ export function SidebarOffsetWrapper({
   return (
     <main
       className={`sidebar-offset ${collapsed ? "sidebar-offset--collapsed" : ""}`}
-      style={{ minHeight: "100vh", background: "#080c12" }}
     >
       {children}
     </main>

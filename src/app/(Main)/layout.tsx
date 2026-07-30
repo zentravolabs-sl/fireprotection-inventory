@@ -6,7 +6,7 @@
 // ============================================================
 
 import { requireSession } from "@/lib/session";
-import { Sidebar, SidebarProvider } from "@/components/ui/Sidebar";
+import { Sidebar, SidebarProvider, MobileTopBar } from "@/components/ui/Sidebar";
 import "../sidebar.css";
 import { SidebarOffsetWrapper } from "@/components/ui/SidebarOffsetWrapper";
 
@@ -21,6 +21,8 @@ export default async function MainLayout({
   return (
     <SidebarProvider>
       <div className="app-shell">
+        {/* Mobile top bar — visible only on small screens via CSS */}
+        <MobileTopBar />
         <Sidebar />
         <SidebarOffsetWrapper>
           {children}

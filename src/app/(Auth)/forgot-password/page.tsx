@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           {/* Form */}
-          <div className="px-8 py-6">
+          <div className="px-5 sm:px-8 py-6">
             {state.success ? (
               /* Success state */
               <div className="text-center py-4">

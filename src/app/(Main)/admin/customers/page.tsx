@@ -29,9 +29,9 @@ export default async function CustomersPage({ searchParams }: PageProps) {
   const customers = await getCustomers(search);
 
   return (
-    <div className="min-h-screen bg-[#080c12]">
+    <div className="min-h-screen bg-[#0F1524]">
       {/* Sticky top navigation */}
-      <nav className="bg-[#0d1117] border-b border-[#1e2a3d] shadow-[0_1px_0_0_#1e2a3d,0_4px_24px_rgba(0,0,0,0.45)] sticky top-0 z-10">
+      <nav className="bg-[#0F1524] border-b border-[#1e2a3d] shadow-[0_1px_0_0_#1e2a3d,0_4px_24px_rgba(0,0,0,0.45)] sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
           <Link
             href="/admin"
@@ -93,10 +93,10 @@ export default async function CustomersPage({ searchParams }: PageProps) {
         {/* Customer Data Table */}
         <Suspense
           fallback={
-            <div className="bg-[#0d1117] rounded-2xl border border-[#1e2a3d] shadow-sm overflow-hidden">
+            <div className="bg-[#0F1524] rounded-2xl border border-[#1e2a3d] shadow-sm overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-[#080c12] border-b border-[#1e2a3d]">
+                  <tr className="bg-[#0F1524] border-b border-[#1e2a3d]">
                     {["#", "Company Name", "Contact Person", "Phone", "Email", "Address", "Created Date", "Actions"].map((h) => (
                       <th key={h} className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide">
                         {h}

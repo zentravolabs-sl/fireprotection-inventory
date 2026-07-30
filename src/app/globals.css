@@ -26,8 +26,8 @@ select option {
 }
 
 /* Option element styling in dark themed filters */
-select.bg-\[\#080c12\] option,
+select.bg-\[\#0F1524\] option,
 select.bg-\[\#0d1117\] option {
   color: #dce3ef;
-  background-color: #0d1117;
+  background-color: #0F1524;
 }

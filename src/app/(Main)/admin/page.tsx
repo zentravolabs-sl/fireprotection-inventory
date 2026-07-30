@@ -73,9 +73,9 @@ export default async function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#080c12]">
-      <nav className="bg-[#0d1117] border-b border-[#1e2a3d] shadow-[0_1px_0_0_#1e2a3d,0_4px_24px_rgba(0,0,0,0.45)] sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-4">
+    <div className="min-h-screen bg-[#0F1524]">
+      <nav className="bg-[#0F1524] border-b border-[#1e2a3d] shadow-[0_1px_0_0_#1e2a3d,0_4px_24px_rgba(0,0,0,0.45)] sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#5a657a] hover:text-[#e02424] transition-colors"
@@ -91,8 +91,8 @@ export default async function AdminPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-black text-[#dce3ef] mb-2">Admin Panel</h1>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#dce3ef] mb-2">Admin Panel</h1>
         <p className="text-[#5a657a] mb-8">
           Logged in as <strong className="text-[#dce3ef]">{user.name}</strong> <span className="text-[#3d4c62]">({user.role})</span>
         </p>
@@ -103,7 +103,7 @@ export default async function AdminPage() {
             <Link
               key={href}
               href={href}
-              className={`group bg-[#0d1117] rounded-2xl border border-[#1e2a3d] shadow-sm p-6 transition-all duration-200 hover:shadow-[0_0_0_1px_#e02424] hover:border-[#e02424]/40 ${border}`}
+              className={`group bg-[#0F1524] rounded-2xl border border-[#1e2a3d] shadow-sm p-5 sm:p-6 transition-all duration-200 hover:shadow-[0_0_0_1px_#e02424] hover:border-[#e02424]/40 ${border}`}
             >
               <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center mb-4 opacity-80`}>
                 <Icon size={20} className={color} />
@@ -116,7 +116,7 @@ export default async function AdminPage() {
           ))}
 
           {/* Placeholder card */}
-          <div className="bg-[#0d1117] rounded-2xl border border-dashed border-[#1e2a3d] p-6 flex flex-col items-center justify-center text-center gap-3 opacity-50">
+          <div className="bg-[#0F1524] rounded-2xl border border-dashed border-[#1e2a3d] p-5 sm:p-6 flex flex-col items-center justify-center text-center gap-3 opacity-50">
             <Users size={28} className="text-[#3d4c62]" />
             <p className="text-[#5a657a] text-sm font-medium">More modules coming soon</p>
           </div>
