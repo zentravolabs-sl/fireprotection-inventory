@@ -9,7 +9,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Building, User, Phone, Mail, MapPin } from "lucide-react";
-import { z } from "zod";
 import { customerSchema, type CustomerFormValues } from "@/lib/validations/customer";
 import type { CustomerRow } from "../actions";
 
@@ -33,24 +32,24 @@ export default function CustomerForm({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<z.input<typeof customerSchema>, any, CustomerFormValues>({
+  } = useForm({
     resolver: zodResolver(customerSchema),
     defaultValues: {
-      CompanyName: initialData?.CompanyName ?? "",
-      ContactPerson: initialData?.ContactPerson ?? "",
-      Phone: initialData?.Phone ?? "",
-      Email: initialData?.Email ?? "",
-      Address: initialData?.Address ?? "",
+      companyName: initialData?.companyName ?? "",
+      contactPerson: initialData?.contactPerson ?? "",
+      phone: initialData?.phone ?? "",
+      email: initialData?.email ?? "",
+      address: initialData?.address ?? "",
     },
   });
 
   useEffect(() => {
     reset({
-      CompanyName: initialData?.CompanyName ?? "",
-      ContactPerson: initialData?.ContactPerson ?? "",
-      Phone: initialData?.Phone ?? "",
-      Email: initialData?.Email ?? "",
-      Address: initialData?.Address ?? "",
+      companyName: initialData?.companyName ?? "",
+      contactPerson: initialData?.contactPerson ?? "",
+      phone: initialData?.phone ?? "",
+      email: initialData?.email ?? "",
+      address: initialData?.address ?? "",
     });
   }, [initialData, reset]);
 
@@ -58,108 +57,99 @@ export default function CustomerForm({
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {/* Company Name (Required) */}
       <div>
-        <label htmlFor="CompanyName" className="block text-sm font-semibold text-gray-700 mb-1.5">
+        <label htmlFor="companyName" className="block text-sm font-semibold text-gray-700 mb-1.5">
           Company Name <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <Building size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
-            id="CompanyName"
+            id="companyName"
             type="text"
-            {...register("CompanyName")}
+            {...register("companyName")}
             placeholder="e.g. Acme Fire Safety Ltd"
             disabled={isSubmitting}
             className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all placeholder:text-gray-400 text-gray-900 bg-white disabled:opacity-60 ${
-              errors.CompanyName
+              errors.companyName
                 ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                 : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
             }`}
           />
         </div>
-        {errors.CompanyName && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.CompanyName.message}</p>}
+        {errors.companyName && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.companyName.message}</p>}
       </div>
 
       {/* Contact Person & Phone */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Contact Person */}
         <div>
-          <label htmlFor="ContactPerson" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="contactPerson" className="block text-sm font-semibold text-gray-700 mb-1.5">
             Contact Person (Optional)
           </label>
           <div className="relative">
             <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
-              id="ContactPerson"
+              id="contactPerson"
               type="text"
-              {...register("ContactPerson")}
+              {...register("contactPerson")}
               placeholder="e.g. John Doe"
               disabled={isSubmitting}
               className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 bg-white text-gray-900"
             />
           </div>
-          {errors.ContactPerson && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.ContactPerson.message}</p>}
         </div>
 
-        {/* Phone */}
         <div>
-          <label htmlFor="Phone" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5">
             Phone Number (Optional)
           </label>
           <div className="relative">
             <Phone size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
-              id="Phone"
+              id="phone"
               type="tel"
-              {...register("Phone")}
+              {...register("phone")}
               placeholder="e.g. +94 77 123 4567"
               disabled={isSubmitting}
               className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 bg-white text-gray-900"
             />
           </div>
-          {errors.Phone && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Phone.message}</p>}
         </div>
       </div>
 
       {/* Email */}
       <div>
-        <label htmlFor="Email" className="block text-sm font-semibold text-gray-700 mb-1.5">
+        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1.5">
           Email Address (Optional)
         </label>
         <div className="relative">
           <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
-            id="Email"
+            id="email"
             type="email"
-            {...register("Email")}
+            {...register("email")}
             placeholder="e.g. info@acmefire.com"
             disabled={isSubmitting}
-            className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all placeholder:text-gray-400 text-gray-900 bg-white ${
-              errors.Email
-                ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
-                : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-            }`}
+            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 bg-white text-gray-900"
           />
         </div>
-        {errors.Email && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Email.message}</p>}
+        {errors.email && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.email.message}</p>}
       </div>
 
-      {/* Address Textarea */}
+      {/* Address */}
       <div>
-        <label htmlFor="Address" className="block text-sm font-semibold text-gray-700 mb-1.5">
+        <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1.5">
           Address (Optional)
         </label>
         <div className="relative">
           <MapPin size={15} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
           <textarea
-            id="Address"
+            id="address"
             rows={3}
-            {...register("Address")}
+            {...register("address")}
             placeholder="e.g. 123 Industrial Zone, Colombo 03"
             disabled={isSubmitting}
             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 bg-white text-gray-900 resize-none"
           />
         </div>
-        {errors.Address && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Address.message}</p>}
       </div>
 
       {/* Form Actions */}

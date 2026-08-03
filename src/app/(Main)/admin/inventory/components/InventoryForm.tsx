@@ -2,20 +2,16 @@
 
 // ============================================================
 // src/app/(Main)/admin/inventory/components/InventoryForm.tsx
-// React Hook Form + Zod with Cloudinary image upload to folder Cdnfire.
+// React Form for Inventory Master Item Creation and Editing.
+// Matches the new clean 3NF ERP schema.
 // ============================================================
 
-import { useState, useEffect } from "react";
-import { useForm, Controller, useWatch } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "react-toastify";
-import { Loader2, Package, Barcode, Hash, DollarSign, Image as ImageIcon, MapPin, Building, Calendar, UploadCloud } from "lucide-react";
+import { Loader2, Package, Barcode, MapPin, DollarSign, Layers } from "lucide-react";
 import { inventorySchema, type InventoryFormValues } from "@/lib/validations/inventory";
-import DependentCategorySelect from "./DependentCategorySelect";
-import SearchableSupplierSelect from "./SearchableSupplierSelect";
-import { uploadImageToCloudinary } from "../upload-action";
-import type { InventoryRow } from "../actions";
-import type { z } from "zod";
+import { getSubCategoriesByCategoryId, type InventoryRow } from "../actions";
 
 interface CategoryOption {
   id: number;
@@ -23,516 +19,333 @@ interface CategoryOption {
 }
 
 interface InventoryFormProps {
-  categories: CategoryOption[];
   initialData?: InventoryRow;
+  categories: CategoryOption[];
   onSubmit: (data: InventoryFormValues) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
 }
 
 export default function InventoryForm({
-  categories,
   initialData,
+  categories,
   onSubmit,
   onCancel,
   isSubmitting,
 }: InventoryFormProps) {
   const isEdit = Boolean(initialData);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [subCategories, setSubCategories] = useState<{ id: number; name: string }[]>([]);
 
   const {
     register,
     handleSubmit,
-    control,
-    setValue,
     reset,
+    watch,
+    setValue,
     formState: { errors },
-  } = useForm<z.input<typeof inventorySchema>, any, InventoryFormValues>({
+  } = useForm({
     resolver: zodResolver(inventorySchema),
     defaultValues: {
-      ItemCode: initialData?.ItemCode ?? "",
-      Name: initialData?.Name ?? "",
-      CategoryId: initialData?.CategoryId ?? "",
-      SubCategoryId: initialData?.SubCategoryId ?? "",
-      Brand: initialData?.Brand ?? "",
-      Unit: initialData?.Unit ?? "Pcs",
-      Qty: initialData?.Qty ?? 0,
-      MinStock: initialData?.MinStock ?? 0,
-      RackLocation: initialData?.RackLocation ?? "",
-      Warehouse: initialData?.Warehouse ?? "",
-      BuyPrice: initialData?.BuyPrice ?? 0,
-      SellPrice: initialData?.SellPrice ?? 0,
-      SupplierId: initialData?.SupplierId ?? null,
-      Barcode: initialData?.Barcode ?? "",
-      ExpiryDate: initialData?.ExpiryDate ? new Date(initialData.ExpiryDate).toISOString().split("T")[0] : "",
-      image_url: initialData?.image_url ?? "",
-      issueLocation: initialData?.issueLocation ?? "Warehouse",
+      itemCode: initialData?.itemCode ?? "",
+      name: initialData?.name ?? "",
+      categoryId: initialData?.categoryId ?? 0,
+      subCategoryId: initialData?.subCategoryId ?? 0,
+      brand: initialData?.brand ?? "",
+      unit: initialData?.unit ?? "Pcs",
+      minStock: initialData?.minStock ?? 0,
+      barcode: initialData?.barcode ?? "",
+      rackLocation: initialData?.rackLocation ?? "",
+      warehouse: initialData?.warehouse ?? "Main Warehouse",
+      defaultSellPrice: initialData?.defaultSellPrice ?? 0,
+      imageUrl: initialData?.imageUrl ?? "",
     },
   });
 
-  const categoryIdValue = useWatch({ control, name: "CategoryId" });
-  const subCategoryIdValue = useWatch({ control, name: "SubCategoryId" });
-  const imageUrlValue = useWatch({ control, name: "image_url" });
+  const selectedCategory = watch("categoryId");
+
+  // Load sub-categories when category changes
+  useEffect(() => {
+    if (!selectedCategory) {
+      setSubCategories([]);
+      return;
+    }
+    let isMounted = true;
+    getSubCategoriesByCategoryId(Number(selectedCategory)).then((res) => {
+      if (isMounted) setSubCategories(res);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCategory]);
 
   useEffect(() => {
-    reset({
-      ItemCode: initialData?.ItemCode ?? "",
-      Name: initialData?.Name ?? "",
-      CategoryId: initialData?.CategoryId ?? "",
-      SubCategoryId: initialData?.SubCategoryId ?? "",
-      Brand: initialData?.Brand ?? "",
-      Unit: initialData?.Unit ?? "Pcs",
-      Qty: initialData?.Qty ?? 0,
-      MinStock: initialData?.MinStock ?? 0,
-      RackLocation: initialData?.RackLocation ?? "",
-      Warehouse: initialData?.Warehouse ?? "",
-      BuyPrice: initialData?.BuyPrice ?? 0,
-      SellPrice: initialData?.SellPrice ?? 0,
-      SupplierId: initialData?.SupplierId ?? null,
-      Barcode: initialData?.Barcode ?? "",
-      ExpiryDate: initialData?.ExpiryDate ? new Date(initialData.ExpiryDate).toISOString().split("T")[0] : "",
-      image_url: initialData?.image_url ?? "",
-      issueLocation: initialData?.issueLocation ?? "Warehouse",
-    });
+    if (initialData) {
+      reset({
+        itemCode: initialData.itemCode,
+        name: initialData.name,
+        categoryId: initialData.categoryId,
+        subCategoryId: initialData.subCategoryId,
+        brand: initialData.brand ?? "",
+        unit: initialData.unit,
+        minStock: initialData.minStock,
+        barcode: initialData.barcode ?? "",
+        rackLocation: initialData.rackLocation ?? "",
+        warehouse: initialData.warehouse ?? "Main Warehouse",
+        defaultSellPrice: initialData.defaultSellPrice,
+        imageUrl: initialData.imageUrl ?? "",
+      });
+    }
   }, [initialData, reset]);
 
-  // Handler for Cloudinary file upload
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploadingImage(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const result = await uploadImageToCloudinary(formData);
-      if (result.success && result.url) {
-        setValue("image_url", result.url, { shouldValidate: true });
-        toast.success("Image uploaded to Cloudinary (Cdnfire) successfully!");
-      } else {
-        toast.error(result.message || "Failed to upload image to Cloudinary.");
-      }
-    } catch (err) {
-      toast.error("An error occurred while uploading image.");
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
+  const inputClass = (hasError?: boolean) =>
+    `w-full px-3.5 py-2.5 text-sm border rounded-xl outline-none transition-all
+    placeholder:text-gray-400 text-gray-900 bg-white
+    disabled:opacity-60 disabled:cursor-not-allowed
+    ${
+      hasError
+        ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+        : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
+    }`;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-      {/* ── Basic Product Info ── */}
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
+      {/* Code & Name Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Item Code (Required) */}
         <div>
-          <label htmlFor="ItemCode" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Item Code / SKU <span className="text-red-500">*</span>
+          <label htmlFor="itemCode" className="block text-xs font-semibold text-gray-700 mb-1">
+            Item Code <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Barcode size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              id="ItemCode"
-              type="text"
-              {...register("ItemCode")}
-              placeholder="e.g. EXT-ABC-6KG"
-              disabled={isSubmitting}
-              className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all placeholder:text-gray-400 text-gray-900 bg-white disabled:opacity-60 ${
-                errors.ItemCode ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-              }`}
-            />
-          </div>
-          {errors.ItemCode && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.ItemCode.message}</p>}
+          <input
+            id="itemCode"
+            type="text"
+            {...register("itemCode")}
+            placeholder="e.g. PIPE-GALV-001"
+            disabled={isSubmitting}
+            className={inputClass(!!errors.itemCode)}
+          />
+          {errors.itemCode && <p className="mt-1 text-xs text-red-600 font-medium">{errors.itemCode.message}</p>}
         </div>
 
-        {/* Item Name (Required) */}
         <div>
-          <label htmlFor="Name" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="name" className="block text-xs font-semibold text-gray-700 mb-1">
             Item Name <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Package size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              id="Name"
-              type="text"
-              {...register("Name")}
-              placeholder="e.g. 6kg ABC Dry Powder Fire Extinguisher"
-              disabled={isSubmitting}
-              className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all placeholder:text-gray-400 text-gray-900 bg-white disabled:opacity-60 ${
-                errors.Name ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-              }`}
-            />
-          </div>
-          {errors.Name && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Name.message}</p>}
+          <input
+            id="name"
+            type="text"
+            {...register("name")}
+            placeholder="e.g. 2 inch Galvanized Steel Pipe"
+            disabled={isSubmitting}
+            className={inputClass(!!errors.name)}
+          />
+          {errors.name && <p className="mt-1 text-xs text-red-600 font-medium">{errors.name.message}</p>}
         </div>
       </div>
 
-      {/* ── Dependent Category & SubCategory ── */}
-      <DependentCategorySelect
-        categories={categories}
-        selectedCategoryId={categoryIdValue ? Number(categoryIdValue) : null}
-        selectedSubCategoryId={subCategoryIdValue ? Number(subCategoryIdValue) : null}
-        onCategoryChange={(val) => setValue("CategoryId", val as any, { shouldValidate: true })}
-        onSubCategoryChange={(val) => setValue("SubCategoryId", val as any, { shouldValidate: true })}
-        disabled={isSubmitting}
-        categoryError={errors.CategoryId?.message}
-        subCategoryError={errors.SubCategoryId?.message}
-      />
-
-      {/* ── Brand, Unit, Barcode ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Brand */}
+      {/* Category & SubCategory Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="Brand" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Brand (Optional)
+          <label htmlFor="categoryId" className="block text-xs font-semibold text-gray-700 mb-1">
+            Category <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="categoryId"
+            {...register("categoryId")}
+            onChange={(e) => {
+              setValue("categoryId", Number(e.target.value));
+              setValue("subCategoryId", 0);
+            }}
+            disabled={isSubmitting}
+            className={inputClass(!!errors.categoryId)}
+          >
+            <option value="0">Select Category</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.categoryName}
+              </option>
+            ))}
+          </select>
+          {errors.categoryId && <p className="mt-1 text-xs text-red-600 font-medium">{errors.categoryId.message}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="subCategoryId" className="block text-xs font-semibold text-gray-700 mb-1">
+            Sub-Category <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="subCategoryId"
+            {...register("subCategoryId")}
+            disabled={isSubmitting || !selectedCategory}
+            className={inputClass(!!errors.subCategoryId)}
+          >
+            <option value="0">Select Sub-Category</option>
+            {subCategories.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          {errors.subCategoryId && <p className="mt-1 text-xs text-red-600 font-medium">{errors.subCategoryId.message}</p>}
+        </div>
+      </div>
+
+      {/* Brand, Unit & Min Stock */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label htmlFor="brand" className="block text-xs font-semibold text-gray-700 mb-1">
+            Brand
           </label>
           <input
-            id="Brand"
+            id="brand"
             type="text"
-            {...register("Brand")}
-            placeholder="e.g. FireShield"
+            {...register("brand")}
+            placeholder="e.g. Victaulic / Tyco"
             disabled={isSubmitting}
-            className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 bg-white"
+            className={inputClass(!!errors.brand)}
           />
         </div>
 
-        {/* Unit (Required) */}
         <div>
-          <label htmlFor="Unit" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="unit" className="block text-xs font-semibold text-gray-700 mb-1">
             Unit <span className="text-red-500">*</span>
           </label>
           <input
-            id="Unit"
+            id="unit"
             type="text"
-            {...register("Unit")}
-            placeholder="e.g. Pcs, Box, Meter"
+            {...register("unit")}
+            placeholder="e.g. Pcs / Mtr / Box"
             disabled={isSubmitting}
-            className={`w-full px-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white ${
-              errors.Unit ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-            }`}
+            className={inputClass(!!errors.unit)}
           />
-          {errors.Unit && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Unit.message}</p>}
+          {errors.unit && <p className="mt-1 text-xs text-red-600 font-medium">{errors.unit.message}</p>}
         </div>
 
-        {/* Barcode (Optional) */}
         <div>
-          <label htmlFor="Barcode" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Barcode (Optional)
+          <label htmlFor="minStock" className="block text-xs font-semibold text-gray-700 mb-1">
+            Minimum Stock
           </label>
           <input
-            id="Barcode"
-            type="text"
-            {...register("Barcode")}
-            placeholder="e.g. 8901234567890"
+            id="minStock"
+            type="number"
+            step="any"
+            {...register("minStock")}
+            placeholder="e.g. 10"
             disabled={isSubmitting}
-            className={`w-full px-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white ${
-              errors.Barcode ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-            }`}
+            className={inputClass(!!errors.minStock)}
           />
-          {errors.Barcode && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Barcode.message}</p>}
+          {errors.minStock && <p className="mt-1 text-xs text-red-600 font-medium">{errors.minStock.message}</p>}
         </div>
       </div>
 
-      {/* ── Quantities & Stock ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Current Qty */}
-        <div>
-          <label htmlFor="Qty" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Current Stock (Qty) <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <Hash size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              id="Qty"
-              type="number"
-              step="any"
-              min={0}
-              {...register("Qty")}
-              disabled={isSubmitting}
-              className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white ${
-                errors.Qty ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-              }`}
-            />
-          </div>
-          {errors.Qty && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Qty.message}</p>}
-        </div>
-
-        {/* Min Stock */}
-        <div>
-          <label htmlFor="MinStock" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Minimum Stock Threshold <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <Hash size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              id="MinStock"
-              type="number"
-              step="any"
-              min={0}
-              {...register("MinStock")}
-              disabled={isSubmitting}
-              className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white ${
-                errors.MinStock ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-              }`}
-            />
-          </div>
-          {errors.MinStock && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.MinStock.message}</p>}
-        </div>
-      </div>
-
-      {/* ── Pricing (BuyPrice vs SellPrice) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Buy Price */}
-        <div>
-          <label htmlFor="BuyPrice" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Buy Price ($) <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <DollarSign size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              id="BuyPrice"
-              type="number"
-              step="0.01"
-              min={0}
-              {...register("BuyPrice")}
-              disabled={isSubmitting}
-              className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white ${
-                errors.BuyPrice ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-              }`}
-            />
-          </div>
-          {errors.BuyPrice && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.BuyPrice.message}</p>}
-        </div>
-
-        {/* Sell Price */}
-        <div>
-          <label htmlFor="SellPrice" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Sell Price ($) <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <DollarSign size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              id="SellPrice"
-              type="number"
-              step="0.01"
-              min={0}
-              {...register("SellPrice")}
-              disabled={isSubmitting}
-              className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white ${
-                errors.SellPrice ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-              }`}
-            />
-          </div>
-          {errors.SellPrice && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.SellPrice.message}</p>}
-        </div>
-      </div>
-
-      {/* ── Supplier & Issue Location ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Supplier */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Supplier (Optional)
-          </label>
-          <Controller
-            name="SupplierId"
-            control={control}
-            render={({ field }) => (
-              <SearchableSupplierSelect
-                value={field.value ? Number(field.value) : null}
-                onChange={field.onChange}
-                disabled={isSubmitting}
-                error={errors.SupplierId?.message}
-              />
-            )}
-          />
-        </div>
-
-        {/* Issue Location (Enum: Warehouse | Shop) */}
-        <div>
-          <label htmlFor="issueLocation" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Issue Location <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <Building size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <select
-              id="issueLocation"
-              {...register("issueLocation")}
-              disabled={isSubmitting}
-              className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white text-gray-900 ${
-                errors.issueLocation ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-              }`}
-            >
-              <option value="Warehouse">Warehouse</option>
-              <option value="Shop">Shop</option>
-            </select>
-          </div>
-          {errors.issueLocation && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.issueLocation.message}</p>}
-        </div>
-      </div>
-
-      {/* ── Location & Dates ── */}
+      {/* Barcode, Rack Location, Warehouse */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Warehouse */}
         <div>
-          <label htmlFor="Warehouse" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Warehouse Name
+          <label htmlFor="barcode" className="block text-xs font-semibold text-gray-700 mb-1">
+            Barcode
           </label>
           <input
-            id="Warehouse"
+            id="barcode"
             type="text"
-            {...register("Warehouse")}
-            placeholder="e.g. Main Warehouse A"
+            {...register("barcode")}
+            placeholder="e.g. 890123456789"
             disabled={isSubmitting}
-            className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 bg-white"
+            className={inputClass(!!errors.barcode)}
           />
+          {errors.barcode && <p className="mt-1 text-xs text-red-600 font-medium">{errors.barcode.message}</p>}
         </div>
 
-        {/* Rack Location */}
         <div>
-          <label htmlFor="RackLocation" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="rackLocation" className="block text-xs font-semibold text-gray-700 mb-1">
             Rack Location
           </label>
-          <div className="relative">
-            <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              id="RackLocation"
-              type="text"
-              {...register("RackLocation")}
-              placeholder="e.g. Rack B-12"
-              disabled={isSubmitting}
-              className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 bg-white"
-            />
-          </div>
+          <input
+            id="rackLocation"
+            type="text"
+            {...register("rackLocation")}
+            placeholder="e.g. Rack A-12"
+            disabled={isSubmitting}
+            className={inputClass(!!errors.rackLocation)}
+          />
         </div>
 
-        {/* Expiry Date */}
         <div>
-          <label htmlFor="ExpiryDate" className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Expiry Date (Optional)
+          <label htmlFor="warehouse" className="block text-xs font-semibold text-gray-700 mb-1">
+            Warehouse
           </label>
-          <div className="relative">
-            <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              id="ExpiryDate"
-              type="date"
-              {...register("ExpiryDate")}
-              disabled={isSubmitting}
-              className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 bg-white"
-            />
-          </div>
+          <input
+            id="warehouse"
+            type="text"
+            {...register("warehouse")}
+            placeholder="e.g. Main Warehouse"
+            disabled={isSubmitting}
+            className={inputClass(!!errors.warehouse)}
+          />
         </div>
       </div>
 
-      {/* ── Hidden Image URL Field ── */}
-      <input type="hidden" {...register("image_url")} />
-
-      {/* ── Image Upload (Cloudinary: Cdnfire) ── */}
-      <div className="space-y-2">
-        <label className="block text-sm font-semibold text-gray-700">
-          Product Image
-        </label>
-
-        {/* Upload File Input Button */}
-        <div className="flex items-center gap-3">
-          <label
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-              isUploadingImage
-                ? "bg-red-50 border-red-300 text-red-600 opacity-70 pointer-events-none"
-                : "bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-red-400"
-            }`}
-          >
-            {isUploadingImage ? (
-              <>
-                <Loader2 size={16} className="animate-spin text-red-600" />
-                <span>Uploading Image to Cloudinary (Cdnfire)...</span>
-              </>
-            ) : (
-              <>
-                <UploadCloud size={16} className="text-red-600" />
-                <span>{imageUrlValue ? "Change Image (Upload to Cdnfire)" : "Choose Image to Upload"}</span>
-              </>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              disabled={isSubmitting || isUploadingImage}
-              onChange={handleFileUpload}
-              className="hidden"
-            />
+      {/* Pricing & Image URL */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="defaultSellPrice" className="block text-xs font-semibold text-gray-700 mb-1">
+            Default Selling Price ($)
           </label>
-        </div>
-
-        {/* Live Image Preview Container */}
-        <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden flex items-center justify-center border border-gray-300 flex-shrink-0">
-              {imageUrlValue ? (
-                <img
-                  src={imageUrlValue}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://placehold.co/100x100?text=Error";
-                  }}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-gray-400">
-                  <ImageIcon size={20} />
-                  <span className="text-[9px] uppercase font-bold mt-0.5">No Image</span>
-                </div>
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-gray-700">
-                {imageUrlValue ? "Uploaded Image Preview" : "No Image Uploaded"}
-              </p>
-              <p className="text-[11px] text-gray-500 truncate">
-                {imageUrlValue ? "Saved in Cloudinary (Cdnfire)" : "Click 'Choose Image' above to select and upload an image."}
-              </p>
-            </div>
-          </div>
-
-          {imageUrlValue && (
-            <button
-              type="button"
-              onClick={() => setValue("image_url", "", { shouldValidate: true })}
-              disabled={isSubmitting || isUploadingImage}
-              className="px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-            >
-              Remove
-            </button>
+          <input
+            id="defaultSellPrice"
+            type="number"
+            step="any"
+            {...register("defaultSellPrice")}
+            placeholder="0.00"
+            disabled={isSubmitting}
+            className={inputClass(!!errors.defaultSellPrice)}
+          />
+          {errors.defaultSellPrice && (
+            <p className="mt-1 text-xs text-red-600 font-medium">{errors.defaultSellPrice.message}</p>
           )}
         </div>
+
+        <div>
+          <label htmlFor="imageUrl" className="block text-xs font-semibold text-gray-700 mb-1">
+            Image URL
+          </label>
+          <input
+            id="imageUrl"
+            type="text"
+            {...register("imageUrl")}
+            placeholder="https://example.com/image.png"
+            disabled={isSubmitting}
+            className={inputClass(!!errors.imageUrl)}
+          />
+          {errors.imageUrl && <p className="mt-1 text-xs text-red-600 font-medium">{errors.imageUrl.message}</p>}
+        </div>
       </div>
 
-      {/* ── Form Actions ── */}
+      {/* Footer Actions */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
         <button
           type="button"
           onClick={() => reset()}
-          disabled={isSubmitting || isUploadingImage}
+          disabled={isSubmitting}
           className="px-3.5 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
         >
-          Reset Form
+          Reset
         </button>
 
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onCancel}
-            disabled={isSubmitting || isUploadingImage}
+            disabled={isSubmitting}
             className="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || isUploadingImage}
+            disabled={isSubmitting}
             className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm disabled:opacity-60"
           >
             {isSubmitting && <Loader2 size={14} className="animate-spin" />}
-            {isEdit ? "Update Inventory Item" : "Create Inventory Item"}
+            {isEdit ? "Update Item" : "Save Item"}
           </button>
         </div>
       </div>

@@ -6,45 +6,46 @@
 import { z } from "zod";
 
 export const customerSchema = z.object({
-  CompanyName: z
+  companyName: z
     .string()
     .min(1, "Company name is required.")
     .min(2, "Company name must be at least 2 characters.")
     .max(150, "Company name must be no more than 150 characters.")
     .trim(),
 
-  ContactPerson: z
-    .union([z.string(), z.null()])
+  contactPerson: z
+    .string()
+    .max(100)
     .optional()
+    .nullable()
     .transform((val) => (!val || val === "" ? null : val.trim())),
 
-  Phone: z
-    .union([z.string(), z.null()])
+  phone: z
+    .string()
+    .max(20)
     .optional()
+    .nullable()
     .transform((val) => (!val || val === "" ? null : val.trim())),
 
-  Email: z
-    .union([z.string(), z.null()])
+  email: z
+    .string()
+    .email("Please enter a valid email address.")
     .optional()
-    .transform((val) => (!val || val === "" ? null : val.trim().toLowerCase()))
-    .pipe(
-      z
-        .string()
-        .email("Please enter a valid email address.")
-        .nullable()
-        .or(z.null())
-    ),
+    .nullable()
+    .transform((val) => (!val || val === "" ? null : val.trim().toLowerCase())),
 
-  Address: z
-    .union([z.string(), z.null()])
+  address: z
+    .string()
+    .max(500)
     .optional()
+    .nullable()
     .transform((val) => (!val || val === "" ? null : val.trim())),
 });
 
 export type CustomerFormValues = z.infer<typeof customerSchema>;
 
 export const updateCustomerSchema = customerSchema.extend({
-  Id: z.number({ message: "Invalid customer ID." }).int().positive(),
+  id: z.coerce.number({ message: "Invalid customer ID." }).int().positive(),
 });
 
 export type UpdateCustomerFormValues = z.infer<typeof updateCustomerSchema>;

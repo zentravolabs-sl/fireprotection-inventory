@@ -2,7 +2,7 @@
 
 // ============================================================
 // src/app/(Main)/admin/customers/actions.ts
-// Server Actions for Customer CRUD and real-time search.
+// Server Actions for Customer CRUD, search, and filtering.
 // ============================================================
 
 import { revalidatePath } from "next/cache";
@@ -15,12 +15,12 @@ const CUSTOMERS_PATH = "/admin/customers";
 // ── Types ────────────────────────────────────────────────────
 
 export type CustomerRow = {
-  Id: number;
-  CompanyName: string;
-  ContactPerson: string | null;
-  Phone: string | null;
-  Email: string | null;
-  Address: string | null;
+  id: number;
+  companyName: string;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -30,7 +30,7 @@ export type CustomerRow = {
 function mapPrismaError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
   if (msg.includes("Unique constraint") || msg.includes("unique constraint")) {
-    if (msg.includes("CompanyName") || msg.includes("company_name")) {
+    if (msg.includes("companyName") || msg.includes("company_name")) {
       return "A customer with this Company Name already exists.";
     }
   }
@@ -39,22 +39,18 @@ function mapPrismaError(err: unknown): string {
 }
 
 const customerSelect = {
-  Id: true,
-  CompanyName: true,
-  ContactPerson: true,
-  Phone: true,
-  Email: true,
-  Address: true,
+  id: true,
+  companyName: true,
+  contactPerson: true,
+  phone: true,
+  email: true,
+  address: true,
   createdAt: true,
   updatedAt: true,
 } as const;
 
 // ── Queries ──────────────────────────────────────────────────
 
-/**
- * Fetch all customers or search by CompanyName, ContactPerson, Phone, Email.
- * Case-insensitive search, sorted newest first.
- */
 export async function getCustomers(search?: string): Promise<CustomerRow[]> {
   const trimmed = search?.trim();
 
@@ -62,10 +58,10 @@ export async function getCustomers(search?: string): Promise<CustomerRow[]> {
     where: trimmed
       ? {
           OR: [
-            { CompanyName: { contains: trimmed, mode: "insensitive" } },
-            { ContactPerson: { contains: trimmed, mode: "insensitive" } },
-            { Phone: { contains: trimmed, mode: "insensitive" } },
-            { Email: { contains: trimmed, mode: "insensitive" } },
+            { companyName: { contains: trimmed, mode: "insensitive" } },
+            { contactPerson: { contains: trimmed, mode: "insensitive" } },
+            { phone: { contains: trimmed, mode: "insensitive" } },
+            { email: { contains: trimmed, mode: "insensitive" } },
           ],
         }
       : undefined,
@@ -74,43 +70,35 @@ export async function getCustomers(search?: string): Promise<CustomerRow[]> {
   });
 }
 
-/**
- * Fast search query for autocomplete/search suggestions.
- */
 export async function searchCustomers(query: string): Promise<CustomerRow[]> {
   const trimmed = query.trim();
+
   return prisma.customer.findMany({
     where: trimmed
       ? {
           OR: [
-            { CompanyName: { contains: trimmed, mode: "insensitive" } },
-            { ContactPerson: { contains: trimmed, mode: "insensitive" } },
-            { Phone: { contains: trimmed, mode: "insensitive" } },
-            { Email: { contains: trimmed, mode: "insensitive" } },
+            { companyName: { contains: trimmed, mode: "insensitive" } },
+            { contactPerson: { contains: trimmed, mode: "insensitive" } },
+            { phone: { contains: trimmed, mode: "insensitive" } },
+            { email: { contains: trimmed, mode: "insensitive" } },
           ],
         }
       : undefined,
     select: customerSelect,
     take: 20,
-    orderBy: { createdAt: "desc" },
+    orderBy: { companyName: "asc" },
   });
 }
 
-/**
- * Fetch a single customer by Id.
- */
 export async function getCustomerById(id: number): Promise<CustomerRow | null> {
   return prisma.customer.findUnique({
-    where: { Id: id },
+    where: { id },
     select: customerSelect,
   });
 }
 
 // ── Mutations ────────────────────────────────────────────────
 
-/**
- * Create a new Customer record.
- */
 export async function createCustomer(
   formData: unknown
 ): Promise<ActionState<CustomerRow>> {
@@ -124,27 +112,26 @@ export async function createCustomer(
 
   const data = parsed.data;
 
-  // Check unique CompanyName
-  const existingCompany = await prisma.customer.findUnique({
-    where: { CompanyName: data.CompanyName },
-    select: { Id: true },
+  const existingName = await prisma.customer.findUnique({
+    where: { companyName: data.companyName },
+    select: { id: true },
   });
-  if (existingCompany) {
+  if (existingName) {
     return {
       success: false,
       message: "Company Name must be unique.",
-      errors: { CompanyName: ["A customer with this Company Name already exists."] },
+      errors: { companyName: ["A customer with this Company Name already exists."] },
     };
   }
 
   try {
     const customer = await prisma.customer.create({
       data: {
-        CompanyName: data.CompanyName,
-        ContactPerson: data.ContactPerson || null,
-        Phone: data.Phone || null,
-        Email: data.Email || null,
-        Address: data.Address || null,
+        companyName: data.companyName,
+        contactPerson: data.contactPerson || null,
+        phone: data.phone || null,
+        email: data.email || null,
+        address: data.address || null,
       },
       select: customerSelect,
     });
@@ -160,9 +147,6 @@ export async function createCustomer(
   }
 }
 
-/**
- * Update an existing Customer record by Id.
- */
 export async function updateCustomer(
   formData: unknown
 ): Promise<ActionState<CustomerRow>> {
@@ -176,28 +160,27 @@ export async function updateCustomer(
 
   const data = parsed.data;
 
-  // Check unique CompanyName for other records
-  const existingCompany = await prisma.customer.findFirst({
-    where: { CompanyName: data.CompanyName, NOT: { Id: data.Id } },
-    select: { Id: true },
+  const existingName = await prisma.customer.findFirst({
+    where: { companyName: data.companyName, NOT: { id: data.id } },
+    select: { id: true },
   });
-  if (existingCompany) {
+  if (existingName) {
     return {
       success: false,
       message: "Company Name must be unique.",
-      errors: { CompanyName: ["Another customer with this Company Name already exists."] },
+      errors: { companyName: ["Another customer with this Company Name already exists."] },
     };
   }
 
   try {
     const customer = await prisma.customer.update({
-      where: { Id: data.Id },
+      where: { id: data.id },
       data: {
-        CompanyName: data.CompanyName,
-        ContactPerson: data.ContactPerson || null,
-        Phone: data.Phone || null,
-        Email: data.Email || null,
-        Address: data.Address || null,
+        companyName: data.companyName,
+        contactPerson: data.contactPerson || null,
+        phone: data.phone || null,
+        email: data.email || null,
+        address: data.address || null,
       },
       select: customerSelect,
     });
@@ -213,12 +196,9 @@ export async function updateCustomer(
   }
 }
 
-/**
- * Delete a Customer record by Id.
- */
 export async function deleteCustomer(id: number): Promise<ActionState> {
   try {
-    await prisma.customer.delete({ where: { Id: id } });
+    await prisma.customer.delete({ where: { id } });
     revalidatePath(CUSTOMERS_PATH);
     return {
       success: true,

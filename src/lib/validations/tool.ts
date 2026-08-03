@@ -24,40 +24,42 @@ export const ToolStatusEnum = z.enum([
 export type ToolStatusType = z.infer<typeof ToolStatusEnum>;
 
 export const toolSchema = z.object({
-  ToolCode: z
+  toolCode: z
     .string()
     .min(1, "Tool code is required.")
     .min(2, "Tool code must be at least 2 characters.")
     .max(50, "Tool code must be no more than 50 characters.")
     .trim(),
 
-  Name: z
+  name: z
     .string()
     .min(1, "Tool name is required.")
     .min(2, "Tool name must be at least 2 characters.")
     .max(150, "Tool name must be no more than 150 characters.")
     .trim(),
 
-  SerialNo: z
+  serialNo: z
     .string()
     .min(1, "Serial number is required.")
     .max(100, "Serial number must be no more than 100 characters.")
     .trim(),
 
-  Condition: ToolConditionEnum,
+  condition: ToolConditionEnum,
 
-  Status: ToolStatusEnum,
+  status: ToolStatusEnum,
 
-  image_url: z
-    .union([z.string(), z.null()])
+  imageUrl: z
+    .string()
+    .url()
     .optional()
+    .nullable()
     .transform((val) => (!val || val === "" ? null : val.trim())),
 });
 
 export type ToolFormValues = z.infer<typeof toolSchema>;
 
 export const updateToolSchema = toolSchema.extend({
-  Id: z.number({ message: "Invalid tool ID." }).int().positive(),
+  id: z.coerce.number({ message: "Invalid tool ID." }).int().positive(),
 });
 
 export type UpdateToolFormValues = z.infer<typeof updateToolSchema>;

@@ -2,6 +2,7 @@
 // Prisma Schema — CDN Fire Engineering Inventory & ERP System
 // Database: Neon PostgreSQL
 // Auth:     Better Auth v1.6.25
+// ORM:      Prisma v7
 // ============================================================
 
 generator client {
@@ -14,7 +15,7 @@ datasource db {
 }
 
 // ============================================================
-// Enums
+// Enums — Auth & System
 // ============================================================
 
 enum Role {
@@ -24,26 +25,84 @@ enum Role {
 }
 
 // ============================================================
+// Enums — Inventory Module
+// ============================================================
+
+/// Goods receive transaction lifecycle states.
+enum StockReceiveStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+/// Direction and reason for every inventory movement.
+enum MovementType {
+  IN
+  OUT
+  RETURN
+  TRANSFER
+  ADJUSTMENT
+}
+
+/// Source document that triggered a stock movement.
+enum ReferenceType {
+  STOCK_RECEIVE
+  PROJECT
+  PIPE_CUT
+  RETURN
+  MANUAL
+}
+
+/// Pipe cut piece lifecycle states.
+enum PipeCutStatus {
+  AVAILABLE
+  USED
+  SCRAPPED
+}
+
+// ============================================================
+// Enums — Tools
+// ============================================================
+
+enum ToolCondition {
+  New
+  Good
+  Fair
+  Damaged
+  UnderRepair
+}
+
+enum ToolStatus {
+  Available
+  InUse
+  Maintenance
+  Lost
+  Retired
+}
+
+// ============================================================
 // Better Auth Core Models
 // ============================================================
 
 /// Represents an authenticated user account in the system.
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
   password      String?
-  role          Role      @default(USER)
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role          Role     @default(USER)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
-  sessions  Session[]
-  accounts  Account[]
-  auditLogs AuditLog[]
+  sessions       Session[]
+  accounts       Account[]
+  auditLogs      AuditLog[]
+  stockReceives  StockReceive[]  @relation("ReceivedByUser")
+  stockMovements StockMovement[] @relation("CreatedByUser")
 
   @@index([email])
   @@index([role])
@@ -111,7 +170,7 @@ model Verification {
 // Application-Specific Models
 // ============================================================
 
-/// Immutable audit trail for authentication events.
+/// Immutable audit trail for authentication and system events.
 model AuditLog {
   id        String   @id @default(cuid())
   action    String
@@ -132,12 +191,12 @@ model AuditLog {
 // Inventory Classification Models
 // ============================================================
 
-/// Top-level product/equipment category.
+/// Top-level product/equipment category (e.g. Pipes, Sprinklers, Valves).
 model Category {
-  id           Int           @id @default(autoincrement())
-  categoryName String        @unique
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id           Int         @id @default(autoincrement())
+  categoryName String      @unique
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   // Relations
   subCategories SubCategory[]
@@ -148,12 +207,13 @@ model Category {
 }
 
 /// Sub-category belonging to a parent Category.
-/// (categoryId, name) must be unique — same name is allowed across different categories.
+/// The (categoryId, name) composite is unique — the same name is allowed
+/// across different categories but not within the same one.
 model SubCategory {
-  id          Int         @id @default(autoincrement())
-  name        String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   categoryId  Int
@@ -166,111 +226,245 @@ model SubCategory {
 }
 
 // ============================================================
-// Enums
-// ============================================================
-
-enum IssueLocation {
-  Warehouse
-  Shop
-}
-
-// ============================================================
 // Supplier Model
 // ============================================================
 
+/// Vendor/supplier master record.
 model Supplier {
-  Id            Int         @id @default(autoincrement())
-  Company       String      @unique
-  ContactPerson String?
-  Phone         String?
-  Email         String?
-  Address       String?
+  id            Int      @id @default(autoincrement())
+  company       String   @unique
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  inventories   Inventory[]
+  // Relations
+  stockReceives StockReceive[]
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  @@index([Company])
+  @@index([company])
   @@map("supplier")
 }
 
 // ============================================================
-// Inventory Management Model
+// Inventory Master Model
 // ============================================================
 
+/// Master item catalogue. Current stock is NEVER stored here.
+/// Compute it as: SUM(StockBatch.availableQty) WHERE inventoryId = this.id
 model Inventory {
-  Id            Int           @id @default(autoincrement())
-  ItemCode      String        @unique
-  Name          String
-  CategoryId    Int
-  SubCategoryId Int
-  Brand         String?
-  Unit          String
-  Qty           Float         @default(0)
-  MinStock      Float         @default(0)
-  RackLocation  String?
-  Warehouse     String?
-  BuyPrice      Float         @default(0)
-  SellPrice     Float         @default(0)
-  SupplierId    Int?
-  Barcode       String?       @unique
-  ExpiryDate    DateTime?
-  image_url     String?
-  issueLocation IssueLocation @default(Warehouse)
+  id            Int      @id @default(autoincrement())
+  itemCode      String   @unique
+  name          String
+  brand         String?
+  unit          String
+  minStock      Float    @default(0)
+  barcode       String?  @unique
+  rackLocation  String?
+  warehouse     String?
+  defaultSellPrice Float @default(0)
+  imageUrl      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Foreign keys
+  categoryId    Int
+  subCategoryId Int
 
   // Relations
-  category      Category      @relation(fields: [CategoryId], references: [id])
-  subCategory   SubCategory   @relation(fields: [SubCategoryId], references: [id])
-  supplier      Supplier?     @relation(fields: [SupplierId], references: [Id], onDelete: Restrict)
+  category       Category         @relation(fields: [categoryId], references: [id])
+  subCategory    SubCategory      @relation(fields: [subCategoryId], references: [id])
+  stockReceiveItems StockReceiveItem[]
+  stockBatches   StockBatch[]
+  stockMovements StockMovement[]
+  pipeCutPieces  PipeCutPiece[]
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  @@index([ItemCode])
-  @@index([Barcode])
-  @@index([Name])
-  @@index([CategoryId])
-  @@index([SubCategoryId])
+  @@index([itemCode])
+  @@index([barcode])
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([name])
   @@map("inventory")
 }
 
 // ============================================================
-// Tool Enums & Model
+// Goods Receive Models
 // ============================================================
 
-enum ToolCondition {
-  New
-  Good
-  Fair
-  Damaged
-  UnderRepair
+/// Header record for one goods receive transaction.
+/// StockBatch records are NOT created until status → CONFIRMED.
+model StockReceive {
+  id          Int                @id @default(autoincrement())
+  receiveNo   String             @unique
+  receiveDate DateTime
+  referenceNo String?
+  remarks     String?
+  status      StockReceiveStatus @default(DRAFT)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  // Foreign keys
+  supplierId  Int
+  receivedBy  String             // references User.id
+
+  // Relations
+  supplier    Supplier           @relation(fields: [supplierId], references: [id])
+  receivedByUser User            @relation("ReceivedByUser", fields: [receivedBy], references: [id])
+  items       StockReceiveItem[]
+
+  @@index([supplierId])
+  @@index([receiveDate])
+  @@index([status])
+  @@map("stock_receive")
 }
 
-enum ToolStatus {
-  Available
-  InUse
-  Maintenance
-  Lost
-  Retired
+/// Line item within a goods receive document.
+/// When the parent StockReceive is CONFIRMED, trigger creation of StockBatch.
+model StockReceiveItem {
+  id         Int       @id @default(autoincrement())
+  qty        Float
+  unitCost   Float
+  batchNo    String?
+  expiryDate DateTime?
+
+  // Foreign keys
+  stockReceiveId Int
+  inventoryId    Int
+
+  // Relations
+  stockReceive StockReceive @relation(fields: [stockReceiveId], references: [id], onDelete: Cascade)
+  inventory    Inventory    @relation(fields: [inventoryId], references: [id])
+  stockBatch   StockBatch?
+
+  @@index([stockReceiveId])
+  @@index([inventoryId])
+  @@map("stock_receive_item")
 }
 
+// ============================================================
+// Stock Batch Model  (FIFO layer)
+// ============================================================
+
+/// Represents one received batch — the unit of FIFO consumption.
+/// availableQty decreases as stock is issued; it must never go below 0.
+model StockBatch {
+  id           Int      @id @default(autoincrement())
+  batchNo      String?
+  receivedQty  Float
+  availableQty Float
+  unitCost     Float
+  expiryDate   DateTime?
+  receiveDate  DateTime
+  rackLocation String?
+  warehouse    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Foreign keys
+  inventoryId        Int
+  stockReceiveItemId Int @unique     // 1-to-1: one batch per receive line
+
+  // Relations
+  inventory        Inventory        @relation(fields: [inventoryId], references: [id])
+  stockReceiveItem StockReceiveItem @relation(fields: [stockReceiveItemId], references: [id])
+  stockMovements   StockMovement[]
+  pipeCutPieces    PipeCutPiece[]
+
+  @@index([inventoryId])
+  @@index([batchNo])
+  @@index([receiveDate])
+  @@map("stock_batch")
+}
+
+// ============================================================
+// Stock Movement Model  (audit / ledger)
+// ============================================================
+
+/// Immutable inventory ledger.
+/// Every stock transaction — receive, issue, return, adjustment,
+/// pipe cut — appends one record here.  Never delete rows.
+model StockMovement {
+  id            Int           @id @default(autoincrement())
+  qty           Float
+  movementType  MovementType
+  referenceType ReferenceType
+  referenceId   Int?          // polymorphic FK: ID of the source document
+  remarks       String?
+  createdAt     DateTime      @default(now())
+
+  // Foreign keys
+  inventoryId  Int
+  stockBatchId Int
+  createdBy    String         // references User.id
+
+  // Relations
+  inventory  Inventory  @relation(fields: [inventoryId], references: [id])
+  stockBatch StockBatch @relation(fields: [stockBatchId], references: [id])
+  createdByUser User    @relation("CreatedByUser", fields: [createdBy], references: [id])
+
+  @@index([inventoryId])
+  @@index([stockBatchId])
+  @@index([movementType])
+  @@index([referenceType])
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("stock_movement")
+}
+
+// ============================================================
+// Pipe Cut Piece Model
+// ============================================================
+
+/// Tracks remaining pipe off-cuts after a project cut.
+/// Each piece is traceable back to its original batch (FIFO chain).
+model PipeCutPiece {
+  id           Int           @id @default(autoincrement())
+  parentLength Float         // original full pipe length (metres / feet per unit)
+  pieceLength  Float         // remaining cut piece length
+  unit         String
+  barcode      String?       @unique
+  rackLocation String?
+  status       PipeCutStatus @default(AVAILABLE)
+  remarks      String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Foreign keys
+  inventoryId  Int
+  stockBatchId Int
+
+  // Relations
+  inventory  Inventory  @relation(fields: [inventoryId], references: [id])
+  stockBatch StockBatch @relation(fields: [stockBatchId], references: [id])
+
+  @@index([inventoryId])
+  @@index([stockBatchId])
+  @@index([barcode])
+  @@index([status])
+  @@map("pipe_cut_piece")
+}
+
+// ============================================================
+// Tool Model
+// ============================================================
+
+/// Physical tools/equipment tracked separately from consumable inventory.
 model Tool {
-  Id        Int           @id @default(autoincrement())
-  ToolCode  String        @unique
-  Name      String
-  SerialNo  String        @unique
-  Condition ToolCondition
-  Status    ToolStatus
-  image_url String?
-
+  id        Int           @id @default(autoincrement())
+  toolCode  String        @unique
+  name      String
+  serialNo  String        @unique
+  condition ToolCondition
+  status    ToolStatus
+  imageUrl  String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  @@index([ToolCode])
-  @@index([Name])
-  @@index([SerialNo])
-  @@index([Status])
+  @@index([toolCode])
+  @@index([name])
+  @@index([serialNo])
+  @@index([status])
   @@map("tool")
 }
 
@@ -278,24 +472,20 @@ model Tool {
 // Customer Model
 // ============================================================
 
+/// Customer/client master record.
 model Customer {
-  Id            Int      @id @default(autoincrement())
-  CompanyName   String   @unique
-  ContactPerson String?
-  Phone         String?
-  Email         String?
-  Address       String?
-
+  id            Int      @id @default(autoincrement())
+  companyName   String   @unique
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@index([CompanyName])
-  @@index([ContactPerson])
-  @@index([Phone])
-  @@index([Email])
+  @@index([companyName])
+  @@index([contactPerson])
+  @@index([phone])
+  @@index([email])
   @@map("customer")
 }
-
-
-
-

@@ -178,10 +178,11 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: "WAREHOUSE",
     items: [
-      { label: "Inventory",         href: "/admin/inventory",        icon: Icons.inventory },
-      { label: "Pipe & Cut Pieces", href: "/dashboard/pipe-cut-pieces",  icon: Icons.pipe },
-      { label: "Issue Notes",       href: "/dashboard/issue-notes",      icon: Icons.issueNotes },
-      { label: "Returns & Transfers",href: "/dashboard/returns-transfers",icon: Icons.returns },
+      { label: "Inventory Master",  href: "/admin/inventory",        icon: Icons.inventory },
+      { label: "Stock Receive",     href: "/admin/stock-receive",    icon: Icons.suppliers },
+      { label: "Stock Batches",     href: "/admin/stock-batch",      icon: Icons.projectStock },
+      { label: "Stock Movements",   href: "/admin/stock-movement",   icon: Icons.reports },
+      { label: "Pipe & Cut Pieces", href: "/admin/pipe-cut-pieces",  icon: Icons.pipe },
       { label: "Expiry Management", href: "/dashboard/expiry-management",icon: Icons.expiry,           badge: 2 },
     ],
   },

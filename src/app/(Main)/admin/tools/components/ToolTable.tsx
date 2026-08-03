@@ -97,7 +97,7 @@ export default function ToolTable({ tools }: ToolTableProps) {
     setIsSubmitting(true);
     try {
       const result = editTarget
-        ? await updateTool({ ...data, Id: editTarget.Id })
+        ? await updateTool({ ...data, id: editTarget.id })
         : await createTool(data);
 
       if (result.success) {
@@ -113,7 +113,7 @@ export default function ToolTable({ tools }: ToolTableProps) {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    const result = await deleteTool(deleteTarget.Id);
+    const result = await deleteTool(deleteTarget.id);
     if (result.success) {
       toast.success(result.message);
       setDeleteTarget(undefined);
@@ -171,30 +171,27 @@ export default function ToolTable({ tools }: ToolTableProps) {
                 </tr>
               ) : (
                 tools.map((tool, idx) => (
-                  <tr key={tool.Id} className="hover:bg-[#161d2e] transition-colors group">
-                    {/* # */}
+                  <tr key={tool.id} className="hover:bg-[#161d2e] transition-colors group">
                     <td className="px-4 py-3.5 text-[#3d4c62] font-medium tabular-nums">{idx + 1}</td>
 
-                    {/* Tool Code */}
                     <td className="px-4 py-3.5 font-mono font-bold text-[#e02424] whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <Barcode size={13} className="text-[#e02424]" />
-                        <span>{tool.ToolCode}</span>
+                        <span>{tool.toolCode}</span>
                       </div>
                     </td>
 
-                    {/* Image Thumbnail with Click-to-Preview */}
                     <td className="px-4 py-3.5">
-                      {tool.image_url ? (
+                      {tool.imageUrl ? (
                         <button
                           type="button"
-                          onClick={() => setPreviewImage({ url: tool.image_url!, title: tool.Name, code: tool.ToolCode })}
+                          onClick={() => setPreviewImage({ url: tool.imageUrl!, title: tool.name, code: tool.toolCode })}
                           title="Click to view tool image"
                           className="group/img relative w-9 h-9 rounded-lg bg-[#161d2e] border border-[#1e2a3d] hover:border-red-500 overflow-hidden flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-red-500/40"
                         >
                           <img
-                            src={tool.image_url}
-                            alt={tool.Name}
+                            src={tool.imageUrl}
+                            alt={tool.name}
                             className="w-full h-full object-cover transition-transform duration-200 group-hover/img:scale-110"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = "https://placehold.co/50x50?text=NA";
@@ -211,34 +208,29 @@ export default function ToolTable({ tools }: ToolTableProps) {
                       )}
                     </td>
 
-                    {/* Tool Name */}
                     <td className="px-4 py-3.5 font-semibold text-[#dce3ef] max-w-xs truncate">
-                      {tool.Name}
+                      {tool.name}
                     </td>
 
-                    {/* Serial Number */}
                     <td className="px-4 py-3.5 font-mono text-[#5a657a] whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         <Hash size={12} className="text-[#3d4c62]" />
-                        <span>{tool.SerialNo}</span>
+                        <span>{tool.serialNo}</span>
                       </div>
                     </td>
 
-                    {/* Condition Badge */}
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      <span className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border ${getConditionBadge(tool.Condition)}`}>
-                        {getConditionLabel(tool.Condition)}
+                      <span className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border ${getConditionBadge(tool.condition)}`}>
+                        {getConditionLabel(tool.condition)}
                       </span>
                     </td>
 
-                    {/* Status Badge */}
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      <span className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border ${getStatusBadge(tool.Status)}`}>
-                        {getStatusLabel(tool.Status)}
+                      <span className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border ${getStatusBadge(tool.status)}`}>
+                        {getStatusLabel(tool.status)}
                       </span>
                     </td>
 
-                    {/* Created Date */}
                     <td className="px-4 py-3.5 text-[#5a657a] whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <Calendar size={12} className="text-[#3d4c62]" />
@@ -246,7 +238,6 @@ export default function ToolTable({ tools }: ToolTableProps) {
                       </div>
                     </td>
 
-                    {/* Actions Sticky Column */}
                     <td className="px-4 py-3.5 sticky right-0 bg-[#0d1117] group-hover:bg-[#161d2e] transition-colors">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
@@ -274,7 +265,6 @@ export default function ToolTable({ tools }: ToolTableProps) {
           </table>
         </div>
 
-        {/* Footer */}
         {tools.length > 0 && (
           <div className="px-6 py-3 border-t border-[#1e2a3d] bg-[#080c12]/50 flex items-center justify-between">
             <p className="text-xs text-[#3d4c62] font-medium">
@@ -284,7 +274,6 @@ export default function ToolTable({ tools }: ToolTableProps) {
         )}
       </div>
 
-      {/* Form Modal */}
       <Modal isOpen={isFormOpen} onClose={closeForm} title={editTarget ? "Edit Tool" : "Add New Tool"} maxWidth="max-w-xl">
         <ToolForm
           initialData={editTarget}
@@ -294,15 +283,13 @@ export default function ToolTable({ tools }: ToolTableProps) {
         />
       </Modal>
 
-      {/* Delete Modal */}
       <DeleteToolDialog
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(undefined)}
         onConfirm={handleDelete}
-        toolName={deleteTarget ? `${deleteTarget.Name} (${deleteTarget.ToolCode})` : undefined}
+        toolName={deleteTarget ? `${deleteTarget.name} (${deleteTarget.toolCode})` : undefined}
       />
 
-      {/* Image Preview Modal */}
       {previewImage && (
         <Modal
           isOpen={Boolean(previewImage)}

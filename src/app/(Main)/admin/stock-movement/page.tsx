@@ -1,52 +1,47 @@
 // ============================================================
-// src/app/(Main)/admin/inventory/page.tsx
-// Inventory Master page — React Server Component.
+// src/app/(Main)/admin/stock-movement/page.tsx
+// Stock Movement History Screen — React Server Component.
 // ============================================================
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowLeft, Package, ShieldCheck } from "lucide-react";
-import { getInventory } from "./actions";
-import { getCategories } from "@/app/(Main)/admin/categories/actions";
-import InventoryTable from "./components/InventoryTable";
-import InventoryFilters from "./components/InventoryFilters";
+import { ArrowLeft, History, ShieldCheck } from "lucide-react";
+import { getStockMovements } from "./actions";
+import StockMovementTable from "./components/StockMovementTable";
 import SearchInput from "@/components/ui/SearchInput";
 import TableSkeleton from "@/components/ui/TableSkeleton";
 
 export const metadata = {
-  title: "Inventory Master — CDN Fire Engineering",
-  description: "Manage fire protection inventory master catalogue and minimum stock rules.",
+  title: "Stock Movement History — CDN Fire Engineering",
+  description: "Immutable stock movement ledger for complete inventory audit trail.",
 };
 
 interface PageProps {
   searchParams: Promise<{
     search?: string;
-    categoryId?: string;
-    subCategoryId?: string;
-    warehouse?: string;
-    stockStatus?: string;
+    movementType?: string;
+    referenceType?: string;
+    dateFrom?: string;
+    dateTo?: string;
   }>;
 }
 
-export default async function InventoryPage({ searchParams }: PageProps) {
+export default async function StockMovementPage({ searchParams }: PageProps) {
   const params = await searchParams;
 
   const search = params.search?.trim() || undefined;
-  const categoryId = params.categoryId ? parseInt(params.categoryId, 10) : undefined;
-  const subCategoryId = params.subCategoryId ? parseInt(params.subCategoryId, 10) : undefined;
-  const warehouse = params.warehouse?.trim() || undefined;
-  const stockStatus = (params.stockStatus as any) || undefined;
+  const movementType = (params.movementType as any) || undefined;
+  const referenceType = (params.referenceType as any) || undefined;
+  const dateFrom = params.dateFrom || undefined;
+  const dateTo = params.dateTo || undefined;
 
-  const [categories, inventories] = await Promise.all([
-    getCategories(),
-    getInventory({
-      search,
-      categoryId,
-      subCategoryId,
-      warehouse,
-      stockStatus,
-    }),
-  ]);
+  const movements = await getStockMovements({
+    search,
+    movementType,
+    referenceType,
+    dateFrom,
+    dateTo,
+  });
 
   return (
     <div className="min-h-screen bg-[#0F1524]">
@@ -63,9 +58,9 @@ export default async function InventoryPage({ searchParams }: PageProps) {
           <span className="text-[#1e2a3d]">|</span>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-[#e02424]/10 flex items-center justify-center">
-              <Package size={14} className="text-[#e02424]" />
+              <History size={14} className="text-[#e02424]" />
             </div>
-            <span className="font-bold text-[#dce3ef]">Inventory Master</span>
+            <span className="font-bold text-[#dce3ef]">Stock Movement History</span>
           </div>
 
           <div className="ml-auto flex items-center gap-2">
@@ -82,45 +77,30 @@ export default async function InventoryPage({ searchParams }: PageProps) {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#dce3ef]">Inventory Master Catalogue</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#dce3ef]">Inventory Movement Ledger</h1>
             <p className="text-[#5a657a] text-sm mt-1">
-              Master item definitions. Stock levels are calculated automatically from Stock Batches.
+              Immutable audit history of all inventory transactions (IN, OUT, RETURN, TRANSFER, ADJUSTMENT).
             </p>
           </div>
 
           {/* Search Bar */}
           <div className="w-full sm:w-80">
             <SearchInput
-              placeholder="Search code, name, barcode, brand..."
+              placeholder="Search item code, batch, created by, remarks..."
               paramKey="search"
               defaultValue={search ?? ""}
             />
           </div>
         </div>
 
-        {/* Filter Toolbar */}
-        <InventoryFilters categories={categories} />
-
-        {/* Search Feedback */}
-        {search && (
-          <p className="text-sm text-[#5a657a] mb-4">
-            Showing results for{" "}
-            <span className="font-semibold text-[#dce3ef]">&ldquo;{search}&rdquo;</span>
-            {" — "}
-            <Link href="/admin/inventory" className="text-[#e02424] hover:underline font-medium">
-              Clear Search
-            </Link>
-          </p>
-        )}
-
-        {/* Inventory Data Table */}
+        {/* Movement Table */}
         <Suspense
           fallback={
             <div className="bg-[#0F1524] rounded-2xl border border-[#1e2a3d] shadow-sm overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-[#0F1524] border-b border-[#1e2a3d]">
-                    {["#", "Item Code", "Image", "Name", "Category", "Sub Category", "Brand", "Unit", "Current Stock", "Min Stock", "Status", "Actions"].map(
+                    {["#", "Date & Time", "Item", "Batch No", "Movement", "Qty", "Reference Type", "Created By", "Remarks"].map(
                       (h) => (
                         <th key={h} className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide">
                           {h}
@@ -130,13 +110,13 @@ export default async function InventoryPage({ searchParams }: PageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  <TableSkeleton rows={5} cols={12} />
+                  <TableSkeleton rows={5} cols={9} />
                 </tbody>
               </table>
             </div>
           }
         >
-          <InventoryTable inventories={inventories} categories={categories} />
+          <StockMovementTable movements={movements} />
         </Suspense>
       </main>
     </div>

@@ -2,32 +2,37 @@
 
 // ============================================================
 // src/app/(Main)/admin/suppliers/actions.ts
-// Server Actions for Supplier CRUD operations.
+// Server Actions for Supplier CRUD — updated to camelCase
+// field names matching the new Prisma schema.
 // ============================================================
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { supplierSchema, updateSupplierSchema } from "@/lib/validations/supplier";
 import type { ActionState } from "@/types/auth";
-import type { Supplier } from "@/generated/prisma/client";
 
 const SUPPLIERS_PATH = "/admin/suppliers";
 
 // ── Types ────────────────────────────────────────────────────
 
-export type SupplierRow = Pick<
-  Supplier,
-  "Id" | "Company" | "ContactPerson" | "Phone" | "Email" | "Address" | "createdAt" | "updatedAt"
->;
+export type SupplierRow = {
+  id: number;
+  company: string;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 // ── Helpers ──────────────────────────────────────────────────
 
 function mapPrismaError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
   if (msg.includes("Unique constraint") || msg.includes("unique constraint")) {
-    if (msg.includes("Company") || msg.includes("company")) {
+    if (msg.includes("company"))
       return "A supplier with this company name already exists.";
-    }
   }
   if (
     msg.includes("Record to update not found") ||
@@ -40,33 +45,28 @@ function mapPrismaError(err: unknown): string {
 }
 
 const supplierSelect = {
-  Id: true,
-  Company: true,
-  ContactPerson: true,
-  Phone: true,
-  Email: true,
-  Address: true,
+  id: true,
+  company: true,
+  contactPerson: true,
+  phone: true,
+  email: true,
+  address: true,
   createdAt: true,
   updatedAt: true,
 } as const;
 
 // ── Queries ──────────────────────────────────────────────────
 
-/**
- * Fetch all suppliers, optionally filtered by search term.
- * Searches across Company, ContactPerson, Phone, and Email using Prisma contains (case-insensitive).
- * Returns newest first.
- */
 export async function getSuppliers(search?: string): Promise<SupplierRow[]> {
   const trimmed = search?.trim();
   return prisma.supplier.findMany({
     where: trimmed
       ? {
           OR: [
-            { Company: { contains: trimmed, mode: "insensitive" } },
-            { ContactPerson: { contains: trimmed, mode: "insensitive" } },
-            { Phone: { contains: trimmed, mode: "insensitive" } },
-            { Email: { contains: trimmed, mode: "insensitive" } },
+            { company: { contains: trimmed, mode: "insensitive" } },
+            { contactPerson: { contains: trimmed, mode: "insensitive" } },
+            { phone: { contains: trimmed, mode: "insensitive" } },
+            { email: { contains: trimmed, mode: "insensitive" } },
           ],
         }
       : undefined,
@@ -75,49 +75,34 @@ export async function getSuppliers(search?: string): Promise<SupplierRow[]> {
   });
 }
 
-/**
- * Fast search query for searchable dropdowns or autocomplete components.
- */
 export async function searchSuppliers(query: string): Promise<SupplierRow[]> {
   const trimmed = query.trim();
-  if (!trimmed) {
-    return prisma.supplier.findMany({
-      select: supplierSelect,
-      take: 20,
-      orderBy: { Company: "asc" },
-    });
-  }
-
   return prisma.supplier.findMany({
-    where: {
-      OR: [
-        { Company: { contains: trimmed, mode: "insensitive" } },
-        { ContactPerson: { contains: trimmed, mode: "insensitive" } },
-        { Phone: { contains: trimmed, mode: "insensitive" } },
-        { Email: { contains: trimmed, mode: "insensitive" } },
-      ],
-    },
+    where: trimmed
+      ? {
+          OR: [
+            { company: { contains: trimmed, mode: "insensitive" } },
+            { contactPerson: { contains: trimmed, mode: "insensitive" } },
+            { phone: { contains: trimmed, mode: "insensitive" } },
+            { email: { contains: trimmed, mode: "insensitive" } },
+          ],
+        }
+      : undefined,
     select: supplierSelect,
     take: 20,
-    orderBy: { Company: "asc" },
+    orderBy: { company: "asc" },
   });
 }
 
-/**
- * Fetch a single supplier by Id.
- */
 export async function getSupplierById(id: number): Promise<SupplierRow | null> {
   return prisma.supplier.findUnique({
-    where: { Id: id },
+    where: { id },
     select: supplierSelect,
   });
 }
 
 // ── Mutations ────────────────────────────────────────────────
 
-/**
- * Create a new Supplier.
- */
 export async function createSupplier(
   formData: unknown
 ): Promise<ActionState<SupplierRow>> {
@@ -127,34 +112,27 @@ export async function createSupplier(
     return { success: false, message: "Validation failed.", errors };
   }
 
-  const { Company, ContactPerson, Phone, Email, Address } = parsed.data;
+  const { company, contactPerson, phone, email, address } = parsed.data;
 
   try {
     const supplier = await prisma.supplier.create({
       data: {
-        Company,
-        ContactPerson: ContactPerson || null,
-        Phone: Phone || null,
-        Email: Email || null,
-        Address: Address || null,
+        company,
+        contactPerson: contactPerson || null,
+        phone: phone || null,
+        email: email || null,
+        address: address || null,
       },
       select: supplierSelect,
     });
 
     revalidatePath(SUPPLIERS_PATH);
-    return {
-      success: true,
-      message: "Supplier Created Successfully",
-      data: supplier,
-    };
+    return { success: true, message: "Supplier created successfully.", data: supplier };
   } catch (err) {
     return { success: false, message: mapPrismaError(err) };
   }
 }
 
-/**
- * Update an existing Supplier by Id.
- */
 export async function updateSupplier(
   formData: unknown
 ): Promise<ActionState<SupplierRow>> {
@@ -164,56 +142,45 @@ export async function updateSupplier(
     return { success: false, message: "Validation failed.", errors };
   }
 
-  const { Id, Company, ContactPerson, Phone, Email, Address } = parsed.data;
+  const { id, company, contactPerson, phone, email, address } = parsed.data;
 
   try {
     const supplier = await prisma.supplier.update({
-      where: { Id },
+      where: { id },
       data: {
-        Company,
-        ContactPerson: ContactPerson || null,
-        Phone: Phone || null,
-        Email: Email || null,
-        Address: Address || null,
+        company,
+        contactPerson: contactPerson || null,
+        phone: phone || null,
+        email: email || null,
+        address: address || null,
       },
       select: supplierSelect,
     });
 
     revalidatePath(SUPPLIERS_PATH);
-    return {
-      success: true,
-      message: "Supplier Updated Successfully",
-      data: supplier,
-    };
+    return { success: true, message: "Supplier updated successfully.", data: supplier };
   } catch (err) {
     return { success: false, message: mapPrismaError(err) };
   }
 }
 
-/**
- * Delete a Supplier by Id.
- * Enforces DELETE RULE: Prevent deletion if referenced by 1 or more Inventory records.
- */
 export async function deleteSupplier(id: number): Promise<ActionState> {
-  // Check if referenced by Inventory records
-  const inventoryCount = await prisma.inventory.count({
-    where: { SupplierId: id },
+  // Guard: prevent deletion if referenced by StockReceives
+  const receiveCount = await prisma.stockReceive.count({
+    where: { supplierId: id },
   });
 
-  if (inventoryCount > 0) {
+  if (receiveCount > 0) {
     return {
       success: false,
-      message: "This supplier is assigned to inventory items and cannot be deleted.",
+      message: `This supplier has ${receiveCount} receive order(s) and cannot be deleted.`,
     };
   }
 
   try {
-    await prisma.supplier.delete({ where: { Id: id } });
+    await prisma.supplier.delete({ where: { id } });
     revalidatePath(SUPPLIERS_PATH);
-    return {
-      success: true,
-      message: "Supplier Deleted Successfully",
-    };
+    return { success: true, message: "Supplier deleted successfully." };
   } catch (err) {
     return { success: false, message: mapPrismaError(err) };
   }

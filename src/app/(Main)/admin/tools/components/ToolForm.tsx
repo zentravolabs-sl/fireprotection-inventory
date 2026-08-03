@@ -10,7 +10,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { Loader2, Wrench, Hash, Barcode, ShieldAlert, CheckCircle2, UploadCloud, Image as ImageIcon } from "lucide-react";
-import { z } from "zod";
 import { toolSchema, type ToolFormValues } from "@/lib/validations/tool";
 import { uploadImageToCloudinary } from "@/app/(Main)/admin/inventory/upload-action";
 import type { ToolRow } from "../actions";
@@ -38,32 +37,31 @@ export default function ToolForm({
     control,
     reset,
     formState: { errors },
-  } = useForm<z.input<typeof toolSchema>, any, ToolFormValues>({
+  } = useForm({
     resolver: zodResolver(toolSchema),
     defaultValues: {
-      ToolCode: initialData?.ToolCode ?? "",
-      Name: initialData?.Name ?? "",
-      SerialNo: initialData?.SerialNo ?? "",
-      Condition: initialData?.Condition ?? "Good",
-      Status: initialData?.Status ?? "Available",
-      image_url: initialData?.image_url ?? "",
+      toolCode: initialData?.toolCode ?? "",
+      name: initialData?.name ?? "",
+      serialNo: initialData?.serialNo ?? "",
+      condition: initialData?.condition ?? "Good",
+      status: initialData?.status ?? "Available",
+      imageUrl: initialData?.imageUrl ?? "",
     },
   });
 
-  const imageUrlValue = useWatch({ control, name: "image_url" });
+  const imageUrlValue = useWatch({ control, name: "imageUrl" });
 
   useEffect(() => {
     reset({
-      ToolCode: initialData?.ToolCode ?? "",
-      Name: initialData?.Name ?? "",
-      SerialNo: initialData?.SerialNo ?? "",
-      Condition: initialData?.Condition ?? "Good",
-      Status: initialData?.Status ?? "Available",
-      image_url: initialData?.image_url ?? "",
+      toolCode: initialData?.toolCode ?? "",
+      name: initialData?.name ?? "",
+      serialNo: initialData?.serialNo ?? "",
+      condition: initialData?.condition ?? "Good",
+      status: initialData?.status ?? "Available",
+      imageUrl: initialData?.imageUrl ?? "",
     });
   }, [initialData, reset]);
 
-  // Handler for Cloudinary file upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -75,8 +73,8 @@ export default function ToolForm({
 
       const result = await uploadImageToCloudinary(formData);
       if (result.success && result.url) {
-        setValue("image_url", result.url, { shouldValidate: true });
-        toast.success("Tool image uploaded to Cloudinary (Cdnfire) successfully!");
+        setValue("imageUrl", result.url, { shouldValidate: true });
+        toast.success("Tool image uploaded to Cloudinary successfully!");
       } else {
         toast.error(result.message || "Failed to upload image to Cloudinary.");
       }
@@ -91,91 +89,88 @@ export default function ToolForm({
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
       {/* Tool Code & Name */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Tool Code */}
         <div>
-          <label htmlFor="ToolCode" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="toolCode" className="block text-sm font-semibold text-gray-700 mb-1.5">
             Tool Code / ID <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <Barcode size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
-              id="ToolCode"
+              id="toolCode"
               type="text"
-              {...register("ToolCode")}
+              {...register("toolCode")}
               placeholder="e.g. TL-DRILL-001"
               disabled={isSubmitting}
               className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all placeholder:text-gray-400 text-gray-900 bg-white disabled:opacity-60 ${
-                errors.ToolCode
+                errors.toolCode
                   ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                   : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
               }`}
             />
           </div>
-          {errors.ToolCode && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.ToolCode.message}</p>}
+          {errors.toolCode && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.toolCode.message}</p>}
         </div>
 
-        {/* Tool Name */}
         <div>
-          <label htmlFor="Name" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1.5">
             Tool Name <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <Wrench size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
-              id="Name"
+              id="name"
               type="text"
-              {...register("Name")}
+              {...register("name")}
               placeholder="e.g. Bosch Heavy Duty Cordless Drill"
               disabled={isSubmitting}
               className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all placeholder:text-gray-400 text-gray-900 bg-white disabled:opacity-60 ${
-                errors.Name
+                errors.name
                   ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                   : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
               }`}
             />
           </div>
-          {errors.Name && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Name.message}</p>}
+          {errors.name && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.name.message}</p>}
         </div>
       </div>
 
       {/* Serial Number */}
       <div>
-        <label htmlFor="SerialNo" className="block text-sm font-semibold text-gray-700 mb-1.5">
+        <label htmlFor="serialNo" className="block text-sm font-semibold text-gray-700 mb-1.5">
           Serial Number <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <Hash size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
-            id="SerialNo"
+            id="serialNo"
             type="text"
-            {...register("SerialNo")}
+            {...register("serialNo")}
             placeholder="e.g. SN-89482910-B"
             disabled={isSubmitting}
             className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all placeholder:text-gray-400 text-gray-900 bg-white disabled:opacity-60 ${
-              errors.SerialNo
+              errors.serialNo
                 ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                 : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
             }`}
           />
         </div>
-        {errors.SerialNo && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.SerialNo.message}</p>}
+        {errors.serialNo && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.serialNo.message}</p>}
       </div>
 
       {/* Condition & Status Dropdowns */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Condition Dropdown */}
         <div>
-          <label htmlFor="Condition" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="condition" className="block text-sm font-semibold text-gray-700 mb-1.5">
             Condition <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <ShieldAlert size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <select
-              id="Condition"
-              {...register("Condition")}
+              id="condition"
+              {...register("condition")}
               disabled={isSubmitting}
               className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white text-gray-900 ${
-                errors.Condition
+                errors.condition
                   ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                   : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
               }`}
@@ -187,22 +182,21 @@ export default function ToolForm({
               <option value="UnderRepair">Under Repair</option>
             </select>
           </div>
-          {errors.Condition && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Condition.message}</p>}
+          {errors.condition && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.condition.message}</p>}
         </div>
 
-        {/* Status Dropdown */}
         <div>
-          <label htmlFor="Status" className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-1.5">
             Status <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <CheckCircle2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <select
-              id="Status"
-              {...register("Status")}
+              id="status"
+              {...register("status")}
               disabled={isSubmitting}
               className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none transition-all bg-white text-gray-900 ${
-                errors.Status
+                errors.status
                   ? "border-red-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                   : "border-gray-200 focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
               }`}
@@ -214,20 +208,13 @@ export default function ToolForm({
               <option value="Retired">Retired</option>
             </select>
           </div>
-          {errors.Status && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.Status.message}</p>}
+          {errors.status && <p className="mt-1.5 text-xs text-red-600 font-medium">{errors.status.message}</p>}
         </div>
       </div>
 
-      {/* ── Hidden Image URL Field ── */}
-      <input type="hidden" {...register("image_url")} />
-
-      {/* ── Image Upload (Cloudinary: Cdnfire) ── */}
+      {/* Image Upload */}
       <div className="space-y-2">
-        <label className="block text-sm font-semibold text-gray-700">
-          Tool Image
-        </label>
-
-        {/* Upload File Input Button */}
+        <label className="block text-sm font-semibold text-gray-700">Tool Image</label>
         <div className="flex items-center gap-3">
           <label
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold border-2 border-dashed rounded-xl cursor-pointer transition-all ${
@@ -239,12 +226,12 @@ export default function ToolForm({
             {isUploadingImage ? (
               <>
                 <Loader2 size={16} className="animate-spin text-red-600" />
-                <span>Uploading Image to Cloudinary (Cdnfire)...</span>
+                <span>Uploading Image to Cloudinary...</span>
               </>
             ) : (
               <>
                 <UploadCloud size={16} className="text-red-600" />
-                <span>{imageUrlValue ? "Change Tool Image (Upload to Cdnfire)" : "Choose Tool Image to Upload"}</span>
+                <span>{imageUrlValue ? "Change Tool Image" : "Choose Tool Image to Upload"}</span>
               </>
             )}
             <input
@@ -257,7 +244,6 @@ export default function ToolForm({
           </label>
         </div>
 
-        {/* Live Image Preview Container */}
         <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden flex items-center justify-center border border-gray-300 flex-shrink-0">
@@ -281,16 +267,13 @@ export default function ToolForm({
               <p className="text-xs font-semibold text-gray-700">
                 {imageUrlValue ? "Uploaded Image Preview" : "No Image Uploaded"}
               </p>
-              <p className="text-[11px] text-gray-500 truncate">
-                {imageUrlValue ? "Saved in Cloudinary (Cdnfire)" : "Click 'Choose Tool Image' above to upload."}
-              </p>
             </div>
           </div>
 
           {imageUrlValue && (
             <button
               type="button"
-              onClick={() => setValue("image_url", "", { shouldValidate: true })}
+              onClick={() => setValue("imageUrl", "", { shouldValidate: true })}
               disabled={isSubmitting || isUploadingImage}
               className="px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
             >

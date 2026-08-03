@@ -2,7 +2,7 @@
 
 // ============================================================
 // src/app/(Main)/admin/suppliers/components/SupplierTable.tsx
-// Data table with search, edit, delete, empty state, and toast notifications.
+// Updated to camelCase field names (id, company, contactPerson…)
 // ============================================================
 
 import { useState } from "react";
@@ -32,34 +32,20 @@ function formatDate(date: Date) {
 }
 
 export default function SupplierTable({ suppliers }: SupplierTableProps) {
-  // Modal states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<SupplierRow | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<SupplierRow | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ── Handlers ──────────────────────────────────────────────
-
-  const openCreate = () => {
-    setEditTarget(undefined);
-    setIsFormOpen(true);
-  };
-
-  const openEdit = (row: SupplierRow) => {
-    setEditTarget(row);
-    setIsFormOpen(true);
-  };
-
-  const closeForm = () => {
-    setIsFormOpen(false);
-    setEditTarget(undefined);
-  };
+  const openCreate = () => { setEditTarget(undefined); setIsFormOpen(true); };
+  const openEdit = (row: SupplierRow) => { setEditTarget(row); setIsFormOpen(true); };
+  const closeForm = () => { setIsFormOpen(false); setEditTarget(undefined); };
 
   const handleFormSubmit = async (data: SupplierFormValues) => {
     setIsSubmitting(true);
     try {
       const result = editTarget
-        ? await updateSupplier({ ...data, Id: editTarget.Id })
+        ? await updateSupplier({ ...data, id: editTarget.id })
         : await createSupplier(data);
 
       if (result.success) {
@@ -75,7 +61,7 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    const result = await deleteSupplier(deleteTarget.Id);
+    const result = await deleteSupplier(deleteTarget.id);
     if (result.success) {
       toast.success(result.message);
       setDeleteTarget(undefined);
@@ -86,7 +72,6 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
 
   return (
     <>
-      {/* Add Supplier Button */}
       <div className="mb-6">
         <button
           id="add-supplier-btn"
@@ -100,36 +85,16 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
         </button>
       </div>
 
-      {/* Table Card */}
       <div className="bg-[#0d1117] rounded-2xl border border-[#1e2a3d] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[#080c12] border-b border-[#1e2a3d]">
-                <th className="px-6 py-3.5 text-left text-xs font-semibold text-[#3d4c62] uppercase tracking-wide w-12">
-                  #
-                </th>
-                <th className="px-6 py-3.5 text-left text-xs font-semibold text-[#3d4c62] uppercase tracking-wide">
-                  Company
-                </th>
-                <th className="px-6 py-3.5 text-left text-xs font-semibold text-[#3d4c62] uppercase tracking-wide">
-                  Contact Person
-                </th>
-                <th className="px-6 py-3.5 text-left text-xs font-semibold text-[#3d4c62] uppercase tracking-wide">
-                  Phone
-                </th>
-                <th className="px-6 py-3.5 text-left text-xs font-semibold text-[#3d4c62] uppercase tracking-wide">
-                  Email
-                </th>
-                <th className="px-6 py-3.5 text-left text-xs font-semibold text-[#3d4c62] uppercase tracking-wide hidden lg:table-cell">
-                  Address
-                </th>
-                <th className="px-6 py-3.5 text-left text-xs font-semibold text-[#3d4c62] uppercase tracking-wide hidden xl:table-cell">
-                  Created
-                </th>
-                <th className="px-6 py-3.5 text-right text-xs font-semibold text-[#3d4c62] uppercase tracking-wide">
-                  Actions
-                </th>
+                {["#", "Company", "Contact Person", "Phone", "Email", "Address", "Created", "Actions"].map((h) => (
+                  <th key={h} className="px-6 py-3.5 text-left text-xs font-semibold text-[#3d4c62] uppercase tracking-wide first:w-12 last:text-right">
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1e2a3d]">
@@ -141,11 +106,7 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
                         <Building2 size={24} className="text-[#3d4c62]" />
                       </div>
                       <p className="text-[#5a657a] font-medium text-sm">No suppliers found.</p>
-                      <button
-                        type="button"
-                        onClick={openCreate}
-                        className="text-[#e02424] text-sm font-semibold hover:underline"
-                      >
+                      <button type="button" onClick={openCreate} className="text-[#e02424] text-sm font-semibold hover:underline">
                         Add your first supplier
                       </button>
                     </div>
@@ -153,70 +114,42 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
                 </tr>
               ) : (
                 suppliers.map((supplier, idx) => (
-                  <tr
-                    key={supplier.Id}
-                    className="hover:bg-[#161d2e] transition-colors group"
-                  >
-                    <td className="px-6 py-4 text-[#3d4c62] font-medium tabular-nums">
-                      {idx + 1}
-                    </td>
+                  <tr key={supplier.id} className="hover:bg-[#161d2e] transition-colors group">
+                    <td className="px-6 py-4 text-[#3d4c62] font-medium tabular-nums">{idx + 1}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <Building2 size={15} className="text-[#e02424] flex-shrink-0" />
-                        <span className="font-semibold text-[#dce3ef]">{supplier.Company}</span>
+                        <span className="font-semibold text-[#dce3ef]">{supplier.company}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-[#dce3ef]">
-                      {supplier.ContactPerson ? (
-                        <div className="flex items-center gap-1.5">
-                          <User size={13} className="text-[#5a657a]" />
-                          <span>{supplier.ContactPerson}</span>
-                        </div>
-                      ) : (
-                        <span className="text-[#3d4c62] italic">—</span>
-                      )}
+                      {supplier.contactPerson
+                        ? <div className="flex items-center gap-1.5"><User size={13} className="text-[#5a657a]" /><span>{supplier.contactPerson}</span></div>
+                        : <span className="text-[#3d4c62] italic">—</span>}
                     </td>
                     <td className="px-6 py-4 text-[#dce3ef]">
-                      {supplier.Phone ? (
-                        <div className="flex items-center gap-1.5">
-                          <Phone size={13} className="text-[#5a657a]" />
-                          <span>{supplier.Phone}</span>
-                        </div>
-                      ) : (
-                        <span className="text-[#3d4c62] italic">—</span>
-                      )}
+                      {supplier.phone
+                        ? <div className="flex items-center gap-1.5"><Phone size={13} className="text-[#5a657a]" /><span>{supplier.phone}</span></div>
+                        : <span className="text-[#3d4c62] italic">—</span>}
                     </td>
                     <td className="px-6 py-4 text-[#dce3ef]">
-                      {supplier.Email ? (
-                        <div className="flex items-center gap-1.5">
-                          <Mail size={13} className="text-[#5a657a]" />
-                          <span>{supplier.Email}</span>
-                        </div>
-                      ) : (
-                        <span className="text-[#3d4c62] italic">—</span>
-                      )}
+                      {supplier.email
+                        ? <div className="flex items-center gap-1.5"><Mail size={13} className="text-[#5a657a]" /><span>{supplier.email}</span></div>
+                        : <span className="text-[#3d4c62] italic">—</span>}
                     </td>
                     <td className="px-6 py-4 text-[#5a657a] hidden lg:table-cell max-w-xs truncate">
-                      {supplier.Address ? (
-                        <div className="flex items-center gap-1.5 truncate">
-                          <MapPin size={13} className="text-[#5a657a] flex-shrink-0" />
-                          <span className="truncate">{supplier.Address}</span>
-                        </div>
-                      ) : (
-                        <span className="text-[#3d4c62] italic">—</span>
-                      )}
+                      {supplier.address
+                        ? <div className="flex items-center gap-1.5 truncate"><MapPin size={13} className="text-[#5a657a] flex-shrink-0" /><span className="truncate">{supplier.address}</span></div>
+                        : <span className="text-[#3d4c62] italic">—</span>}
                     </td>
-                    <td className="px-6 py-4 text-[#5a657a] hidden xl:table-cell">
-                      {formatDate(supplier.createdAt)}
-                    </td>
+                    <td className="px-6 py-4 text-[#5a657a] hidden xl:table-cell">{formatDate(supplier.createdAt)}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => openEdit(supplier)}
                           title="Edit supplier"
-                          className="p-2 rounded-lg text-[#5a657a] hover:text-blue-400 hover:bg-blue-900/30
-                            transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-2 rounded-lg text-[#5a657a] hover:text-blue-400 hover:bg-blue-900/30 transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <Pencil size={15} />
                         </button>
@@ -224,8 +157,7 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
                           type="button"
                           onClick={() => setDeleteTarget(supplier)}
                           title="Delete supplier"
-                          className="p-2 rounded-lg text-[#5a657a] hover:text-[#e02424] hover:bg-[#e02424]/10
-                            transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-2 rounded-lg text-[#5a657a] hover:text-[#e02424] hover:bg-[#e02424]/10 transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <Trash2 size={15} />
                         </button>
@@ -238,7 +170,6 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
           </table>
         </div>
 
-        {/* Row count footer */}
         {suppliers.length > 0 && (
           <div className="px-6 py-3 border-t border-[#1e2a3d] bg-[#080c12]/50">
             <p className="text-xs text-[#3d4c62] font-medium">
@@ -248,12 +179,7 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
         )}
       </div>
 
-      {/* Create / Edit Modal */}
-      <Modal
-        isOpen={isFormOpen}
-        onClose={closeForm}
-        title={editTarget ? "Edit Supplier" : "Add Supplier"}
-      >
+      <Modal isOpen={isFormOpen} onClose={closeForm} title={editTarget ? "Edit Supplier" : "Add Supplier"}>
         <SupplierForm
           initialData={editTarget}
           onSubmit={handleFormSubmit}
@@ -262,12 +188,11 @@ export default function SupplierTable({ suppliers }: SupplierTableProps) {
         />
       </Modal>
 
-      {/* Delete Confirmation Modal */}
       <DeleteSupplierDialog
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(undefined)}
         onConfirm={handleDelete}
-        companyName={deleteTarget?.Company}
+        companyName={deleteTarget?.company}
       />
     </>
   );

@@ -3,6 +3,7 @@
 // ============================================================
 // src/app/(Main)/admin/inventory/components/SearchableSupplierSelect.tsx
 // Searchable dropdown component to select a Supplier from DB.
+// Updated to camelCase properties (id, company, contactPerson).
 // ============================================================
 
 import { useState, useEffect, useRef } from "react";
@@ -28,7 +29,6 @@ export default function SearchableSupplierSelect({
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch initial suppliers list & filter when searchQuery changes
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
@@ -49,7 +49,6 @@ export default function SearchableSupplierSelect({
     };
   }, [searchQuery]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -60,11 +59,10 @@ export default function SearchableSupplierSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedSupplier = suppliers.find((s) => s.Id === value);
+  const selectedSupplier = suppliers.find((s) => s.id === value);
 
   return (
     <div ref={dropdownRef} className="relative w-full">
-      {/* Trigger Button */}
       <button
         type="button"
         disabled={disabled}
@@ -80,7 +78,7 @@ export default function SearchableSupplierSelect({
         <div className="flex items-center gap-2 truncate">
           <Building2 size={15} className="text-gray-400 flex-shrink-0" />
           <span className={value ? "text-gray-900 font-medium" : "text-gray-400"}>
-            {selectedSupplier ? selectedSupplier.Company : value ? `Supplier #${value}` : "Select Supplier (Optional)"}
+            {selectedSupplier ? selectedSupplier.company : value ? `Supplier #${value}` : "Select Supplier (Optional)"}
           </span>
         </div>
 
@@ -101,10 +99,8 @@ export default function SearchableSupplierSelect({
         </div>
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute z-30 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-100">
-          {/* Search Field */}
           <div className="px-3 pb-2 border-b border-gray-100">
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -119,7 +115,6 @@ export default function SearchableSupplierSelect({
             </div>
           </div>
 
-          {/* Suppliers List */}
           <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 text-sm">
             <button
               type="button"
@@ -142,23 +137,23 @@ export default function SearchableSupplierSelect({
             ) : (
               suppliers.map((supplier) => (
                 <button
-                  key={supplier.Id}
+                  key={supplier.id}
                   type="button"
                   onClick={() => {
-                    onChange(supplier.Id);
+                    onChange(supplier.id);
                     setIsOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors ${
-                    value === supplier.Id ? "bg-red-50/50 text-red-600 font-medium" : "text-gray-800"
+                    value === supplier.id ? "bg-red-50/50 text-red-600 font-medium" : "text-gray-800"
                   }`}
                 >
                   <div className="flex flex-col">
-                    <span className="font-medium text-sm">{supplier.Company}</span>
-                    {supplier.ContactPerson && (
-                      <span className="text-xs text-gray-400">{supplier.ContactPerson}</span>
+                    <span className="font-medium text-sm">{supplier.company}</span>
+                    {supplier.contactPerson && (
+                      <span className="text-xs text-gray-400">{supplier.contactPerson}</span>
                     )}
                   </div>
-                  {value === supplier.Id && <Check size={14} className="text-red-600" />}
+                  {value === supplier.id && <Check size={14} className="text-red-600" />}
                 </button>
               ))
             )}

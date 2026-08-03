@@ -16,13 +16,13 @@ const TOOLS_PATH = "/admin/tools";
 // ── Types ────────────────────────────────────────────────────
 
 export type ToolRow = {
-  Id: number;
-  ToolCode: string;
-  Name: string;
-  SerialNo: string;
-  Condition: ToolCondition;
-  Status: ToolStatus;
-  image_url: string | null;
+  id: number;
+  toolCode: string;
+  name: string;
+  serialNo: string;
+  condition: ToolCondition;
+  status: ToolStatus;
+  imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -38,10 +38,10 @@ export type FilterParams = {
 function mapPrismaError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
   if (msg.includes("Unique constraint") || msg.includes("unique constraint")) {
-    if (msg.includes("ToolCode") || msg.includes("tool_code")) {
+    if (msg.includes("toolCode") || msg.includes("tool_code")) {
       return "A tool with this Tool Code already exists.";
     }
-    if (msg.includes("SerialNo") || msg.includes("serial_no")) {
+    if (msg.includes("serialNo") || msg.includes("serial_no")) {
       return "A tool with this Serial Number already exists.";
     }
   }
@@ -50,23 +50,19 @@ function mapPrismaError(err: unknown): string {
 }
 
 const toolSelect = {
-  Id: true,
-  ToolCode: true,
-  Name: true,
-  SerialNo: true,
-  Condition: true,
-  Status: true,
-  image_url: true,
+  id: true,
+  toolCode: true,
+  name: true,
+  serialNo: true,
+  condition: true,
+  status: true,
+  imageUrl: true,
   createdAt: true,
   updatedAt: true,
 } as const;
 
 // ── Queries ──────────────────────────────────────────────────
 
-/**
- * Fetch tools with search & filtering by condition & status.
- * Returns newest first.
- */
 export async function getTools(filters?: FilterParams): Promise<ToolRow[]> {
   const search = filters?.search?.trim();
   const condition = filters?.condition;
@@ -74,14 +70,14 @@ export async function getTools(filters?: FilterParams): Promise<ToolRow[]> {
 
   const where: any = {};
 
-  if (condition) where.Condition = condition;
-  if (status) where.Status = status;
+  if (condition) where.condition = condition;
+  if (status) where.status = status;
 
   if (search) {
     where.OR = [
-      { ToolCode: { contains: search, mode: "insensitive" } },
-      { Name: { contains: search, mode: "insensitive" } },
-      { SerialNo: { contains: search, mode: "insensitive" } },
+      { toolCode: { contains: search, mode: "insensitive" } },
+      { name: { contains: search, mode: "insensitive" } },
+      { serialNo: { contains: search, mode: "insensitive" } },
     ];
   }
 
@@ -92,18 +88,15 @@ export async function getTools(filters?: FilterParams): Promise<ToolRow[]> {
   });
 }
 
-/**
- * Fast search query for autocomplete/search suggestions.
- */
 export async function searchTools(query: string): Promise<ToolRow[]> {
   const trimmed = query.trim();
   return prisma.tool.findMany({
     where: trimmed
       ? {
           OR: [
-            { ToolCode: { contains: trimmed, mode: "insensitive" } },
-            { Name: { contains: trimmed, mode: "insensitive" } },
-            { SerialNo: { contains: trimmed, mode: "insensitive" } },
+            { toolCode: { contains: trimmed, mode: "insensitive" } },
+            { name: { contains: trimmed, mode: "insensitive" } },
+            { serialNo: { contains: trimmed, mode: "insensitive" } },
           ],
         }
       : undefined,
@@ -113,21 +106,15 @@ export async function searchTools(query: string): Promise<ToolRow[]> {
   });
 }
 
-/**
- * Fetch a single tool by Id.
- */
 export async function getToolById(id: number): Promise<ToolRow | null> {
   return prisma.tool.findUnique({
-    where: { Id: id },
+    where: { id },
     select: toolSelect,
   });
 }
 
 // ── Mutations ────────────────────────────────────────────────
 
-/**
- * Create a new Tool record.
- */
 export async function createTool(
   formData: unknown
 ): Promise<ActionState<ToolRow>> {
@@ -141,41 +128,39 @@ export async function createTool(
 
   const data = parsed.data;
 
-  // Unique ToolCode check
   const existingCode = await prisma.tool.findUnique({
-    where: { ToolCode: data.ToolCode },
-    select: { Id: true },
+    where: { toolCode: data.toolCode },
+    select: { id: true },
   });
   if (existingCode) {
     return {
       success: false,
       message: "Tool Code must be unique.",
-      errors: { ToolCode: ["A tool with this Tool Code already exists."] },
+      errors: { toolCode: ["A tool with this Tool Code already exists."] },
     };
   }
 
-  // Unique SerialNo check
   const existingSerial = await prisma.tool.findUnique({
-    where: { SerialNo: data.SerialNo },
-    select: { Id: true },
+    where: { serialNo: data.serialNo },
+    select: { id: true },
   });
   if (existingSerial) {
     return {
       success: false,
       message: "Serial Number must be unique.",
-      errors: { SerialNo: ["A tool with this Serial Number already exists."] },
+      errors: { serialNo: ["A tool with this Serial Number already exists."] },
     };
   }
 
   try {
     const tool = await prisma.tool.create({
       data: {
-        ToolCode: data.ToolCode,
-        Name: data.Name,
-        SerialNo: data.SerialNo,
-        Condition: data.Condition,
-        Status: data.Status,
-        image_url: data.image_url || null,
+        toolCode: data.toolCode,
+        name: data.name,
+        serialNo: data.serialNo,
+        condition: data.condition,
+        status: data.status,
+        imageUrl: data.imageUrl || null,
       },
       select: toolSelect,
     });
@@ -191,9 +176,6 @@ export async function createTool(
   }
 }
 
-/**
- * Update an existing Tool record by Id.
- */
 export async function updateTool(
   formData: unknown
 ): Promise<ActionState<ToolRow>> {
@@ -207,42 +189,40 @@ export async function updateTool(
 
   const data = parsed.data;
 
-  // Unique ToolCode check for other records
   const existingCode = await prisma.tool.findFirst({
-    where: { ToolCode: data.ToolCode, NOT: { Id: data.Id } },
-    select: { Id: true },
+    where: { toolCode: data.toolCode, NOT: { id: data.id } },
+    select: { id: true },
   });
   if (existingCode) {
     return {
       success: false,
       message: "Tool Code must be unique.",
-      errors: { ToolCode: ["Another tool with this Tool Code already exists."] },
+      errors: { toolCode: ["Another tool with this Tool Code already exists."] },
     };
   }
 
-  // Unique SerialNo check for other records
   const existingSerial = await prisma.tool.findFirst({
-    where: { SerialNo: data.SerialNo, NOT: { Id: data.Id } },
-    select: { Id: true },
+    where: { serialNo: data.serialNo, NOT: { id: data.id } },
+    select: { id: true },
   });
   if (existingSerial) {
     return {
       success: false,
       message: "Serial Number must be unique.",
-      errors: { SerialNo: ["Another tool with this Serial Number already exists."] },
+      errors: { serialNo: ["Another tool with this Serial Number already exists."] },
     };
   }
 
   try {
     const tool = await prisma.tool.update({
-      where: { Id: data.Id },
+      where: { id: data.id },
       data: {
-        ToolCode: data.ToolCode,
-        Name: data.Name,
-        SerialNo: data.SerialNo,
-        Condition: data.Condition,
-        Status: data.Status,
-        image_url: data.image_url || null,
+        toolCode: data.toolCode,
+        name: data.name,
+        serialNo: data.serialNo,
+        condition: data.condition,
+        status: data.status,
+        imageUrl: data.imageUrl || null,
       },
       select: toolSelect,
     });
@@ -258,12 +238,9 @@ export async function updateTool(
   }
 }
 
-/**
- * Delete a Tool record by Id.
- */
 export async function deleteTool(id: number): Promise<ActionState> {
   try {
-    await prisma.tool.delete({ where: { Id: id } });
+    await prisma.tool.delete({ where: { id } });
     revalidatePath(TOOLS_PATH);
     return {
       success: true,

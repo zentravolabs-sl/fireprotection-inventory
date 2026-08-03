@@ -2,12 +2,12 @@
 
 // ============================================================
 // src/app/(Main)/admin/inventory/components/InventoryFilters.tsx
-// Filter controls for Category, SubCategory, Supplier, Issue Location, Stock Status, and Expiry Status.
+// Filter controls for Category, SubCategory, Warehouse, and Stock Status.
 // ============================================================
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Filter, X, RefreshCw } from "lucide-react";
+import { Filter, X } from "lucide-react";
 import { getSubCategoriesByCategoryId } from "../actions";
 
 interface CategoryOption {
@@ -15,30 +15,21 @@ interface CategoryOption {
   categoryName: string;
 }
 
-interface SupplierOption {
-  Id: number;
-  Company: string;
-}
-
 interface InventoryFiltersProps {
   categories: CategoryOption[];
-  suppliers: SupplierOption[];
 }
 
-export default function InventoryFilters({ categories, suppliers }: InventoryFiltersProps) {
+export default function InventoryFilters({ categories }: InventoryFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const currentCategory = searchParams.get("categoryId") || "";
   const currentSubCategory = searchParams.get("subCategoryId") || "";
-  const currentSupplier = searchParams.get("supplierId") || "";
-  const currentIssueLocation = searchParams.get("issueLocation") || "";
-  const currentStockStatus = searchParams.get("stockStatus") || "All";
-  const currentExpiryStatus = searchParams.get("expiryStatus") || "All";
+  const currentWarehouse = searchParams.get("warehouse") || "";
+  const currentStockStatus = searchParams.get("stockStatus") || "all";
 
   const [subCategories, setSubCategories] = useState<{ id: number; name: string }[]>([]);
 
-  // Load subcategories when selected category changes
   useEffect(() => {
     if (!currentCategory) {
       setSubCategories([]);
@@ -57,13 +48,12 @@ export default function InventoryFilters({ categories, suppliers }: InventoryFil
 
   const updateParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value && value !== "All") {
+    if (value && value !== "all") {
       params.set(key, value);
     } else {
       params.delete(key);
     }
 
-    // Reset subCategory if Category changes
     if (key === "categoryId") {
       params.delete("subCategoryId");
     }
@@ -75,20 +65,16 @@ export default function InventoryFilters({ categories, suppliers }: InventoryFil
     const params = new URLSearchParams(searchParams.toString());
     params.delete("categoryId");
     params.delete("subCategoryId");
-    params.delete("supplierId");
-    params.delete("issueLocation");
+    params.delete("warehouse");
     params.delete("stockStatus");
-    params.delete("expiryStatus");
     router.push(`/admin/inventory?${params.toString()}`);
   };
 
   const hasActiveFilters = Boolean(
     currentCategory ||
       currentSubCategory ||
-      currentSupplier ||
-      currentIssueLocation ||
-      (currentStockStatus && currentStockStatus !== "All") ||
-      (currentExpiryStatus && currentExpiryStatus !== "All")
+      currentWarehouse ||
+      (currentStockStatus && currentStockStatus !== "all")
   );
 
   return (
@@ -111,7 +97,7 @@ export default function InventoryFilters({ categories, suppliers }: InventoryFil
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         {/* Category Filter */}
         <div>
           <label className="block text-xs font-medium text-[#5a657a] mb-1">Category</label>
@@ -147,35 +133,16 @@ export default function InventoryFilters({ categories, suppliers }: InventoryFil
           </select>
         </div>
 
-        {/* Supplier Filter */}
+        {/* Warehouse Filter */}
         <div>
-          <label className="block text-xs font-medium text-[#5a657a] mb-1">Supplier</label>
-          <select
-            value={currentSupplier}
-            onChange={(e) => updateParam("supplierId", e.target.value)}
+          <label className="block text-xs font-medium text-[#5a657a] mb-1">Warehouse</label>
+          <input
+            type="text"
+            placeholder="Filter by warehouse..."
+            value={currentWarehouse}
+            onChange={(e) => updateParam("warehouse", e.target.value)}
             className="w-full px-3 py-1.5 text-xs bg-[#080c12] border border-[#1e2a3d] rounded-xl text-[#dce3ef] outline-none focus:border-[#e02424]"
-          >
-            <option value="">All Suppliers</option>
-            {suppliers.map((s) => (
-              <option key={s.Id} value={s.Id}>
-                {s.Company}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Issue Location Filter */}
-        <div>
-          <label className="block text-xs font-medium text-[#5a657a] mb-1">Issue Location</label>
-          <select
-            value={currentIssueLocation}
-            onChange={(e) => updateParam("issueLocation", e.target.value)}
-            className="w-full px-3 py-1.5 text-xs bg-[#080c12] border border-[#1e2a3d] rounded-xl text-[#dce3ef] outline-none focus:border-[#e02424]"
-          >
-            <option value="">All Locations</option>
-            <option value="Warehouse">Warehouse</option>
-            <option value="Shop">Shop</option>
-          </select>
+          />
         </div>
 
         {/* Stock Status Filter */}
@@ -186,25 +153,10 @@ export default function InventoryFilters({ categories, suppliers }: InventoryFil
             onChange={(e) => updateParam("stockStatus", e.target.value)}
             className="w-full px-3 py-1.5 text-xs bg-[#080c12] border border-[#1e2a3d] rounded-xl text-[#dce3ef] outline-none focus:border-[#e02424]"
           >
-            <option value="All">All Stock</option>
-            <option value="In Stock">In Stock</option>
-            <option value="Low Stock">Low Stock</option>
-            <option value="Out Of Stock">Out Of Stock</option>
-          </select>
-        </div>
-
-        {/* Expiry Status Filter */}
-        <div>
-          <label className="block text-xs font-medium text-[#5a657a] mb-1">Expiry Status</label>
-          <select
-            value={currentExpiryStatus}
-            onChange={(e) => updateParam("expiryStatus", e.target.value)}
-            className="w-full px-3 py-1.5 text-xs bg-[#080c12] border border-[#1e2a3d] rounded-xl text-[#dce3ef] outline-none focus:border-[#e02424]"
-          >
-            <option value="All">All Items</option>
-            <option value="Valid">Valid</option>
-            <option value="Expiring Soon">Expiring Soon (30 Days)</option>
-            <option value="Expired">Expired</option>
+            <option value="all">All Stock</option>
+            <option value="in_stock">In Stock</option>
+            <option value="low_stock">Low Stock</option>
+            <option value="out_of_stock">Out Of Stock</option>
           </select>
         </div>
       </div>

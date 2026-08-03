@@ -1,51 +1,41 @@
 // ============================================================
-// src/app/(Main)/admin/inventory/page.tsx
-// Inventory Master page — React Server Component.
+// src/app/(Main)/admin/pipe-cut-pieces/page.tsx
+// Pipe Cut Pieces Page — React Server Component.
 // ============================================================
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowLeft, Package, ShieldCheck } from "lucide-react";
-import { getInventory } from "./actions";
-import { getCategories } from "@/app/(Main)/admin/categories/actions";
-import InventoryTable from "./components/InventoryTable";
-import InventoryFilters from "./components/InventoryFilters";
+import { ArrowLeft, Scissors, ShieldCheck } from "lucide-react";
+import { getPipeCutPieces } from "./actions";
+import { getInventoryList } from "@/app/(Main)/admin/inventory/actions";
+import PipeCutTable from "./components/PipeCutTable";
 import SearchInput from "@/components/ui/SearchInput";
 import TableSkeleton from "@/components/ui/TableSkeleton";
+import type { PipeCutStatus } from "@/generated/prisma/client";
 
 export const metadata = {
-  title: "Inventory Master — CDN Fire Engineering",
-  description: "Manage fire protection inventory master catalogue and minimum stock rules.",
+  title: "Pipe & Cut Pieces — CDN Fire Engineering",
+  description: "Manage remaining pipe off-cuts and batch traceability.",
 };
 
 interface PageProps {
   searchParams: Promise<{
     search?: string;
-    categoryId?: string;
-    subCategoryId?: string;
-    warehouse?: string;
-    stockStatus?: string;
+    inventoryId?: string;
+    status?: string;
   }>;
 }
 
-export default async function InventoryPage({ searchParams }: PageProps) {
+export default async function PipeCutPiecesPage({ searchParams }: PageProps) {
   const params = await searchParams;
 
   const search = params.search?.trim() || undefined;
-  const categoryId = params.categoryId ? parseInt(params.categoryId, 10) : undefined;
-  const subCategoryId = params.subCategoryId ? parseInt(params.subCategoryId, 10) : undefined;
-  const warehouse = params.warehouse?.trim() || undefined;
-  const stockStatus = (params.stockStatus as any) || undefined;
+  const inventoryId = params.inventoryId ? parseInt(params.inventoryId, 10) : undefined;
+  const status = (params.status as PipeCutStatus) || undefined;
 
-  const [categories, inventories] = await Promise.all([
-    getCategories(),
-    getInventory({
-      search,
-      categoryId,
-      subCategoryId,
-      warehouse,
-      stockStatus,
-    }),
+  const [cutPieces, inventoryItems] = await Promise.all([
+    getPipeCutPieces({ search, inventoryId, status }),
+    getInventoryList(),
   ]);
 
   return (
@@ -63,9 +53,9 @@ export default async function InventoryPage({ searchParams }: PageProps) {
           <span className="text-[#1e2a3d]">|</span>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-[#e02424]/10 flex items-center justify-center">
-              <Package size={14} className="text-[#e02424]" />
+              <Scissors size={14} className="text-[#e02424]" />
             </div>
-            <span className="font-bold text-[#dce3ef]">Inventory Master</span>
+            <span className="font-bold text-[#dce3ef]">Pipe Cut Pieces</span>
           </div>
 
           <div className="ml-auto flex items-center gap-2">
@@ -82,45 +72,30 @@ export default async function InventoryPage({ searchParams }: PageProps) {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#dce3ef]">Inventory Master Catalogue</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#dce3ef]">Pipe Off-Cut Piece Management</h1>
             <p className="text-[#5a657a] text-sm mt-1">
-              Master item definitions. Stock levels are calculated automatically from Stock Batches.
+              Track off-cut pipe lengths with full batch traceability to minimize material waste.
             </p>
           </div>
 
           {/* Search Bar */}
           <div className="w-full sm:w-80">
             <SearchInput
-              placeholder="Search code, name, barcode, brand..."
+              placeholder="Search barcode, pipe name, rack..."
               paramKey="search"
               defaultValue={search ?? ""}
             />
           </div>
         </div>
 
-        {/* Filter Toolbar */}
-        <InventoryFilters categories={categories} />
-
-        {/* Search Feedback */}
-        {search && (
-          <p className="text-sm text-[#5a657a] mb-4">
-            Showing results for{" "}
-            <span className="font-semibold text-[#dce3ef]">&ldquo;{search}&rdquo;</span>
-            {" — "}
-            <Link href="/admin/inventory" className="text-[#e02424] hover:underline font-medium">
-              Clear Search
-            </Link>
-          </p>
-        )}
-
-        {/* Inventory Data Table */}
+        {/* Table */}
         <Suspense
           fallback={
             <div className="bg-[#0F1524] rounded-2xl border border-[#1e2a3d] shadow-sm overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-[#0F1524] border-b border-[#1e2a3d]">
-                    {["#", "Item Code", "Image", "Name", "Category", "Sub Category", "Brand", "Unit", "Current Stock", "Min Stock", "Status", "Actions"].map(
+                    {["#", "Pipe Item", "Source Batch", "Original Length", "Remaining Length", "Rack", "Barcode", "Status", "Actions"].map(
                       (h) => (
                         <th key={h} className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide">
                           {h}
@@ -130,13 +105,13 @@ export default async function InventoryPage({ searchParams }: PageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  <TableSkeleton rows={5} cols={12} />
+                  <TableSkeleton rows={5} cols={9} />
                 </tbody>
               </table>
             </div>
           }
         >
-          <InventoryTable inventories={inventories} categories={categories} />
+          <PipeCutTable cutPieces={cutPieces} inventoryItems={inventoryItems} />
         </Suspense>
       </main>
     </div>

@@ -51,7 +51,7 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
     setIsSubmitting(true);
     try {
       const result = editTarget
-        ? await updateCustomer({ ...data, Id: editTarget.Id })
+        ? await updateCustomer({ ...data, id: editTarget.id })
         : await createCustomer(data);
 
       if (result.success) {
@@ -67,7 +67,7 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    const result = await deleteCustomer(deleteTarget.Id);
+    const result = await deleteCustomer(deleteTarget.id);
     if (result.success) {
       toast.success(result.message);
       setDeleteTarget(undefined);
@@ -78,7 +78,6 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
 
   return (
     <>
-      {/* Create Button */}
       <div className="mb-6 flex items-center justify-between">
         <button
           id="add-customer-btn"
@@ -91,7 +90,6 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
         </button>
       </div>
 
-      {/* Table Card */}
       <div className="bg-[#0d1117] rounded-2xl border border-[#1e2a3d] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -124,67 +122,60 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
                 </tr>
               ) : (
                 customers.map((customer, idx) => (
-                  <tr key={customer.Id} className="hover:bg-[#161d2e] transition-colors group">
-                    {/* # */}
+                  <tr key={customer.id} className="hover:bg-[#161d2e] transition-colors group">
                     <td className="px-4 py-3.5 text-[#3d4c62] font-medium tabular-nums">{idx + 1}</td>
 
-                    {/* Company Name */}
                     <td className="px-4 py-3.5 font-bold text-[#dce3ef] whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <Building size={14} className="text-[#e02424]" />
-                        <span>{customer.CompanyName}</span>
+                        <span>{customer.companyName}</span>
                       </div>
                     </td>
 
-                    {/* Contact Person */}
                     <td className="px-4 py-3.5 text-[#5a657a] whitespace-nowrap">
-                      {customer.ContactPerson ? (
+                      {customer.contactPerson ? (
                         <div className="flex items-center gap-1.5">
                           <User size={12} className="text-gray-400" />
-                          <span>{customer.ContactPerson}</span>
+                          <span>{customer.contactPerson}</span>
                         </div>
                       ) : (
                         <span className="text-[#3d4c62] italic">—</span>
                       )}
                     </td>
 
-                    {/* Phone */}
                     <td className="px-4 py-3.5 font-mono text-[#5a657a] whitespace-nowrap">
-                      {customer.Phone ? (
+                      {customer.phone ? (
                         <div className="flex items-center gap-1.5">
                           <Phone size={12} className="text-emerald-400" />
-                          <span>{customer.Phone}</span>
+                          <span>{customer.phone}</span>
                         </div>
                       ) : (
                         <span className="text-[#3d4c62] italic">—</span>
                       )}
                     </td>
 
-                    {/* Email */}
                     <td className="px-4 py-3.5 text-[#5a657a] whitespace-nowrap">
-                      {customer.Email ? (
+                      {customer.email ? (
                         <div className="flex items-center gap-1.5">
                           <Mail size={12} className="text-blue-400" />
-                          <span className="text-blue-300">{customer.Email}</span>
+                          <span className="text-blue-300">{customer.email}</span>
                         </div>
                       ) : (
                         <span className="text-[#3d4c62] italic">—</span>
                       )}
                     </td>
 
-                    {/* Address */}
                     <td className="px-4 py-3.5 text-[#5a657a] max-w-xs truncate">
-                      {customer.Address ? (
+                      {customer.address ? (
                         <div className="flex items-center gap-1.5">
                           <MapPin size={12} className="text-gray-400 flex-shrink-0" />
-                          <span className="truncate">{customer.Address}</span>
+                          <span className="truncate">{customer.address}</span>
                         </div>
                       ) : (
                         <span className="text-[#3d4c62] italic">—</span>
                       )}
                     </td>
 
-                    {/* Created Date */}
                     <td className="px-4 py-3.5 text-[#5a657a] whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <Calendar size={12} className="text-[#3d4c62]" />
@@ -192,7 +183,6 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
                       </div>
                     </td>
 
-                    {/* Actions Sticky Column */}
                     <td className="px-4 py-3.5 sticky right-0 bg-[#0d1117] group-hover:bg-[#161d2e] transition-colors">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
@@ -220,7 +210,6 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
           </table>
         </div>
 
-        {/* Footer */}
         {customers.length > 0 && (
           <div className="px-6 py-3 border-t border-[#1e2a3d] bg-[#080c12]/50 flex items-center justify-between">
             <p className="text-xs text-[#3d4c62] font-medium">
@@ -230,7 +219,6 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
         )}
       </div>
 
-      {/* Form Modal */}
       <Modal isOpen={isFormOpen} onClose={closeForm} title={editTarget ? "Edit Customer" : "Add New Customer"} maxWidth="max-w-lg">
         <CustomerForm
           initialData={editTarget}
@@ -240,12 +228,11 @@ export default function CustomerTable({ customers }: CustomerTableProps) {
         />
       </Modal>
 
-      {/* Delete Modal */}
       <DeleteCustomerDialog
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(undefined)}
         onConfirm={handleDelete}
-        customerName={deleteTarget?.CompanyName}
+        customerName={deleteTarget?.companyName}
       />
     </>
   );
