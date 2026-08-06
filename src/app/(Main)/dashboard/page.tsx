@@ -5,8 +5,11 @@
 
 import { requireSession } from "@/lib/session";
 import Link from "next/link";
-import { LogOut, Settings, ShieldCheck, Shield, User } from "lucide-react";
+import { LogOut, Settings, ShieldCheck, Shield, User, Wrench, AlertTriangle } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
+import { getToolDashboardStats } from "@/lib/repositories/toolAssignmentRepository";
+
+export const revalidate = 0;
 
 export const metadata = {
   title: "Dashboard — CDN Fire Engineering",
@@ -14,6 +17,7 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const session = await requireSession();
+  const toolStats = await getToolDashboardStats();
   const user = session.user as {
     name: string;
     email: string;
@@ -120,6 +124,42 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
+        {/* Tool stats */}
+        <div className="mt-8">
+          <h2 className="text-lg font-bold text-[#dce3ef] mb-4 flex items-center gap-2">
+            <Wrench size={18} className="text-[#e02424]" />
+            Tool Status Overview
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            {[
+              { label: "Available", value: toolStats.available, color: "text-emerald-400", bg: "bg-emerald-900/20 border-emerald-800/30" },
+              { label: "In Use", value: toolStats.inUse, color: "text-blue-400", bg: "bg-blue-900/20 border-blue-800/30" },
+              { label: "Under Repair", value: toolStats.maintenance, color: "text-orange-400", bg: "bg-orange-900/20 border-orange-800/30" },
+              { label: "Lost", value: toolStats.lost, color: "text-red-400", bg: "bg-red-900/20 border-red-800/30" },
+              { label: "Overdue Returns", value: toolStats.overdueReturns, color: toolStats.overdueReturns > 0 ? "text-yellow-400" : "text-gray-400", bg: toolStats.overdueReturns > 0 ? "bg-yellow-900/20 border-yellow-800/30" : "bg-[#161d2e] border-[#1e2a3d]" },
+            ].map((stat) => (
+              <div key={stat.label} className={`rounded-2xl border shadow-sm p-5 bg-[#0F1524] ${stat.bg}`}>
+                <p className="text-sm text-[#5a657a] font-medium">{stat.label}</p>
+                <p className={`text-3xl font-black mt-1 ${stat.color}`}>{stat.value}</p>
+                {stat.label === "Overdue Returns" && toolStats.overdueReturns > 0 && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <AlertTriangle size={12} className="text-yellow-400" />
+                    <span className="text-[11px] text-yellow-400 font-semibold">Action needed</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-3">
+            <Link
+              href="/admin/tools"
+              className="text-sm text-[#e02424] hover:underline font-semibold"
+            >
+              → Manage Tools
+            </Link>
+          </div>
+        </div>
+
       </main>
     </div>
   );

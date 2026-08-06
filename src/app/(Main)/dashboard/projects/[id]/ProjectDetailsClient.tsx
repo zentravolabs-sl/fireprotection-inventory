@@ -16,6 +16,7 @@ import { IssueMaterialModal } from "@/components/projects/IssueMaterialModal";
 import { ReturnMaterialModal } from "@/components/projects/ReturnMaterialModal";
 import { AssignEngineerModal } from "@/components/projects/AssignEngineerModal";
 import { LogTransportModal } from "@/components/projects/LogTransportModal";
+import { AssignedToolsTab } from "@/components/tools/AssignedToolsTab";
 import { AddExpenseModal } from "@/components/projects/AddExpenseModal";
 import { UpdateProjectCostsModal } from "@/components/projects/UpdateProjectCostsModal";
 import {
@@ -41,7 +42,9 @@ interface ProjectDetailsClientProps {
     id: string;
     name: string;
     role: string;
+    email: string;
   }[];
+  toolAssignments: any[];
 }
 
 export function ProjectDetailsClient({
@@ -49,10 +52,11 @@ export function ProjectDetailsClient({
   timeline,
   inventoryItems,
   users,
+  toolAssignments,
 }: ProjectDetailsClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "engineers" | "requests" | "issues" | "transport" | "expenses" | "returns" | "timeline"
+    "overview" | "engineers" | "requests" | "issues" | "transport" | "expenses" | "returns" | "timeline" | "tools"
   >("overview");
 
   // Modals state
@@ -300,6 +304,7 @@ export function ProjectDetailsClient({
           [
             { id: "overview", label: "📊 Overview & Budget" },
             { id: "engineers", label: `👥 Engineers (${project.engineers?.length || 0})` },
+            { id: "tools", label: `🔧 Assigned Tools (${toolAssignments.flatMap((a: any) => a.items).length})` },
             { id: "requests", label: `📋 Requests (${project.materialRequests?.length || 0})` },
             { id: "issues", label: `📦 Material Issues (${project.projectMaterials?.length || 0})` },
             { id: "transport", label: `🚚 Transport (${project.transports?.length || 0})` },
@@ -453,6 +458,20 @@ export function ProjectDetailsClient({
             </div>
           </div>
         </div>
+      )}
+
+      {/* TAB: ASSIGNED TOOLS */}
+      {activeTab === "tools" && (
+        <AssignedToolsTab
+          projectId={project.id}
+          projectName={`${project.projectCode} — ${project.projectName}`}
+          engineers={(project.engineers || []).map((e) => ({
+            id: e.engineerId,
+            name: e.engineer?.name || "",
+            email: e.engineer?.email || "",
+          }))}
+          toolAssignments={toolAssignments}
+        />
       )}
 
       {/* TAB 2: MULTIPLE ENGINEERS */}
@@ -622,6 +641,7 @@ export function ProjectDetailsClient({
                 <tr>
                   <th className="px-4 py-3">Material</th>
                   <th className="px-4 py-3">Code</th>
+                  <th className="px-4 py-3">FIFO Batch</th>
                   <th className="px-4 py-3">Batch Unit Cost</th>
                   <th className="px-4 py-3">Issued Qty</th>
                   <th className="px-4 py-3">Returned Qty</th>
@@ -632,7 +652,7 @@ export function ProjectDetailsClient({
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                 {!project.projectMaterials || project.projectMaterials.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-6 text-gray-500">
+                    <td colSpan={8} className="text-center py-6 text-gray-500">
                       No materials issued to project site yet.
                     </td>
                   </tr>
@@ -641,6 +661,9 @@ export function ProjectDetailsClient({
                     <tr key={mat.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{mat.inventory.name}</td>
                       <td className="px-4 py-3 font-mono text-[11px]">{mat.inventory.itemCode}</td>
+                      <td className="px-4 py-3 font-mono text-[11px] text-gray-500">
+                        {mat.materialIssueItem?.stockBatch?.batchNo || `Batch #${mat.materialIssueItem?.stockBatch?.id || mat.id}`}
+                      </td>
                       <td className="px-4 py-3">{formatCurrency(mat.materialIssueItem?.stockBatch?.unitCost || 0)}</td>
                       <td className="px-4 py-3 font-semibold text-gray-900 dark:text-gray-100">{mat.issuedQty} {mat.inventory.unit}</td>
                       <td className="px-4 py-3 text-orange-600">{mat.returnedQty} {mat.inventory.unit}</td>

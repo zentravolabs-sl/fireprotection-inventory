@@ -6,8 +6,9 @@
 // ============================================================
 
 import { useState } from "react";
+import Link from "next/link";
 import { toast } from "react-toastify";
-import { Pencil, Trash2, Wrench, Calendar, Hash, Barcode, ZoomIn, Image as ImageIcon } from "lucide-react";
+import { Pencil, Trash2, Wrench, Calendar, Hash, Barcode, ZoomIn, Image as ImageIcon, Eye } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import ToolForm from "./ToolForm";
 import DeleteToolDialog from "./DeleteToolDialog";
@@ -150,6 +151,9 @@ export default function ToolTable({ tools }: ToolTableProps) {
                 <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap">Serial Number</th>
                 <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap">Condition</th>
                 <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap">Status</th>
+                <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap">Current Project</th>
+                <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap">Engineer</th>
+                <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap">Location</th>
                 <th className="px-4 py-3.5 text-left font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap">Created Date</th>
                 <th className="px-4 py-3.5 text-right font-semibold text-[#3d4c62] uppercase tracking-wide whitespace-nowrap sticky right-0 bg-[#080c12]">Actions</th>
               </tr>
@@ -157,7 +161,7 @@ export default function ToolTable({ tools }: ToolTableProps) {
             <tbody className="divide-y divide-[#1e2a3d]">
               {tools.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-16 text-center">
+                  <td colSpan={12} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-full bg-[#161d2e] flex items-center justify-center">
                         <Wrench size={24} className="text-[#3d4c62]" />
@@ -231,6 +235,38 @@ export default function ToolTable({ tools }: ToolTableProps) {
                       </span>
                     </td>
 
+                    {/* Current Project */}
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      {tool.currentAssignment?.project ? (
+                        <div>
+                          <div className="font-mono text-[11px] font-bold text-[#e02424]">{tool.currentAssignment.project.projectCode}</div>
+                          <div className="text-[11px] text-[#5a657a] truncate max-w-[120px]">{tool.currentAssignment.project.projectName}</div>
+                        </div>
+                      ) : (
+                        <span className="text-[#3d4c62] text-[11px]">—</span>
+                      )}
+                    </td>
+
+                    {/* Current Engineer */}
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      {tool.currentAssignment?.engineer ? (
+                        <span className="text-[#dce3ef] font-medium text-[11px]">{tool.currentAssignment.engineer.name}</span>
+                      ) : (
+                        <span className="text-[#3d4c62] text-[11px]">—</span>
+                      )}
+                    </td>
+
+                    {/* Location */}
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      {tool.currentAssignment?.project ? (
+                        <span className="text-[#5a657a] text-[11px]">
+                          {tool.currentAssignment.project.location || "Project Site"}
+                        </span>
+                      ) : (
+                        <span className="text-[#5a657a] text-[11px]">Warehouse</span>
+                      )}
+                    </td>
+
                     <td className="px-4 py-3.5 text-[#5a657a] whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <Calendar size={12} className="text-[#3d4c62]" />
@@ -240,6 +276,13 @@ export default function ToolTable({ tools }: ToolTableProps) {
 
                     <td className="px-4 py-3.5 sticky right-0 bg-[#0d1117] group-hover:bg-[#161d2e] transition-colors">
                       <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/admin/tools/${tool.id}`}
+                          title="View tool details"
+                          className="p-1.5 rounded-lg text-[#5a657a] hover:text-emerald-400 hover:bg-emerald-900/30 transition-colors"
+                        >
+                          <Eye size={14} />
+                        </Link>
                         <button
                           type="button"
                           onClick={() => openEdit(tool)}

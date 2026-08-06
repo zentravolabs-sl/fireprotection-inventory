@@ -82,6 +82,23 @@ enum ToolStatus {
   Retired
 }
 
+/// Tool assignment batch lifecycle states.
+enum ToolAssignmentStatus {
+  ACTIVE
+  PARTIALLY_RETURNED
+  RETURNED
+  CANCELLED
+}
+
+/// Immutable tool event log action types.
+enum ToolHistoryAction {
+  ASSIGNED
+  RETURNED
+  REPAIR
+  LOST
+  RETIRED
+}
+
 // ============================================================
 // Better Auth Core Models
 // ============================================================
@@ -122,6 +139,8 @@ model User {
   processedMaterialReturns MaterialReturn[]    @relation("EngineerReturns")
   createdProjectExpenses   ProjectExpense[]    @relation("ExpenseCreatedByUser")
   createdProjectTransports ProjectTransport[]  @relation("TransportCreatedByUser")
+  toolAssignmentsAsEngineer ToolAssignment[]   @relation("AssignedToEngineer")
+  toolHistoriesCreated      ToolHistory[]      @relation("ToolHistoryCreatedBy")
 
   @@index([email])
   @@index([role])
@@ -486,6 +505,10 @@ model Tool {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
+  // Relations
+  assignmentItems ToolAssignmentItem[]
+  histories       ToolHistory[]
+
   @@index([toolCode])
   @@index([name])
   @@index([serialNo])
@@ -600,6 +623,8 @@ model Project {
   materialReturns  MaterialReturn[]
   transports       ProjectTransport[]
   expenses         ProjectExpense[]
+  toolAssignments  ToolAssignment[]
+  toolHistories    ToolHistory[]
 
   @@index([projectCode])
   @@index([customerId])
@@ -839,3 +864,75 @@ model MaterialReturnItem {
   @@map("material_return_item")
 }
 
+// ============================================================
+// Tool Assignment Models
+// ============================================================
+
+/// Header record for a batch tool assignment to a project.
+/// One assignment can include multiple tools.
+model ToolAssignment {
+  id                 Int                  @id @default(autoincrement())
+  assignmentNo       String               @unique
+  projectId          Int
+  engineerId         String
+  assignDate         DateTime             @default(now())
+  expectedReturnDate DateTime?
+  remarks            String?
+  status             ToolAssignmentStatus @default(ACTIVE)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  // Relations
+  project  Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  engineer User                 @relation("AssignedToEngineer", fields: [engineerId], references: [id])
+  items    ToolAssignmentItem[]
+
+  @@index([projectId])
+  @@index([engineerId])
+  @@index([status])
+  @@index([assignDate])
+  @@map("tool_assignment")
+}
+
+/// One tool within a tool assignment batch.
+model ToolAssignmentItem {
+  id               Int       @id @default(autoincrement())
+  toolAssignmentId Int
+  toolId           Int
+  conditionAtIssue ToolCondition
+  returnedAt       DateTime?
+  returnCondition  ToolCondition?
+  remarks          String?
+
+  // Relations
+  toolAssignment ToolAssignment @relation(fields: [toolAssignmentId], references: [id], onDelete: Cascade)
+  tool           Tool           @relation(fields: [toolId], references: [id])
+
+  @@index([toolAssignmentId])
+  @@index([toolId])
+  @@map("tool_assignment_item")
+}
+
+/// Immutable audit log for every tool lifecycle event.
+model ToolHistory {
+  id        Int               @id @default(autoincrement())
+  toolId    Int
+  projectId Int?
+  engineerId String?
+  action    ToolHistoryAction
+  remarks   String?
+  createdBy String
+  createdAt DateTime          @default(now())
+
+  // Relations
+  tool      Tool    @relation(fields: [toolId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdByUser User @relation("ToolHistoryCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([toolId])
+  @@index([projectId])
+  @@index([engineerId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("tool_history")
+}
