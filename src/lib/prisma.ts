@@ -28,6 +28,10 @@ function createPrismaClient() {
   } as ConstructorParameters<typeof PrismaClient>[0]);
 }
 
+if (globalForPrisma.prisma && !("toolAssignment" in globalForPrisma.prisma)) {
+  globalForPrisma.prisma = undefined;
+}
+
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {

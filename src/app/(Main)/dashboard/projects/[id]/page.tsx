@@ -7,6 +7,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import { findProjectById } from "@/lib/repositories/projectRepository";
 import { getProjectTimelineService } from "@/lib/services/projectService";
+import { getProjectToolAssignments } from "@/lib/repositories/toolAssignmentRepository";
 import { prisma } from "@/lib/prisma";
 import { ProjectDetailsClient } from "./ProjectDetailsClient";
 
@@ -32,7 +33,7 @@ export default async function ProjectDetailPage(props: PageProps) {
     notFound();
   }
 
-  const [timeline, inventoryItems, allUsers] = await Promise.all([
+  const [timeline, inventoryItems, allUsers, toolAssignments] = await Promise.all([
     getProjectTimelineService(projectId),
     prisma.inventory.findMany({
       select: {
@@ -48,9 +49,10 @@ export default async function ProjectDetailPage(props: PageProps) {
     }),
     prisma.user.findMany({
       where: { isActive: true },
-      select: { id: true, name: true, role: true },
+      select: { id: true, name: true, role: true, email: true },
       orderBy: { name: "asc" },
     }),
+    getProjectToolAssignments(projectId),
   ]);
 
   const formattedInventory = inventoryItems.map((item) => ({
@@ -67,6 +69,7 @@ export default async function ProjectDetailPage(props: PageProps) {
       timeline={timeline}
       inventoryItems={formattedInventory}
       users={allUsers}
+      toolAssignments={toolAssignments as any}
     />
   );
 }

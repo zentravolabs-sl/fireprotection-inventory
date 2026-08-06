@@ -219,6 +219,7 @@ export interface ProjectMaterialSummary {
   materialIssueItem?: {
     id: number;
     stockBatch: {
+      id?: number;
       batchNo?: string | null;
       unitCost: number;
     };
@@ -284,6 +285,7 @@ export interface ProjectWithDetails {
   transports?: ProjectTransportItem[];
   expenses?: ProjectExpenseItem[];
   costBreakdown?: ProjectCostBreakdown;
+  toolAssignments?: any[];
 }
 
 export interface ProjectTimelineEvent {

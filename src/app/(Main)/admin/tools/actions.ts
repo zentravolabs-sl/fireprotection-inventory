@@ -25,6 +25,10 @@ export type ToolRow = {
   imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
+  currentAssignment?: {
+    project: { id: number; projectCode: string; projectName: string; location: string | null } | null;
+    engineer: { id: string; name: string } | null;
+  } | null;
 };
 
 export type FilterParams = {
@@ -81,10 +85,45 @@ export async function getTools(filters?: FilterParams): Promise<ToolRow[]> {
     ];
   }
 
-  return prisma.tool.findMany({
+  const tools = await prisma.tool.findMany({
     where,
-    select: toolSelect,
+    select: {
+      ...toolSelect,
+      assignmentItems: {
+        where: {
+          returnedAt: null,
+          toolAssignment: { status: "ACTIVE" },
+        },
+        take: 1,
+        select: {
+          toolAssignment: {
+            select: {
+              project: {
+                select: { id: true, projectCode: true, projectName: true, location: true },
+              },
+              engineer: {
+                select: { id: true, name: true },
+              },
+            },
+          },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
+  });
+
+  return tools.map((t) => {
+    const activeItem = t.assignmentItems[0];
+    const { assignmentItems: _, ...rest } = t;
+    return {
+      ...rest,
+      currentAssignment: activeItem
+        ? {
+            project: activeItem.toolAssignment.project,
+            engineer: activeItem.toolAssignment.engineer,
+          }
+        : null,
+    };
   });
 }
 

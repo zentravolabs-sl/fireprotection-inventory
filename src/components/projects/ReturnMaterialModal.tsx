@@ -5,7 +5,7 @@
 // Modal for Site Engineer to process material returns
 // ============================================================
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FormButton } from "@/components/ui/FormButton";
 import { returnMaterialsAction } from "@/app/actions/material-returns";
@@ -31,6 +31,17 @@ interface ReturnMaterialModalProps {
   assignedMaterials: AssignedMaterialItem[];
 }
 
+interface GroupedMaterialItem {
+  inventoryId: number;
+  name: string;
+  itemCode: string;
+  unit: string;
+  totalIssuedQty: number;
+  totalReturnedQty: number;
+  totalBalanceQty: number;
+  records: AssignedMaterialItem[];
+}
+
 export function ReturnMaterialModal({
   isOpen,
   onClose,
@@ -41,36 +52,72 @@ export function ReturnMaterialModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [remarks, setRemarks] = useState("");
+
+  // Group assigned materials by inventoryId so items issued from multiple FIFO batches are consolidated into a single entry
+  const groupedMaterials = useMemo(() => {
+    const map = new Map<number, GroupedMaterialItem>();
+
+    assignedMaterials.forEach((item) => {
+      if (item.balanceQty <= 0) return;
+
+      const existing = map.get(item.inventoryId);
+      if (existing) {
+        existing.totalIssuedQty += item.issuedQty;
+        existing.totalReturnedQty += item.returnedQty;
+        existing.totalBalanceQty += item.balanceQty;
+        existing.records.push(item);
+      } else {
+        map.set(item.inventoryId, {
+          inventoryId: item.inventoryId,
+          name: item.inventory.name,
+          itemCode: item.inventory.itemCode,
+          unit: item.inventory.unit,
+          totalIssuedQty: item.issuedQty,
+          totalReturnedQty: item.returnedQty,
+          totalBalanceQty: item.balanceQty,
+          records: [item],
+        });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [assignedMaterials]);
+
   const [returnState, setReturnState] = useState<
     Record<number, { selected: boolean; qty: number; condition: "GOOD" | "DAMAGED" | "SCRAP" }>
-  >(() => {
-    const initial: Record<number, any> = {};
-    assignedMaterials.forEach((item) => {
-      initial[item.id] = { selected: false, qty: item.balanceQty, condition: "GOOD" };
+  >({});
+
+  // Initialize or reset returnState whenever groupedMaterials changes
+  useEffect(() => {
+    const initial: Record<number, { selected: boolean; qty: number; condition: "GOOD" | "DAMAGED" | "SCRAP" }> = {};
+    groupedMaterials.forEach((item) => {
+      initial[item.inventoryId] = { selected: false, qty: item.totalBalanceQty, condition: "GOOD" };
     });
-    return initial;
-  });
+    setReturnState(initial);
+  }, [groupedMaterials]);
 
-  const availableToReturn = assignedMaterials.filter((m) => m.balanceQty > 0);
-
-  function handleToggleSelect(id: number) {
+  function handleToggleSelect(inventoryId: number) {
     setReturnState((prev) => ({
       ...prev,
-      [id]: { ...prev[id], selected: !prev[id]?.selected },
+      [inventoryId]: {
+        selected: !prev[inventoryId]?.selected,
+        qty: prev[inventoryId]?.qty || groupedMaterials.find((m) => m.inventoryId === inventoryId)?.totalBalanceQty || 0,
+        condition: prev[inventoryId]?.condition || "GOOD",
+      },
     }));
   }
 
-  function handleQtyChange(id: number, qty: number) {
+  function handleQtyChange(inventoryId: number, qty: number) {
     setReturnState((prev) => ({
       ...prev,
-      [id]: { ...prev[id], qty },
+      [inventoryId]: { ...prev[inventoryId], qty },
     }));
   }
 
-  function handleConditionChange(id: number, condition: "GOOD" | "DAMAGED" | "SCRAP") {
+  function handleConditionChange(inventoryId: number, condition: "GOOD" | "DAMAGED" | "SCRAP") {
     setReturnState((prev) => ({
       ...prev,
-      [id]: { ...prev[id], condition },
+      [inventoryId]: { ...prev[inventoryId], condition },
     }));
   }
 
@@ -79,14 +126,47 @@ export function ReturnMaterialModal({
     setLoading(true);
     setError(null);
 
-    const itemsToReturn = availableToReturn
-      .filter((m) => returnState[m.id]?.selected)
-      .map((m) => ({
-        projectMaterialId: m.id,
-        inventoryId: m.inventoryId,
-        qtyReturned: returnState[m.id].qty,
-        condition: returnState[m.id].condition,
-      }));
+    const itemsToReturn: {
+      projectMaterialId: number;
+      inventoryId: number;
+      qtyReturned: number;
+      condition: "GOOD" | "DAMAGED" | "SCRAP";
+    }[] = [];
+
+    const selectedGroupedItems = groupedMaterials.filter(
+      (m) => returnState[m.inventoryId]?.selected
+    );
+
+    for (const group of selectedGroupedItems) {
+      const state = returnState[group.inventoryId];
+      if (!state || state.qty <= 0) continue;
+
+      if (state.qty > group.totalBalanceQty) {
+        setLoading(false);
+        setError(
+          `Return quantity (${state.qty} ${group.unit}) for "${group.name}" cannot exceed available balance (${group.totalBalanceQty} ${group.unit}).`
+        );
+        return;
+      }
+
+      let remainingQtyToReturn = state.qty;
+      // Sort records LIFO (newest batch allocation first)
+      const sortedRecords = [...group.records].sort((a, b) => b.id - a.id);
+
+      for (const rec of sortedRecords) {
+        if (remainingQtyToReturn <= 0) break;
+        const qtyDrawn = Math.min(rec.balanceQty, remainingQtyToReturn);
+        if (qtyDrawn > 0) {
+          itemsToReturn.push({
+            projectMaterialId: rec.id,
+            inventoryId: group.inventoryId,
+            qtyReturned: qtyDrawn,
+            condition: state.condition,
+          });
+          remainingQtyToReturn -= qtyDrawn;
+        }
+      }
+    }
 
     if (itemsToReturn.length === 0) {
       setLoading(false);
@@ -119,7 +199,7 @@ export function ReturnMaterialModal({
           </div>
         )}
 
-        {availableToReturn.length === 0 ? (
+        {groupedMaterials.length === 0 ? (
           <p className="text-sm text-gray-500 py-4 text-center">
             No assigned materials with remaining balance available for return.
           </p>
@@ -129,15 +209,15 @@ export function ReturnMaterialModal({
               Select Materials to Return *
             </label>
 
-            {availableToReturn.map((item) => {
-              const state = returnState[item.id] || {
+            {groupedMaterials.map((item) => {
+              const state = returnState[item.inventoryId] || {
                 selected: false,
-                qty: item.balanceQty,
+                qty: item.totalBalanceQty,
                 condition: "GOOD",
               };
               return (
                 <div
-                  key={item.id}
+                  key={item.inventoryId}
                   className={`p-3 rounded-lg border text-sm space-y-2 transition-colors ${
                     state.selected
                       ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-300 dark:border-blue-800"
@@ -149,15 +229,15 @@ export function ReturnMaterialModal({
                       <input
                         type="checkbox"
                         checked={state.selected}
-                        onChange={() => handleToggleSelect(item.id)}
+                        onChange={() => handleToggleSelect(item.inventoryId)}
                         className="rounded text-red-600 focus:ring-red-500"
                       />
                       <span className="text-gray-900 dark:text-gray-100">
-                        {item.inventory.name} ({item.inventory.itemCode})
+                        {item.name} ({item.itemCode})
                       </span>
                     </label>
                     <span className="text-xs text-gray-500">
-                      Balance: <strong className="text-gray-800 dark:text-gray-200">{item.balanceQty} {item.inventory.unit}</strong>
+                      Balance: <strong className="text-gray-800 dark:text-gray-200">{item.totalBalanceQty} {item.unit}</strong>
                     </span>
                   </div>
 
@@ -168,10 +248,10 @@ export function ReturnMaterialModal({
                         <input
                           type="number"
                           min="0.1"
-                          max={item.balanceQty}
+                          max={item.totalBalanceQty}
                           step="any"
                           value={state.qty}
-                          onChange={(e) => handleQtyChange(item.id, Number(e.target.value))}
+                          onChange={(e) => handleQtyChange(item.inventoryId, Number(e.target.value))}
                           required
                           className="w-full px-2.5 py-1 border border-gray-300 dark:border-gray-700 rounded bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
                         />
@@ -183,7 +263,7 @@ export function ReturnMaterialModal({
                           value={state.condition}
                           onChange={(e) =>
                             handleConditionChange(
-                              item.id,
+                              item.inventoryId,
                               e.target.value as "GOOD" | "DAMAGED" | "SCRAP"
                             )
                           }
@@ -223,7 +303,7 @@ export function ReturnMaterialModal({
           >
             Cancel
           </button>
-          <FormButton loading={loading} disabled={availableToReturn.length === 0}>
+          <FormButton loading={loading} disabled={groupedMaterials.length === 0}>
             Submit Return
           </FormButton>
         </div>
@@ -231,3 +311,4 @@ export function ReturnMaterialModal({
     </Modal>
   );
 }
+

@@ -110,7 +110,7 @@ export async function createProjectService(input: CreateProjectInput, userId: st
     });
 
     return project;
-  });
+  }, { maxWait: 15000, timeout: 60000 });
 }
 
 // ─── 2. Multi-Engineer Management ─────────────────────────────────────────────
@@ -258,7 +258,7 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
     });
 
     return request;
-  });
+  }, { maxWait: 15000, timeout: 60000 });
 }
 
 // ─── 6. Approve Material Request (PM Approval) ───────────────────────────────
@@ -326,7 +326,7 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
     });
 
     return updatedRequest;
-  });
+  }, { maxWait: 15000, timeout: 60000 });
 }
 
 // ─── 7. Issue Materials (FIFO Batch Selection + AUTOMATIC MATERIAL EXPENSE) ─
@@ -651,7 +651,7 @@ export async function returnMaterialsService(input: ReturnMaterialsInput, userId
     });
 
     return returnHeader;
-  });
+  }, { maxWait: 15000, timeout: 60000 });
 }
 
 // ─── 9. Complete Project Validation ──────────────────────────────────────────
@@ -713,7 +713,7 @@ export async function completeProjectService(projectId: number, userId: string) 
     });
 
     return updated;
-  });
+  }, { maxWait: 15000, timeout: 60000 });
 }
 
 // ─── 10. Activity Timeline Construction ──────────────────────────────────────
