@@ -2,8 +2,8 @@
 
 // ============================================================
 // src/components/auth/ToastProvider.tsx
-// React Toastify container — must live in a Client Component.
-// Render this once near the root of the app.
+// Single global React Toastify container for the application.
+// Rendered once in src/app/layout.tsx.
 // ============================================================
 
 import { ToastContainer } from "react-toastify";
@@ -13,7 +13,7 @@ export default function ToastProvider() {
   return (
     <ToastContainer
       position="top-right"
-      autoClose={4000}
+      autoClose={3500}
       hideProgressBar={false}
       newestOnTop
       closeOnClick
@@ -21,8 +21,8 @@ export default function ToastProvider() {
       pauseOnFocusLoss
       draggable
       pauseOnHover
-      theme="light"
-      toastClassName="!rounded-xl !shadow-lg !font-sans !text-sm"
+      theme="dark"
+      toastClassName="!bg-[#161d2e] !border !border-[#1e2a3d] !text-[#dce3ef] !text-sm !rounded-xl !shadow-2xl !px-4 !py-3"
     />
   );
 }

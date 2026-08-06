@@ -21,6 +21,8 @@ datasource db {
 enum Role {
   SUPER_ADMIN
   ADMIN
+  PROJECT_MANAGER
+  ENGINEER
   USER
 }
 
@@ -94,19 +96,37 @@ model User {
   password      String?
   role          Role     @default(USER)
   isActive      Boolean  @default(true)
+
+  // Employee / profile fields
+  employeeCode  String?  @unique
+  phone         String?
+  designation   String?
+  department    String?
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   // Relations
-  sessions       Session[]
-  accounts       Account[]
-  auditLogs      AuditLog[]
-  stockReceives  StockReceive[]  @relation("ReceivedByUser")
-  stockMovements StockMovement[] @relation("CreatedByUser")
+  sessions                 Session[]
+  accounts                 Account[]
+  auditLogs                AuditLog[]
+  stockReceives            StockReceive[]      @relation("ReceivedByUser")
+  stockMovements           StockMovement[]     @relation("CreatedByUser")
+  managedProjects          Project[]           @relation("ProjectManager")
+  projectAssignmentsBy     ProjectAssignment[] @relation("AssignedByUser")
+  pmAssignments            ProjectAssignment[] @relation("PMAssignments")
+  assignedEngineers        ProjectEngineer[]   @relation("AssignedEngineers")
+  engineerAssignmentsBy    ProjectEngineer[]   @relation("EngineerAssignedByUser")
+  materialRequests         MaterialRequest[]   @relation("EngineerRequests")
+  issuedMaterialIssues     MaterialIssue[]     @relation("IssuedByUser")
+  processedMaterialReturns MaterialReturn[]    @relation("EngineerReturns")
+  createdProjectExpenses   ProjectExpense[]    @relation("ExpenseCreatedByUser")
+  createdProjectTransports ProjectTransport[]  @relation("TransportCreatedByUser")
 
   @@index([email])
   @@index([role])
   @@index([isActive])
+  @@index([employeeCode])
   @@map("user")
 }
 
@@ -273,12 +293,16 @@ model Inventory {
   subCategoryId Int
 
   // Relations
-  category       Category         @relation(fields: [categoryId], references: [id])
-  subCategory    SubCategory      @relation(fields: [subCategoryId], references: [id])
-  stockReceiveItems StockReceiveItem[]
-  stockBatches   StockBatch[]
-  stockMovements StockMovement[]
-  pipeCutPieces  PipeCutPiece[]
+  category             Category              @relation(fields: [categoryId], references: [id])
+  subCategory          SubCategory           @relation(fields: [subCategoryId], references: [id])
+  stockReceiveItems    StockReceiveItem[]
+  stockBatches         StockBatch[]
+  stockMovements       StockMovement[]
+  pipeCutPieces        PipeCutPiece[]
+  materialRequestItems MaterialRequestItem[]
+  materialIssueItems   MaterialIssueItem[]
+  projectMaterials     ProjectMaterial[]
+  materialReturnItems  MaterialReturnItem[]
 
   @@index([itemCode])
   @@index([barcode])
@@ -366,10 +390,11 @@ model StockBatch {
   stockReceiveItemId Int @unique     // 1-to-1: one batch per receive line
 
   // Relations
-  inventory        Inventory        @relation(fields: [inventoryId], references: [id])
-  stockReceiveItem StockReceiveItem @relation(fields: [stockReceiveItemId], references: [id])
-  stockMovements   StockMovement[]
-  pipeCutPieces    PipeCutPiece[]
+  inventory          Inventory           @relation(fields: [inventoryId], references: [id])
+  stockReceiveItem   StockReceiveItem    @relation(fields: [stockReceiveItemId], references: [id])
+  stockMovements     StockMovement[]
+  pipeCutPieces      PipeCutPiece[]
+  materialIssueItems MaterialIssueItem[]
 
   @@index([inventoryId])
   @@index([batchNo])
@@ -483,9 +508,334 @@ model Customer {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // Relations
+  projects      Project[]
+
   @@index([companyName])
   @@index([contactPerson])
   @@index([phone])
   @@index([email])
   @@map("customer")
 }
+
+// ============================================================
+// Enums — Project Management Module
+// ============================================================
+
+enum ProjectStatus {
+  PENDING
+  MATERIAL_REQUEST
+  MATERIAL_APPROVED
+  MATERIAL_ISSUED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MaterialRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PARTIAL
+  ISSUED
+}
+
+enum ReturnCondition {
+  GOOD
+  DAMAGED
+  SCRAP
+}
+
+enum ExpenseType {
+  MATERIAL
+  LABOUR
+  TRANSPORT
+  EQUIPMENT
+  OTHER
+}
+
+enum TransportStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+// ============================================================
+// Project Management Models
+// ============================================================
+
+model Project {
+  id                      Int           @id @default(autoincrement())
+  projectCode             String        @unique
+  projectName             String
+  customerId              Int
+  projectManagerId        String
+  location                String?
+  startDate               DateTime?
+  endDate                 DateTime?
+  status                  ProjectStatus @default(PENDING)
+  description             String?
+
+  // Project Value (Contract Value / Customer Price)
+  projectValue            Float         @default(0)
+
+  // Estimated Costs
+  estimatedMaterialCost   Float         @default(0)
+  estimatedLabourCost     Float         @default(0)
+  estimatedTransportCost  Float         @default(0)
+  estimatedEquipmentCost  Float         @default(0)
+  estimatedOtherCost      Float         @default(0)
+  estimatedTotalCost      Float         @default(0)
+
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  customer         Customer            @relation(fields: [customerId], references: [id])
+  projectManager   User                @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  assignments      ProjectAssignment[]
+  engineers        ProjectEngineer[]
+  materialRequests MaterialRequest[]
+  projectMaterials ProjectMaterial[]
+  materialReturns  MaterialReturn[]
+  transports       ProjectTransport[]
+  expenses         ProjectExpense[]
+
+  @@index([projectCode])
+  @@index([customerId])
+  @@index([projectManagerId])
+  @@index([status])
+  @@map("project")
+}
+
+model ProjectAssignment {
+  id               Int      @id @default(autoincrement())
+  projectId        Int
+  projectManagerId String
+  assignedDate     DateTime @default(now())
+  assignedBy       String
+
+  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectManager User    @relation("PMAssignments", fields: [projectManagerId], references: [id])
+  assignedByUser User    @relation("AssignedByUser", fields: [assignedBy], references: [id])
+
+  @@index([projectId])
+  @@index([projectManagerId])
+  @@index([assignedBy])
+  @@map("project_assignment")
+}
+
+model ProjectEngineer {
+  id           Int      @id @default(autoincrement())
+  projectId    Int
+  engineerId   String
+  isLead       Boolean  @default(false)
+  assignedDate DateTime @default(now())
+  assignedBy   String
+
+  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  engineer       User    @relation("AssignedEngineers", fields: [engineerId], references: [id])
+  assignedByUser User    @relation("EngineerAssignedByUser", fields: [assignedBy], references: [id])
+
+  @@unique([projectId, engineerId])
+  @@index([projectId])
+  @@index([engineerId])
+  @@index([assignedBy])
+  @@map("project_engineer")
+}
+
+model ProjectExpense {
+  id          Int         @id @default(autoincrement())
+  expenseNo   String      @unique
+  projectId   Int
+  expenseType ExpenseType
+  amount      Float
+  expenseDate DateTime    @default(now())
+  description String?
+  referenceNo String?
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdByUser User    @relation("ExpenseCreatedByUser", fields: [createdBy], references: [id])
+
+  @@index([expenseNo])
+  @@index([projectId])
+  @@index([expenseType])
+  @@index([expenseDate])
+  @@map("project_expense")
+}
+
+model ProjectTransport {
+  id               Int             @id @default(autoincrement())
+  transportNo      String          @unique
+  projectId        Int
+  transportDate    DateTime        @default(now())
+  vehicleNumber    String
+  driverName       String
+  transportCompany String?
+  fromLocation     String
+  toLocation       String
+  fuelCost         Float           @default(0)
+  vehicleHireCost  Float           @default(0)
+  loadingCost      Float           @default(0)
+  unloadingCost    Float           @default(0)
+  otherCost        Float           @default(0)
+  totalCost        Float           @default(0)
+  remarks          String?
+  status           TransportStatus @default(DELIVERED)
+  createdBy        String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdByUser User    @relation("TransportCreatedByUser", fields: [createdBy], references: [id])
+
+  @@index([transportNo])
+  @@index([projectId])
+  @@index([transportDate])
+  @@index([status])
+  @@map("project_transport")
+}
+
+model MaterialRequest {
+  id          Int                   @id @default(autoincrement())
+  requestNo   String                @unique
+  projectId   Int
+  engineerId  String
+  requestDate DateTime              @default(now())
+  status      MaterialRequestStatus @default(PENDING)
+  remarks     String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  project  Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  engineer User                  @relation("EngineerRequests", fields: [engineerId], references: [id])
+  items    MaterialRequestItem[]
+  issues   MaterialIssue[]
+
+  @@index([requestNo])
+  @@index([projectId])
+  @@index([engineerId])
+  @@index([status])
+  @@map("material_request")
+}
+
+model MaterialRequestItem {
+  id                Int   @id @default(autoincrement())
+  materialRequestId Int
+  inventoryId       Int
+  qtyRequested      Float
+  qtyApproved       Float @default(0)
+  qtyIssued         Float @default(0)
+
+  materialRequest MaterialRequest @relation(fields: [materialRequestId], references: [id], onDelete: Cascade)
+  inventory       Inventory       @relation(fields: [inventoryId], references: [id])
+
+  @@index([materialRequestId])
+  @@index([inventoryId])
+  @@map("material_request_item")
+}
+
+model MaterialIssue {
+  id                Int      @id @default(autoincrement())
+  issueNo           String   @unique
+  materialRequestId Int
+  warehouse         String?
+  issuedBy          String
+  issueDate         DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  materialRequest MaterialRequest     @relation(fields: [materialRequestId], references: [id])
+  issuedByUser    User                @relation("IssuedByUser", fields: [issuedBy], references: [id])
+  items           MaterialIssueItem[]
+
+  @@index([issueNo])
+  @@index([materialRequestId])
+  @@index([issuedBy])
+  @@map("material_issue")
+}
+
+model MaterialIssueItem {
+  id              Int   @id @default(autoincrement())
+  materialIssueId Int
+  stockBatchId    Int
+  inventoryId     Int
+  qty             Float
+  costPrice       Float
+
+  materialIssue    MaterialIssue     @relation(fields: [materialIssueId], references: [id], onDelete: Cascade)
+  stockBatch       StockBatch        @relation(fields: [stockBatchId], references: [id])
+  inventory        Inventory         @relation(fields: [inventoryId], references: [id])
+  projectMaterials ProjectMaterial[]
+
+  @@index([materialIssueId])
+  @@index([stockBatchId])
+  @@index([inventoryId])
+  @@map("material_issue_item")
+}
+
+model ProjectMaterial {
+  id                  Int      @id @default(autoincrement())
+  projectId           Int
+  inventoryId         Int
+  materialIssueItemId Int
+  issuedQty           Float
+  returnedQty         Float    @default(0)
+  balanceQty          Float
+  status              String   @default("ASSIGNED") // ASSIGNED, PARTIALLY_RETURNED, FULLY_RETURNED
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  project           Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  inventory         Inventory            @relation(fields: [inventoryId], references: [id])
+  materialIssueItem MaterialIssueItem    @relation(fields: [materialIssueItemId], references: [id])
+  returnItems       MaterialReturnItem[]
+
+  @@index([projectId])
+  @@index([inventoryId])
+  @@index([materialIssueItemId])
+  @@index([status])
+  @@map("project_material")
+}
+
+model MaterialReturn {
+  id           Int      @id @default(autoincrement())
+  returnNo     String   @unique
+  projectId    Int
+  engineerId   String
+  returnedDate DateTime @default(now())
+  remarks      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project  Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  engineer User                 @relation("EngineerReturns", fields: [engineerId], references: [id])
+  items    MaterialReturnItem[]
+
+  @@index([returnNo])
+  @@index([projectId])
+  @@index([engineerId])
+  @@map("material_return")
+}
+
+model MaterialReturnItem {
+  id                Int             @id @default(autoincrement())
+  materialReturnId  Int
+  projectMaterialId Int?
+  inventoryId       Int
+  qtyReturned       Float
+  condition         ReturnCondition @default(GOOD)
+
+  materialReturn  MaterialReturn   @relation(fields: [materialReturnId], references: [id], onDelete: Cascade)
+  projectMaterial ProjectMaterial? @relation(fields: [projectMaterialId], references: [id])
+  inventory       Inventory        @relation(fields: [inventoryId], references: [id])
+
+  @@index([materialReturnId])
+  @@index([projectMaterialId])
+  @@index([inventoryId])
+  @@map("material_return_item")
+}
+

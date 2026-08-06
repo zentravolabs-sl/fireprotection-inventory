@@ -65,3 +65,5 @@ export default function FormButton({
     </button>
   );
 }
+
+export { FormButton };

@@ -6,7 +6,12 @@
 /**
  * Role enumeration matching the Prisma schema Role enum.
  */
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER";
+export type UserRole =
+  | "SUPER_ADMIN"
+  | "ADMIN"
+  | "PROJECT_MANAGER"
+  | "ENGINEER"
+  | "USER";
 
 /**
  * Typed response shape returned by all Server Actions.
@@ -47,4 +52,23 @@ export interface AppSession {
     ipAddress?: string | null;
     userAgent?: string | null;
   };
+}
+
+/**
+ * Extended user profile type including employee fields.
+ */
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image: string | null;
+  role: UserRole;
+  isActive: boolean;
+  employeeCode: string | null;
+  phone: string | null;
+  designation: string | null;
+  department: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }

@@ -59,6 +59,30 @@ export const auth = betterAuth({
         defaultValue: true,
         input: false,
       },
+      employeeCode: {
+        type: "string",
+        required: false,
+        defaultValue: null,
+        input: false,
+      },
+      phone: {
+        type: "string",
+        required: false,
+        defaultValue: null,
+        input: false,
+      },
+      designation: {
+        type: "string",
+        required: false,
+        defaultValue: null,
+        input: false,
+      },
+      department: {
+        type: "string",
+        required: false,
+        defaultValue: null,
+        input: false,
+      },
     },
   },
 

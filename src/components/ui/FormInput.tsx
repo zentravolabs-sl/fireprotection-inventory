@@ -26,7 +26,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
       <div className="mb-4">
         <label
           htmlFor={inputId}
-          className="block text-sm font-semibold text-gray-700 mb-1.5"
+          className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5"
         >
           {label}
         </label>
@@ -46,13 +46,13 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
             aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : undefined}
             className={[
-              "w-full rounded-xl border bg-white text-gray-900 text-sm transition-all duration-200",
-              "py-3 pr-4 outline-none",
+              "w-full rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm transition-all duration-200",
+              "py-3 pr-4 outline-none placeholder-gray-400 dark:placeholder-gray-500",
               icon ? "pl-10" : "pl-4",
               isPassword ? "pr-11" : "",
               error
                 ? "border-red-400 ring-1 ring-red-300 focus:border-red-500 focus:ring-red-300"
-                : "border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-200",
+                : "border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900",
               className ?? "",
             ]
               .filter(Boolean)
@@ -90,4 +90,5 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
 );
 
 FormInput.displayName = "FormInput";
+export { FormInput };
 export default FormInput;

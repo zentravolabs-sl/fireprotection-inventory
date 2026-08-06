@@ -236,6 +236,145 @@ async function main() {
     console.log("  ✅ Sample Confirmed Stock Receive & Batches seeded.");
   }
 
+  // ── Seed PM & Engineer Users ─────────────────────────────
+  const pmHashedPassword = await hashPassword("Pm@123");
+  const pmUser = await prisma.user.upsert({
+    where: { email: "pm1@example.com" },
+    update: { role: "PROJECT_MANAGER" as any },
+    create: {
+      name: "Alex Vance (PM)",
+      email: "pm1@example.com",
+      password: pmHashedPassword,
+      role: "PROJECT_MANAGER" as any,
+      emailVerified: true,
+      isActive: true,
+      employeeCode: "EMP-PM-001",
+      designation: "Senior Project Manager",
+    },
+  });
+
+  const engHashedPassword = await hashPassword("Eng@123");
+  const engUser = await prisma.user.upsert({
+    where: { email: "engineer1@example.com" },
+    update: { role: "ENGINEER" as any },
+    create: {
+      name: "Sarah Conner (Eng)",
+      email: "engineer1@example.com",
+      password: engHashedPassword,
+      role: "ENGINEER" as any,
+      emailVerified: true,
+      isActive: true,
+      employeeCode: "EMP-ENG-001",
+      designation: "Site Fire Protection Engineer",
+    },
+  });
+
+  console.log("  ✅ Project Manager & Engineer seeded.");
+
+  // ── Seed Customers ───────────────────────────────────────
+  const customer1 = await prisma.customer.upsert({
+    where: { companyName: "Metro Rail Infrastructure Corp" },
+    update: {},
+    create: {
+      companyName: "Metro Rail Infrastructure Corp",
+      contactPerson: "Robert Sterling",
+      phone: "+1 555-9012",
+      email: "r.sterling@metrorailcorp.com",
+      address: "500 Transit Plaza, Tower A",
+    },
+  });
+
+  const customer2 = await prisma.customer.upsert({
+    where: { companyName: "Apex Commercial Towers Ltd" },
+    update: {},
+    create: {
+      companyName: "Apex Commercial Towers Ltd",
+      contactPerson: "Elena Rostova",
+      phone: "+1 555-8833",
+      email: "elena@apextowers.com",
+      address: "777 Skyline Boulevard",
+    },
+  });
+
+  console.log("  ✅ Customers seeded.");
+
+  // ── Seed Sample Project ──────────────────────────────────
+  const existingProject = await prisma.project.findUnique({
+    where: { projectCode: "PRJ-2026-0001" },
+  });
+
+  if (!existingProject && pmUser && engUser && customer1) {
+    const project = await prisma.project.create({
+      data: {
+        projectCode: "PRJ-2026-0001",
+        projectName: "Central Terminal Sprinkler & Hydrant Retrofit",
+        customerId: customer1.id,
+        projectManagerId: pmUser.id,
+        location: "Terminal 2, Underground Level",
+        startDate: new Date("2026-08-01"),
+        endDate: new Date("2026-12-31"),
+        status: "IN_PROGRESS",
+        description: "Complete design, installation, and commissioning of wet pipe automatic fire sprinkler system.",
+        projectValue: 350000,
+        estimatedMaterialCost: 150000,
+        estimatedLabourCost: 50000,
+        estimatedTransportCost: 10000,
+        estimatedEquipmentCost: 20000,
+        estimatedOtherCost: 5000,
+        estimatedTotalCost: 235000,
+      },
+    });
+
+    await prisma.projectAssignment.create({
+      data: {
+        projectId: project.id,
+        projectManagerId: pmUser.id,
+        assignedBy: superAdminId || pmUser.id,
+      },
+    });
+
+    await prisma.projectEngineer.create({
+      data: {
+        projectId: project.id,
+        engineerId: engUser.id,
+        isLead: true,
+        assignedBy: superAdminId || pmUser.id,
+      },
+    });
+
+    // Seed sample Transport & Expense entries
+    const transport = await prisma.projectTransport.create({
+      data: {
+        transportNo: "TRN-2026-0001",
+        projectId: project.id,
+        transportDate: new Date("2026-08-02"),
+        vehicleNumber: "WP-CP-1024",
+        driverName: "Sunil Perera",
+        fromLocation: "Main Warehouse",
+        toLocation: "Terminal 2 Site",
+        fuelCost: 3500,
+        vehicleHireCost: 5000,
+        totalCost: 8500,
+        createdBy: pmUser.id,
+      },
+    });
+
+    await prisma.projectExpense.create({
+      data: {
+        expenseNo: "EXP-2026-0001",
+        projectId: project.id,
+        expenseType: "TRANSPORT",
+        amount: 8500,
+        expenseDate: new Date("2026-08-02"),
+        description: `Project Transport (${transport.transportNo}): Main Warehouse to Terminal 2 Site`,
+        referenceNo: transport.transportNo,
+        createdBy: pmUser.id,
+      },
+    });
+
+    console.log("  ✅ Sample Project PRJ-2026-0001, Lead Engineer, & Expenses seeded.");
+  }
+
   console.log("\n✨  Seed complete.\n");
 }
 

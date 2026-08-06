@@ -8,26 +8,30 @@ body {
   font-family: var(--font-inter);
 }
 
-/* Fix for browser dark mode overriding input text color in white forms/modals */
-.bg-white input,
-.bg-white select,
-.bg-white textarea,
-input.bg-white,
-select.bg-white,
-textarea.bg-white {
-  color: #111827 !important;
-  color-scheme: light;
+/* Ensure placeholder text contrast in both light and dark mode */
+::placeholder {
+  color: #9ca3af;
+  opacity: 1;
 }
 
-/* Option element styling */
+.dark ::placeholder {
+  color: #9ca3af;
+}
+
+/* Native select option dropdown contrast across browsers */
 select option {
-  color: #111827;
   background-color: #ffffff;
+  color: #111827;
 }
 
-/* Option element styling in dark themed filters */
-select.bg-\[\#0F1524\] option,
-select.bg-\[\#0d1117\] option {
-  color: #dce3ef;
-  background-color: #0F1524;
+.dark select option {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+/* Force dark color scheme on dark mode inputs to ensure readable caret & text */
+.dark input,
+.dark select,
+.dark textarea {
+  color-scheme: dark;
 }
