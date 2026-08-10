@@ -130,3 +130,34 @@ export async function getCustomerProjectsReport() {
     };
   });
 }
+
+export async function getProjectTransferReport() {
+  const transfers = await prisma.projectTransfer.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      fromProject: { select: { id: true, projectCode: true, projectName: true } },
+      toProject: { select: { id: true, projectCode: true, projectName: true } },
+      requestedBy: { select: { name: true } },
+      approvedBy: { select: { name: true } },
+      items: {
+        include: {
+          inventory: { select: { name: true, itemCode: true, unit: true } },
+          pipeCutPiece: { select: { id: true, pieceLength: true, unit: true, barcode: true } },
+          tool: { select: { name: true, toolCode: true } },
+        },
+      },
+    },
+  });
+
+  return transfers.map((t) => {
+    const totalValue = t.items.reduce(
+      (sum, i) => sum + (i.qty || 0) * (i.unitCost || 0),
+      0
+    );
+    return {
+      ...t,
+      totalValue,
+    };
+  });
+}
+

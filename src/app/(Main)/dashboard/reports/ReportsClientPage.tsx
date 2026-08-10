@@ -15,6 +15,7 @@ interface ReportsClientPageProps {
   transportReport: any[];
   engineerReport: any[];
   customerReport: any[];
+  transferReport?: any[];
 }
 
 export function ReportsClientPage({
@@ -23,6 +24,7 @@ export function ReportsClientPage({
   transportReport,
   engineerReport,
   customerReport,
+  transferReport = [],
 }: ReportsClientPageProps) {
   const [activeReport, setActiveReport] = useState<
     | "cost-summary"
@@ -34,6 +36,7 @@ export function ReportsClientPage({
     | "profit-loss"
     | "engineers"
     | "customers"
+    | "transfers"
   >("cost-summary");
 
   const totalEstimatedOverall = costSummaryReport.reduce((sum, r) => sum + r.estimatedTotalCost, 0);
@@ -89,6 +92,7 @@ export function ReportsClientPage({
             { id: "profit-loss", label: "🏆 7. Profit / Loss Ranking" },
             { id: "engineers", label: "👥 8. Engineer-wise Projects" },
             { id: "customers", label: "🏢 9. Customer-wise Projects" },
+            { id: "transfers", label: "🔄 10. Project Transfer History" },
           ] as const
         ).map((tab) => (
           <button
@@ -418,6 +422,57 @@ export function ReportsClientPage({
                     <td className="px-4 py-3.5 text-right font-bold text-red-600">{formatCurrency(c.totalActualExpense)}</td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* REPORT 10: PROJECT TRANSFER HISTORY */}
+      {activeReport === "transfers" && (
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 space-y-4 shadow-sm">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+            Project-to-Project Transfer History & Cost Report
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+              <thead className="bg-gray-50 dark:bg-gray-800 uppercase font-semibold text-[11px]">
+                <tr>
+                  <th className="px-4 py-3">Transfer No</th>
+                  <th className="px-4 py-3">From Project</th>
+                  <th className="px-4 py-3">To Project</th>
+                  <th className="px-4 py-3">Transfer Date</th>
+                  <th className="px-4 py-3">Items Count</th>
+                  <th className="px-4 py-3 text-right">Transfer Value</th>
+                  <th className="px-4 py-3">Requested By</th>
+                  <th className="px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                {(!transferReport || transferReport.length === 0) ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-6 text-gray-500">
+                      No project transfers recorded yet.
+                    </td>
+                  </tr>
+                ) : (
+                  transferReport.map((t) => (
+                    <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="px-4 py-3.5 font-mono font-bold text-gray-900 dark:text-gray-100">
+                        {t.transferNo}
+                      </td>
+                      <td className="px-4 py-3.5 font-medium">{t.fromProject?.projectCode} — {t.fromProject?.projectName}</td>
+                      <td className="px-4 py-3.5 font-medium text-emerald-600 dark:text-emerald-400">{t.toProject?.projectCode} — {t.toProject?.projectName}</td>
+                      <td className="px-4 py-3.5">{formatDate(t.transferDate)}</td>
+                      <td className="px-4 py-3.5 font-bold">{(t.items || []).length} Item(s)</td>
+                      <td className="px-4 py-3.5 text-right font-bold text-indigo-600 dark:text-indigo-400">
+                        {formatCurrency(t.totalValue || 0)}
+                      </td>
+                      <td className="px-4 py-3.5 text-gray-500">{t.requestedBy?.name || "System"}</td>
+                      <td className="px-4 py-3.5 font-mono text-[11px]">{t.status}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

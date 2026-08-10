@@ -185,6 +185,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Projects",          href: "/dashboard/projects",         icon: Icons.projects,         badge: 12 },
       { label: "Material Requests", href: "/dashboard/material-requests", icon: Icons.materialRequests, badge: 2 },
       { label: "Project Stock",     href: "/dashboard/project-stock",    icon: Icons.projectStock },
+      { label: "Project Transfers", href: "/dashboard/transfers",        icon: Icons.returns },
     ],
   },
   {

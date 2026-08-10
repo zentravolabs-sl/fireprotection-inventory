@@ -1,37 +1,129 @@
 // ============================================================
 // src/lib/repositories/staffRepository.ts
-// Database queries for Project Staff Assignments & Attendance
+// Database queries for Project Staff Assignments
 // ============================================================
 
 import { prisma } from "@/lib/prisma";
 import type {
   ProjectStaffRole,
   ProjectStaffStatus,
-  StaffAttendanceStatus,
 } from "@/generated/prisma/client";
 import type {
   AssignStaffInput,
   UpdateStaffInput,
-  AddAttendanceInput,
-  UpdateAttendanceInput,
 } from "@/lib/validations/staff";
-
-// ── Worked Days Calculation Helper ──────────────────────────────────────────
-
-export function calculateWorkedDaysFromAttendances(
-  attendances: { status: StaffAttendanceStatus }[]
-): number {
-  return attendances.reduce((sum, att) => {
-    if (att.status === "PRESENT") return sum + 1;
-    if (att.status === "HALF_DAY") return sum + 0.5;
-    return sum;
-  }, 0);
-}
 
 // ── Repository Queries ───────────────────────────────────────────────────────
 
-export async function getProjectStaff(projectId: number) {
-  const staffList = await prisma.projectStaff.findMany({
+export async function syncAndGetProjectStaff(projectId: number) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      projectManagerId: true,
+      engineers: {
+        select: { engineerId: true, isLead: true, assignedDate: true },
+      },
+    },
+  });
+
+  if (!project) return [];
+
+  // Valid staff user IDs currently assigned to this project
+  const validUserIds = new Set<string>();
+  if (project.projectManagerId) validUserIds.add(project.projectManagerId);
+  for (const eng of project.engineers) {
+    validUserIds.add(eng.engineerId);
+  }
+
+  // 1. Fetch existing ProjectStaff records for this project
+  const existingStaff = await prisma.projectStaff.findMany({
+    where: { projectId },
+    orderBy: { id: "asc" },
+  });
+
+  // 2. Identify duplicate records for the same (userId, role)
+  const seenKeys = new Set<string>();
+  const duplicateIdsToDelete: number[] = [];
+
+  for (const ps of existingStaff) {
+    const key = `${ps.userId}_${ps.role}`;
+    if (seenKeys.has(key)) {
+      duplicateIdsToDelete.push(ps.id);
+    } else {
+      seenKeys.add(key);
+    }
+  }
+
+  if (duplicateIdsToDelete.length > 0) {
+    await prisma.projectStaff.deleteMany({
+      where: { id: { in: duplicateIdsToDelete } },
+    });
+  }
+
+  // 3. Delete records for staff members who are no longer PM or assigned Engineer on this project
+  const orphanIdsToDelete: number[] = [];
+  for (const ps of existingStaff) {
+    if (!duplicateIdsToDelete.includes(ps.id) && !validUserIds.has(ps.userId)) {
+      orphanIdsToDelete.push(ps.id);
+    }
+  }
+
+  if (orphanIdsToDelete.length > 0) {
+    await prisma.projectStaff.deleteMany({
+      where: { id: { in: orphanIdsToDelete } },
+    });
+  }
+
+  // 4. Ensure Project Manager has a ProjectStaff record
+  if (project.projectManagerId) {
+    const pmStaff = await prisma.projectStaff.findFirst({
+      where: { projectId, userId: project.projectManagerId, role: "PROJECT_MANAGER" },
+    });
+    if (!pmStaff) {
+      await prisma.projectStaff.create({
+        data: {
+          projectId,
+          userId: project.projectManagerId,
+          role: "PROJECT_MANAGER",
+          isLead: false,
+          status: "ACTIVE",
+          salaryCost: 0,
+          otHours: 0,
+          otCost: 0,
+        },
+      });
+    }
+  }
+
+  // 5. Ensure assigned Engineers have ProjectStaff records
+  for (const eng of project.engineers) {
+    const engStaff = await prisma.projectStaff.findFirst({
+      where: { projectId, userId: eng.engineerId, role: "ENGINEER" },
+    });
+    if (!engStaff) {
+      await prisma.projectStaff.create({
+        data: {
+          projectId,
+          userId: eng.engineerId,
+          role: "ENGINEER",
+          isLead: eng.isLead,
+          assignedDate: eng.assignedDate || new Date(),
+          status: "ACTIVE",
+          salaryCost: 0,
+          otHours: 0,
+          otCost: 0,
+        },
+      });
+    } else if (engStaff.isLead !== eng.isLead) {
+      await prisma.projectStaff.update({
+        where: { id: engStaff.id },
+        data: { isLead: eng.isLead },
+      });
+    }
+  }
+
+  // 6. Return clean, deduplicated project staff
+  return prisma.projectStaff.findMany({
     where: { projectId },
     include: {
       user: {
@@ -43,29 +135,17 @@ export async function getProjectStaff(projectId: number) {
           isActive: true,
         },
       },
-      attendances: {
-        orderBy: { workDate: "desc" },
-      },
     },
-    orderBy: [{ status: "asc" }, { assignedDate: "desc" }],
-  });
-
-  return staffList.map((staff) => {
-    const workedDays = calculateWorkedDaysFromAttendances(staff.attendances);
-    const totalAttendanceOT = staff.attendances.reduce((s, a) => s + (a.otHours || 0), 0);
-    const totalStaffCost = staff.salaryCost + staff.otCost;
-
-    return {
-      ...staff,
-      workedDays,
-      totalAttendanceOT,
-      totalStaffCost,
-    };
+    orderBy: [{ role: "asc" }, { status: "asc" }, { assignedDate: "desc" }],
   });
 }
 
+export async function getProjectStaff(projectId: number) {
+  return syncAndGetProjectStaff(projectId);
+}
+
 export async function getProjectStaffById(id: number) {
-  const staff = await prisma.projectStaff.findUnique({
+  return prisma.projectStaff.findUnique({
     where: { id },
     include: {
       user: {
@@ -74,24 +154,8 @@ export async function getProjectStaffById(id: number) {
       project: {
         select: { id: true, projectCode: true, projectName: true, status: true },
       },
-      attendances: {
-        orderBy: { workDate: "desc" },
-      },
     },
   });
-
-  if (!staff) return null;
-
-  const workedDays = calculateWorkedDaysFromAttendances(staff.attendances);
-  const totalAttendanceOT = staff.attendances.reduce((s, a) => s + (a.otHours || 0), 0);
-  const totalStaffCost = staff.salaryCost + staff.otCost;
-
-  return {
-    ...staff,
-    workedDays,
-    totalAttendanceOT,
-    totalStaffCost,
-  };
 }
 
 export async function findActiveProjectStaff(projectId: number, userId: string) {
@@ -190,67 +254,6 @@ export async function releaseProjectStaffRecord(projectStaffId: number, released
     include: {
       user: { select: { id: true, name: true, email: true, role: true } },
     },
-  });
-}
-
-// ── Attendance Queries ───────────────────────────────────────────────────────
-
-export async function getStaffAttendance(projectStaffId: number) {
-  return prisma.projectStaffAttendance.findMany({
-    where: { projectStaffId },
-    orderBy: { workDate: "desc" },
-  });
-}
-
-export async function upsertStaffAttendance(data: AddAttendanceInput) {
-  const workDateObj = new Date(data.workDate);
-  workDateObj.setHours(0, 0, 0, 0);
-
-  let hours = data.workedHours;
-  if (hours === 0) {
-    if (data.status === "PRESENT") hours = 8;
-    else if (data.status === "HALF_DAY") hours = 4;
-  }
-
-  return prisma.projectStaffAttendance.upsert({
-    where: {
-      projectStaffId_workDate: {
-        projectStaffId: data.projectStaffId,
-        workDate: workDateObj,
-      },
-    },
-    create: {
-      projectStaffId: data.projectStaffId,
-      workDate: workDateObj,
-      status: data.status as StaffAttendanceStatus,
-      workedHours: hours,
-      otHours: data.otHours,
-      remarks: data.remarks ?? null,
-    },
-    update: {
-      status: data.status as StaffAttendanceStatus,
-      workedHours: hours,
-      otHours: data.otHours,
-      remarks: data.remarks ?? null,
-    },
-  });
-}
-
-export async function updateStaffAttendanceRecord(id: number, data: Omit<UpdateAttendanceInput, "id">) {
-  return prisma.projectStaffAttendance.update({
-    where: { id },
-    data: {
-      status: data.status as StaffAttendanceStatus,
-      workedHours: data.workedHours,
-      otHours: data.otHours,
-      remarks: data.remarks ?? null,
-    },
-  });
-}
-
-export async function deleteStaffAttendanceRecord(id: number) {
-  return prisma.projectStaffAttendance.delete({
-    where: { id },
   });
 }
 
