@@ -7,7 +7,6 @@ import { z } from "zod";
 
 export const projectStaffRoleEnum = z.enum(["PROJECT_MANAGER", "ENGINEER"]);
 export const projectStaffStatusEnum = z.enum(["ACTIVE", "RELEASED"]);
-export const staffAttendanceStatusEnum = z.enum(["PRESENT", "ABSENT", "HALF_DAY", "LEAVE"]);
 
 // ── Assign Staff ─────────────────────────────────────────────────────────────
 
@@ -37,29 +36,8 @@ export const releaseStaffSchema = z.object({
   releasedDate: z.string().min(1, "Released date is required"),
 });
 
-// ── Attendance Validation ───────────────────────────────────────────────────
-
-export const addAttendanceSchema = z.object({
-  projectStaffId: z.number().int().positive("Project staff ID is required"),
-  workDate: z.string().min(1, "Work date is required"),
-  status: staffAttendanceStatusEnum,
-  workedHours: z.number().min(0, "Worked hours cannot be negative").default(0),
-  otHours: z.number().min(0, "OT hours cannot be negative").default(0),
-  remarks: z.string().optional().nullable(),
-});
-
-export const updateAttendanceSchema = z.object({
-  id: z.number().int().positive("Attendance record ID is required"),
-  status: staffAttendanceStatusEnum,
-  workedHours: z.number().min(0, "Worked hours cannot be negative").default(0),
-  otHours: z.number().min(0, "OT hours cannot be negative").default(0),
-  remarks: z.string().optional().nullable(),
-});
-
 // ── TypeScript Types ─────────────────────────────────────────────────────────
 
 export type AssignStaffInput = z.infer<typeof assignStaffSchema>;
 export type UpdateStaffInput = z.infer<typeof updateStaffSchema>;
 export type ReleaseStaffInput = z.infer<typeof releaseStaffSchema>;
-export type AddAttendanceInput = z.infer<typeof addAttendanceSchema>;
-export type UpdateAttendanceInput = z.infer<typeof updateAttendanceSchema>;

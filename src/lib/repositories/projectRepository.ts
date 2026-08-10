@@ -102,12 +102,19 @@ export async function findProjectById(id: number) {
           overtimes: true,
         },
       },
+      staffAssignments: {
+        include: {
+          user: {
+            select: { id: true, name: true, email: true, role: true, isActive: true },
+          },
+        },
+      },
     },
   });
 
   if (!project) return null;
 
-  // Calculate actual costs strictly from ProjectExpense ledger + Labour module (Labour + OT)
+  // Calculate actual costs strictly from ProjectExpense ledger + Labour module + Staff module (Salary + OT)
   const costBreakdown = calculateProjectCostBreakdown(project);
 
   return {
@@ -136,6 +143,10 @@ export function calculateProjectCostBreakdown(project: any): ProjectCostBreakdow
 
   const actualLabourCost = actualLabourCostFromExpenses + labourModuleCost;
 
+  const actualStaffCost = (project.staffAssignments || []).reduce((sum: number, ps: any) => {
+    return sum + (ps.salaryCost || 0) + (ps.otCost || 0);
+  }, 0);
+
   const actualTransportCost = expenses
     .filter((e: any) => e.expenseType === "TRANSPORT")
     .reduce((sum: number, e: any) => sum + e.amount, 0);
@@ -151,6 +162,7 @@ export function calculateProjectCostBreakdown(project: any): ProjectCostBreakdow
   const actualTotalCost =
     actualMaterialCost +
     actualLabourCost +
+    actualStaffCost +
     actualTransportCost +
     actualEquipmentCost +
     actualOtherCost;
@@ -190,6 +202,7 @@ export function calculateProjectCostBreakdown(project: any): ProjectCostBreakdow
 
     actualMaterialCost,
     actualLabourCost,
+    actualStaffCost,
     actualTransportCost,
     actualEquipmentCost,
     actualOtherCost,
@@ -271,6 +284,12 @@ export async function findProjects(params: {
           select: {
             labourCost: true,
             overtimes: { select: { otAmount: true } },
+          },
+        },
+        staffAssignments: {
+          select: {
+            salaryCost: true,
+            otCost: true,
           },
         },
         _count: {

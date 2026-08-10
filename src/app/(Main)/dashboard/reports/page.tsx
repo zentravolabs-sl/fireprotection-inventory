@@ -10,6 +10,7 @@ import {
   getTransportReport,
   getEngineerProjectsReport,
   getCustomerProjectsReport,
+  getProjectTransferReport,
 } from "@/lib/repositories/reportRepository";
 import { ReportsClientPage } from "./ReportsClientPage";
 
@@ -22,12 +23,14 @@ export default async function ERPReportsPage() {
     transportReport,
     engineerReport,
     customerReport,
+    transferReport,
   ] = await Promise.all([
     getProjectCostSummaryReport(),
     getCategoryExpenseReport(),
     getTransportReport(),
     getEngineerProjectsReport(),
     getCustomerProjectsReport(),
+    getProjectTransferReport(),
   ]);
 
   return (
@@ -37,6 +40,8 @@ export default async function ERPReportsPage() {
       transportReport={transportReport}
       engineerReport={engineerReport}
       customerReport={customerReport}
+      transferReport={transferReport}
     />
   );
 }
+

@@ -1,6 +1,6 @@
 // ============================================================
 // src/lib/services/staffService.ts
-// Business Logic Layer for Project Staff Assignments & Attendance
+// Business Logic Layer for Project Staff Assignments
 // ============================================================
 
 import { prisma } from "@/lib/prisma";
@@ -12,18 +12,12 @@ import {
   setLeadEngineerInStaff,
   updateProjectStaffRecord,
   releaseProjectStaffRecord,
-  getStaffAttendance,
-  upsertStaffAttendance,
-  updateStaffAttendanceRecord,
-  deleteStaffAttendanceRecord,
   getProjectStaffCostSummary,
 } from "@/lib/repositories/staffRepository";
 import type {
   AssignStaffInput,
   UpdateStaffInput,
   ReleaseStaffInput,
-  AddAttendanceInput,
-  UpdateAttendanceInput,
 } from "@/lib/validations/staff";
 
 // ── Staff Assignment Services ────────────────────────────────────────────────
@@ -84,41 +78,6 @@ export async function releaseProjectStaffService(data: ReleaseStaffInput) {
   if (staff.status === "RELEASED") throw new Error("Staff member is already released.");
 
   return releaseProjectStaffRecord(data.projectStaffId, data.releasedDate);
-}
-
-// ── Attendance Services ──────────────────────────────────────────────────────
-
-export async function getStaffAttendanceService(projectStaffId: number) {
-  return getStaffAttendance(projectStaffId);
-}
-
-export async function addStaffAttendanceService(data: AddAttendanceInput) {
-  const staff = await prisma.projectStaff.findUnique({ where: { id: data.projectStaffId } });
-  if (!staff) throw new Error("Project staff record not found.");
-
-  const workDateObj = new Date(data.workDate);
-  if (staff.assignedDate && workDateObj < new Date(staff.assignedDate)) {
-    throw new Error(
-      `Work date (${data.workDate}) cannot be earlier than staff assigned date (${staff.assignedDate.toISOString().split("T")[0]}).`
-    );
-  }
-
-  return upsertStaffAttendance(data);
-}
-
-export async function updateStaffAttendanceService(data: UpdateAttendanceInput) {
-  const { id, ...rest } = data;
-  const att = await prisma.projectStaffAttendance.findUnique({ where: { id } });
-  if (!att) throw new Error("Attendance record not found.");
-
-  return updateStaffAttendanceRecord(id, rest);
-}
-
-export async function deleteStaffAttendanceService(id: number) {
-  const att = await prisma.projectStaffAttendance.findUnique({ where: { id } });
-  if (!att) throw new Error("Attendance record not found.");
-
-  return deleteStaffAttendanceRecord(id);
 }
 
 // ── Cost Summary Service ─────────────────────────────────────────────────────

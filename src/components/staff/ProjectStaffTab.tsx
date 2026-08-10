@@ -3,8 +3,11 @@
 // ============================================================
 // src/components/staff/ProjectStaffTab.tsx
 // Unified Project Staff Management Module UI Tab.
-// Features: Summary cards, Staff Table, Staff Details modal, Worked Days,
-// Salary & OT cost management, Lead Engineer designation, Attendance & Release.
+// Displays assigned Project Manager & Engineers with:
+// - Salary Cost & Overtime (OT) Cost management (like Labour tab)
+// - Automatic contribution to project actual total cost
+// - Financial breakdown (PM vs Engineers)
+// - Interactive Edit Cost modal for Admin / PM
 // ============================================================
 
 import React, { useState } from "react";
@@ -12,50 +15,28 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import {
   Users,
-  Plus,
   Clock,
   DollarSign,
   UserX,
-  Calendar,
-  History,
-  CheckCircle,
   ShieldCheck,
   Briefcase,
-  ChevronDown,
-  ChevronUp,
-  FileText,
   PieChart,
-  Trash2,
   Star,
   Eye,
-  Edit3,
+  Crown,
+  Wrench,
+  FileText,
 } from "lucide-react";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Modal from "@/components/ui/Modal";
-import { AssignStaffModal } from "./AssignStaffModal";
-import { ReleaseStaffModal } from "./ReleaseStaffModal";
 import { SetStaffCostModal } from "./SetStaffCostModal";
-import { StaffAttendanceModal } from "./StaffAttendanceModal";
+import { ReleaseStaffModal } from "./ReleaseStaffModal";
 import {
-  assignProjectStaffAction,
   updateProjectStaffAction,
   releaseProjectStaffAction,
   setLeadEngineerStaffAction,
-  addStaffAttendanceAction,
-  deleteStaffAttendanceAction,
 } from "@/app/actions/staff";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-interface AttendanceRecord {
-  id: number;
-  projectStaffId: number;
-  workDate: Date | string;
-  status: "PRESENT" | "ABSENT" | "HALF_DAY" | "LEAVE";
-  workedHours: number;
-  otHours: number;
-  remarks: string | null;
-}
 
 interface ProjectStaffRow {
   id: number;
@@ -77,10 +58,6 @@ interface ProjectStaffRow {
     role: string;
     isActive: boolean;
   };
-  attendances: AttendanceRecord[];
-  workedDays: number;
-  totalAttendanceOT: number;
-  totalStaffCost: number;
 }
 
 interface UserOption {
@@ -127,14 +104,32 @@ function RoleBadge({ role }: { role: "PROJECT_MANAGER" | "ENGINEER" }) {
   const isPM = role === "PROJECT_MANAGER";
   return (
     <span
-      className={`px-2 py-0.5 text-[11px] font-bold rounded-md border ${
+      className={`px-2 py-0.5 text-[11px] font-bold rounded-md border inline-flex items-center gap-1 ${
         isPM
           ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60"
           : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60"
       }`}
     >
+      {isPM ? <Crown size={11} /> : <Wrench size={11} />}
       {isPM ? "Project Manager" : "Engineer"}
     </span>
+  );
+}
+
+// ── Avatar ────────────────────────────────────────────────────────────────────
+
+function Avatar({ name }: { name: string }) {
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+      {initials}
+    </div>
   );
 }
 
@@ -145,11 +140,9 @@ function StaffDetailsModal({
   onClose,
   staff,
   canEditCost,
-  canLogAttendance,
   isAdminOrPM,
   isClosed,
   onOpenCost,
-  onOpenAttendance,
   onSetLead,
   onRelease,
 }: {
@@ -157,35 +150,33 @@ function StaffDetailsModal({
   onClose: () => void;
   staff: ProjectStaffRow | null;
   canEditCost: boolean;
-  canLogAttendance: boolean;
   isAdminOrPM: boolean;
   isClosed: boolean;
   onOpenCost: (s: ProjectStaffRow) => void;
-  onOpenAttendance: (s: ProjectStaffRow) => void;
   onSetLead: (s: ProjectStaffRow) => void;
   onRelease: (s: ProjectStaffRow) => void;
 }) {
   if (!staff) return null;
 
-  const totalWorkedHours = staff.attendances.reduce((sum, a) => sum + (a.workedHours || 0), 0);
-  const totalOtHoursFromAtt = staff.attendances.reduce((sum, a) => sum + (a.otHours || 0), 0);
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Staff Details — ${staff.user.name}`} maxWidth="max-w-xl">
       <div className="space-y-5">
         <div className="flex items-start justify-between p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{staff.user.name}</h3>
-              <RoleBadge role={staff.role} />
-              <StatusBadge status={staff.status} />
-              {staff.role === "ENGINEER" && staff.isLead && (
-                <span className="px-2 py-0.5 text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 rounded-md border border-amber-200 inline-flex items-center gap-1">
-                  ⭐ Lead Engineer
-                </span>
-              )}
+          <div className="flex items-center gap-3">
+            <Avatar name={staff.user.name} />
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{staff.user.name}</h3>
+                <RoleBadge role={staff.role} />
+                <StatusBadge status={staff.status} />
+                {staff.role === "ENGINEER" && staff.isLead && (
+                  <span className="px-2 py-0.5 text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 rounded-md border border-amber-200 inline-flex items-center gap-1">
+                    ⭐ Lead Engineer
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{staff.user.email}</p>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{staff.user.email}</p>
           </div>
         </div>
 
@@ -204,20 +195,16 @@ function StaffDetailsModal({
         <div className="space-y-2">
           <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
             <Clock size={14} className="text-blue-500" />
-            <span>Work Summary</span>
+            <span>Overtime Summary</span>
           </h4>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-lg border border-blue-100 dark:border-blue-900/50">
-              <span className="text-[10px] text-blue-600 dark:text-blue-400 uppercase font-semibold block">Worked Days</span>
-              <span className="text-base font-black text-blue-900 dark:text-blue-100">{staff.workedDays} Days</span>
-            </div>
+          <div className="grid grid-cols-2 gap-3">
             <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-              <span className="text-[10px] text-gray-500 uppercase font-semibold block">Total Worked Hours</span>
-              <span className="text-base font-black text-gray-900 dark:text-gray-100">{totalWorkedHours} h</span>
+              <span className="text-[10px] text-gray-500 uppercase font-semibold block">OT Hours</span>
+              <span className="text-base font-black text-gray-900 dark:text-gray-100">{staff.otHours} h</span>
             </div>
             <div className="p-3 bg-orange-50/60 dark:bg-orange-950/30 rounded-lg border border-orange-100 dark:border-orange-900/50">
-              <span className="text-[10px] text-orange-600 dark:text-orange-400 uppercase font-semibold block">OT Hours</span>
-              <span className="text-base font-black text-orange-900 dark:text-orange-100">{staff.otHours || totalOtHoursFromAtt} h</span>
+              <span className="text-[10px] text-orange-600 dark:text-orange-400 uppercase font-semibold block">OT Cost</span>
+              <span className="text-base font-black text-orange-900 dark:text-orange-100">{LKR(staff.otCost)}</span>
             </div>
           </div>
         </div>
@@ -261,21 +248,7 @@ function StaffDetailsModal({
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
               >
                 <DollarSign size={14} />
-                Edit Cost
-              </button>
-            )}
-
-            {canLogAttendance && staff.status === "ACTIVE" && (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onOpenAttendance(staff);
-                }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm"
-              >
-                <Calendar size={14} />
-                Log Attendance
+                Edit Cost & OT
               </button>
             )}
 
@@ -324,63 +297,49 @@ export function ProjectStaffTab({
 }: Props) {
   const router = useRouter();
 
-  const [subTab, setSubTab] = useState<"staff" | "attendance" | "summary">("staff");
+  const [subTab, setSubTab] = useState<"staff" | "summary">("staff");
 
-  const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [detailsTarget, setDetailsTarget] = useState<ProjectStaffRow | null>(null);
   const [releaseTarget, setReleaseTarget] = useState<ProjectStaffRow | null>(null);
   const [costTarget, setCostTarget] = useState<ProjectStaffRow | null>(null);
-  const [attendanceTarget, setAttendanceTarget] = useState<ProjectStaffRow | null>(null);
-  const [deleteAttendanceTarget, setDeleteAttendanceTarget] = useState<number | null>(null);
 
-  const [assignLoading, setAssignLoading] = useState(false);
   const [releaseLoading, setReleaseLoading] = useState(false);
   const [costLoading, setCostLoading] = useState(false);
-  const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [setLeadLoading, setSetLeadLoading] = useState(false);
-  const [deleteAttendanceLoading, setDeleteAttendanceLoading] = useState(false);
 
   const isClosed = projectStatus === "COMPLETED" || projectStatus === "CANCELLED";
 
   const isAdminOrPM =
     currentUserRole === "SUPER_ADMIN" || currentUserRole === "ADMIN" || currentUserRole === "PROJECT_MANAGER";
-  const canEditCost = currentUserRole === "SUPER_ADMIN" || currentUserRole === "ADMIN" || currentUserRole === "PROJECT_MANAGER";
-  const canLogAttendance = isAdminOrPM || currentUserRole === "ENGINEER";
+  const canEditCost = isAdminOrPM;
 
-  const activeStaff = projectStaff.filter((s) => s.status === "ACTIVE");
-  const releasedStaff = projectStaff.filter((s) => s.status === "RELEASED");
+  // Deduplicate staff by unique (userId, role) to prevent UI duplicate rows
+  const cleanProjectStaff = React.useMemo(() => {
+    const map = new Map<string, ProjectStaffRow>();
+    for (const s of projectStaff) {
+      const key = `${s.userId}_${s.role}`;
+      if (!map.has(key)) {
+        map.set(key, s);
+      }
+    }
+    return Array.from(map.values());
+  }, [projectStaff]);
 
-  const totalSalaryCost = projectStaff.reduce((sum, s) => sum + s.salaryCost, 0);
-  const totalOTCost = projectStaff.reduce((sum, s) => sum + s.otCost, 0);
+  const activeStaff = cleanProjectStaff.filter((s) => s.status === "ACTIVE");
+  const releasedStaff = cleanProjectStaff.filter((s) => s.status === "RELEASED");
+
+  const totalSalaryCost = cleanProjectStaff.reduce((sum, s) => sum + s.salaryCost, 0);
+  const totalOTCost = cleanProjectStaff.reduce((sum, s) => sum + s.otCost, 0);
   const totalStaffCost = totalSalaryCost + totalOTCost;
-  const totalWorkedDays = projectStaff.reduce((sum, s) => sum + s.workedDays, 0);
+  const totalOTHours = cleanProjectStaff.reduce((sum, s) => sum + s.otHours, 0);
 
-  const pmStaff = projectStaff.filter((s) => s.role === "PROJECT_MANAGER");
-  const engStaff = projectStaff.filter((s) => s.role === "ENGINEER");
+  const pmStaff = cleanProjectStaff.filter((s) => s.role === "PROJECT_MANAGER");
+  const engStaff = cleanProjectStaff.filter((s) => s.role === "ENGINEER");
 
   const pmSalaryCost = pmStaff.reduce((s, x) => s + x.salaryCost, 0);
   const pmOTCost = pmStaff.reduce((s, x) => s + x.otCost, 0);
   const engSalaryCost = engStaff.reduce((s, x) => s + x.salaryCost, 0);
   const engOTCost = engStaff.reduce((s, x) => s + x.otCost, 0);
-
-  const handleAssign = async (data: {
-    userId: string;
-    role: "PROJECT_MANAGER" | "ENGINEER";
-    isLead?: boolean;
-    assignedDate: string;
-    remarks: string | null;
-  }) => {
-    setAssignLoading(true);
-    const res = await assignProjectStaffAction({ projectId, ...data });
-    setAssignLoading(false);
-    if (res.success) {
-      toast.success(res.message);
-      setIsAssignOpen(false);
-      router.refresh();
-    } else {
-      toast.error(res.message);
-    }
-  };
 
   const handleSetLead = async (s: ProjectStaffRow) => {
     setSetLeadLoading(true);
@@ -430,40 +389,6 @@ export function ProjectStaffTab({
     }
   };
 
-  const handleAddAttendance = async (data: {
-    projectStaffId: number;
-    workDate: string;
-    status: "PRESENT" | "ABSENT" | "HALF_DAY" | "LEAVE";
-    workedHours: number;
-    otHours: number;
-    remarks?: string | null;
-  }) => {
-    setAttendanceLoading(true);
-    const res = await addStaffAttendanceAction(data, projectId);
-    setAttendanceLoading(false);
-    if (res.success) {
-      toast.success(res.message);
-      setAttendanceTarget(null);
-      router.refresh();
-    } else {
-      toast.error(res.message);
-    }
-  };
-
-  const handleDeleteAttendance = async () => {
-    if (!deleteAttendanceTarget) return;
-    setDeleteAttendanceLoading(true);
-    const res = await deleteStaffAttendanceAction(deleteAttendanceTarget, projectId);
-    setDeleteAttendanceLoading(false);
-    if (res.success) {
-      toast.success(res.message);
-      setDeleteAttendanceTarget(null);
-      router.refresh();
-    } else {
-      toast.error(res.message);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -479,8 +404,8 @@ export function ProjectStaffTab({
         </div>
 
         <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total Worked Days</span>
-          <span className="text-xl font-black text-blue-600 dark:text-blue-400">{totalWorkedDays}</span>
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total OT Hours</span>
+          <span className="text-xl font-black text-orange-600 dark:text-orange-400">{totalOTHours} h</span>
         </div>
 
         <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
@@ -499,7 +424,15 @@ export function ProjectStaffTab({
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs & Assign Action */}
+      {/* Info notice explaining cost contribution to actual project cost */}
+      <div className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-xl border border-purple-100 dark:border-purple-900/50 flex items-center gap-2 text-xs text-purple-800 dark:text-purple-300">
+        <ShieldCheck size={16} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
+        <span>
+          Engineer & PM <strong>Salary Cost</strong> and <strong>OT Cost</strong> entered here are automatically aggregated into the project&apos;s <strong>Actual Staff Cost</strong> and included in the <strong>Total Actual Project Cost</strong>.
+        </span>
+      </div>
+
+      {/* Navigation Sub-Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-3">
         <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl">
           <button
@@ -512,20 +445,7 @@ export function ProjectStaffTab({
             }`}
           >
             <Users size={14} />
-            <span>Staff Members ({projectStaff.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSubTab("attendance")}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              subTab === "attendance"
-                ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
-                : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
-            }`}
-          >
-            <Calendar size={14} />
-            <span>Attendance Log ({projectStaff.reduce((s, x) => s + x.attendances.length, 0)})</span>
+            <span>Staff Members Table ({cleanProjectStaff.length})</span>
           </button>
 
           <button
@@ -538,42 +458,26 @@ export function ProjectStaffTab({
             }`}
           >
             <PieChart size={14} />
-            <span>Cost Summary</span>
+            <span>Cost Summary Breakdown</span>
           </button>
         </div>
-
-        {!isClosed && isAdminOrPM && (
-          <button
-            type="button"
-            onClick={() => setIsAssignOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
-          >
-            <Plus size={14} />
-            + Assign Staff
-          </button>
-        )}
       </div>
 
       {/* SUB-TAB 1: STAFF MEMBERS TABLE */}
       {subTab === "staff" && (
         <div className="space-y-6">
-          {projectStaff.length === 0 ? (
+          {cleanProjectStaff.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm text-center">
               <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                 <Users size={28} className="text-gray-300 dark:text-gray-600" />
               </div>
-              <p className="text-gray-400 dark:text-gray-500 font-medium text-sm">No company staff assigned to this project yet.</p>
-              {!isClosed && isAdminOrPM && (
-                <button type="button" onClick={() => setIsAssignOpen(true)} className="text-red-600 text-sm font-semibold hover:underline">
-                  Assign the first staff member
-                </button>
-              )}
+              <p className="text-gray-400 dark:text-gray-500 font-medium text-sm">No project staff records found.</p>
             </div>
           ) : (
             <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden space-y-4 p-4">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm flex items-center gap-2">
                 <Users size={16} className="text-red-600" />
-                <span>Project Staff Table</span>
+                <span>Project Staff Cost Ledger</span>
               </h3>
 
               <div className="overflow-x-auto">
@@ -584,8 +488,6 @@ export function ProjectStaffTab({
                       <th className="px-4 py-3">Role</th>
                       <th className="px-4 py-3">Lead Designation</th>
                       <th className="px-4 py-3">Assigned Date</th>
-                      <th className="px-4 py-3">Released Date</th>
-                      <th className="px-4 py-3 text-right">Worked Days</th>
                       <th className="px-4 py-3 text-right">Salary Cost</th>
                       <th className="px-4 py-3 text-right">OT Hours</th>
                       <th className="px-4 py-3 text-right">OT Cost</th>
@@ -595,7 +497,7 @@ export function ProjectStaffTab({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                    {projectStaff.map((s) => {
+                    {cleanProjectStaff.map((s) => {
                       const totalRowCost = s.salaryCost + s.otCost;
                       return (
                         <tr
@@ -605,14 +507,19 @@ export function ProjectStaffTab({
                           }`}
                         >
                           <td className="px-4 py-3.5 font-medium text-gray-900 dark:text-gray-100">
-                            <button
-                              type="button"
-                              onClick={() => setDetailsTarget(s)}
-                              className="font-bold hover:text-red-600 text-left"
-                            >
-                              {s.user.name}
-                            </button>
-                            <div className="text-[11px] text-gray-400">{s.user.email}</div>
+                            <div className="flex items-center gap-2.5">
+                              <Avatar name={s.user.name} />
+                              <div>
+                                <button
+                                  type="button"
+                                  onClick={() => setDetailsTarget(s)}
+                                  className="font-bold hover:text-red-600 text-left"
+                                >
+                                  {s.user.name}
+                                </button>
+                                <div className="text-[11px] text-gray-400">{s.user.email}</div>
+                              </div>
+                            </div>
                           </td>
 
                           <td className="px-4 py-3.5">
@@ -632,13 +539,8 @@ export function ProjectStaffTab({
                           </td>
 
                           <td className="px-4 py-3.5 text-gray-500">{fmtDate(s.assignedDate)}</td>
-                          <td className="px-4 py-3.5 text-gray-500">{fmtDate(s.releasedDate)}</td>
 
-                          <td className="px-4 py-3.5 text-right font-bold text-blue-600 dark:text-blue-400">
-                            {s.workedDays}
-                          </td>
-
-                          <td className="px-4 py-3.5 text-right font-medium">
+                          <td className="px-4 py-3.5 text-right font-medium text-blue-600 dark:text-blue-400">
                             {LKR(s.salaryCost)}
                           </td>
 
@@ -650,7 +552,7 @@ export function ProjectStaffTab({
                             {LKR(s.otCost)}
                           </td>
 
-                          <td className="px-4 py-3.5 text-right font-extrabold text-gray-900 dark:text-gray-100">
+                          <td className="px-4 py-3.5 text-right font-extrabold text-purple-700 dark:text-purple-300">
                             {LKR(totalRowCost)}
                           </td>
 
@@ -663,7 +565,7 @@ export function ProjectStaffTab({
                               type="button"
                               onClick={() => setDetailsTarget(s)}
                               title="View Staff Details"
-                              className="px-2 py-1 text-[11px] font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 rounded-md"
+                              className="px-2.5 py-1 text-[11px] font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 rounded-lg"
                             >
                               Details
                             </button>
@@ -675,20 +577,9 @@ export function ProjectStaffTab({
                                     type="button"
                                     onClick={() => setCostTarget(s)}
                                     title="Edit Salary & OT Cost"
-                                    className="px-2 py-1 text-[11px] font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 rounded-md"
+                                    className="px-2.5 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
                                   >
                                     Edit Cost
-                                  </button>
-                                )}
-
-                                {canLogAttendance && s.status === "ACTIVE" && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setAttendanceTarget(s)}
-                                    title="Log Attendance"
-                                    className="px-2 py-1 text-[11px] font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 rounded-md"
-                                  >
-                                    Attendance
                                   </button>
                                 )}
 
@@ -698,7 +589,7 @@ export function ProjectStaffTab({
                                     onClick={() => handleSetLead(s)}
                                     disabled={setLeadLoading}
                                     title="Set Lead Engineer"
-                                    className="px-2 py-1 text-[11px] font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 rounded-md"
+                                    className="px-2.5 py-1 text-[11px] font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 rounded-lg"
                                   >
                                     Set Lead
                                   </button>
@@ -709,7 +600,7 @@ export function ProjectStaffTab({
                                     type="button"
                                     onClick={() => setReleaseTarget(s)}
                                     title="Release Staff Member"
-                                    className="px-2 py-1 text-[11px] font-medium bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 rounded-md"
+                                    className="px-2.5 py-1 text-[11px] font-semibold bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 rounded-lg"
                                   >
                                     Release
                                   </button>
@@ -728,97 +619,7 @@ export function ProjectStaffTab({
         </div>
       )}
 
-      {/* SUB-TAB 2: ATTENDANCE REGISTER LOG */}
-      {subTab === "attendance" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <Calendar size={16} className="text-emerald-500" />
-              <span>Project Daily Attendance Log</span>
-            </h3>
-            <span className="text-xs text-gray-400">
-              Rules: PRESENT = 1.0 Day · HALF DAY = 0.5 Day · ABSENT/LEAVE = 0
-            </span>
-          </div>
-
-          {projectStaff.flatMap((s) => s.attendances).length === 0 ? (
-            <p className="text-xs text-gray-400 italic py-8 text-center">No attendance records logged for any staff member yet.</p>
-          ) : (
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-gray-50 dark:bg-gray-800 text-gray-400 uppercase font-semibold border-b border-gray-200 dark:border-gray-800">
-                    <tr>
-                      <th className="px-4 py-3">Work Date</th>
-                      <th className="px-4 py-3">Staff Member</th>
-                      <th className="px-4 py-3">Role</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Worked Days</th>
-                      <th className="px-4 py-3">Worked Hours</th>
-                      <th className="px-4 py-3">OT Hours</th>
-                      <th className="px-4 py-3">Remarks</th>
-                      {!isClosed && isAdminOrPM && <th className="px-4 py-3 text-right">Action</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800 font-medium">
-                    {projectStaff
-                      .flatMap((s) =>
-                        s.attendances.map((a) => ({
-                          ...a,
-                          staffName: s.user.name,
-                          staffRole: s.role,
-                        }))
-                      )
-                      .sort((a, b) => new Date(b.workDate).getTime() - new Date(a.workDate).getTime())
-                      .map((att) => (
-                        <tr key={att.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50">
-                          <td className="px-4 py-2.5 font-bold text-gray-900 dark:text-gray-100">{fmtDate(att.workDate)}</td>
-                          <td className="px-4 py-2.5 font-semibold text-gray-800 dark:text-gray-200">{att.staffName}</td>
-                          <td className="px-4 py-2.5"><RoleBadge role={att.staffRole} /></td>
-                          <td className="px-4 py-2.5">
-                            <span
-                              className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
-                                att.status === "PRESENT"
-                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                  : att.status === "HALF_DAY"
-                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
-                                  : att.status === "LEAVE"
-                                  ? "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300"
-                                  : "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300"
-                              }`}
-                            >
-                              {att.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2.5 font-bold text-blue-600 dark:text-blue-400">
-                            {att.status === "PRESENT" ? "1.0 Day" : att.status === "HALF_DAY" ? "0.5 Day" : "0 Day"}
-                          </td>
-                          <td className="px-4 py-2.5">{att.workedHours}h</td>
-                          <td className="px-4 py-2.5 font-semibold text-orange-600">{att.otHours > 0 ? `${att.otHours}h` : "—"}</td>
-                          <td className="px-4 py-2.5 text-gray-400 italic">{att.remarks || "—"}</td>
-                          {!isClosed && isAdminOrPM && (
-                            <td className="px-4 py-2.5 text-right">
-                              <button
-                                type="button"
-                                onClick={() => setDeleteAttendanceTarget(att.id)}
-                                className="text-gray-300 hover:text-red-500 transition-colors p-1"
-                                title="Delete Attendance"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* SUB-TAB 3: COST SUMMARY */}
+      {/* SUB-TAB 2: COST SUMMARY */}
       {subTab === "summary" && (
         <div className="space-y-4">
           <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
@@ -871,26 +672,15 @@ export function ProjectStaffTab({
         </div>
       )}
 
-      {/* Assign Staff Modal */}
-      <AssignStaffModal
-        isOpen={isAssignOpen}
-        onClose={() => setIsAssignOpen(false)}
-        onSubmit={handleAssign}
-        users={users}
-        isSubmitting={assignLoading}
-      />
-
       {/* Staff Details Modal */}
       <StaffDetailsModal
         isOpen={Boolean(detailsTarget)}
         onClose={() => setDetailsTarget(null)}
         staff={detailsTarget}
         canEditCost={canEditCost}
-        canLogAttendance={canLogAttendance}
         isAdminOrPM={isAdminOrPM}
         isClosed={isClosed}
         onOpenCost={(s) => setCostTarget(s)}
-        onOpenAttendance={(s) => setAttendanceTarget(s)}
         onSetLead={handleSetLead}
         onRelease={(s) => setReleaseTarget(s)}
       />
@@ -911,27 +701,6 @@ export function ProjectStaffTab({
         onConfirm={handleReleaseConfirm}
         staff={releaseTarget}
         isSubmitting={releaseLoading}
-      />
-
-      {/* Staff Attendance Modal */}
-      <StaffAttendanceModal
-        isOpen={Boolean(attendanceTarget)}
-        onClose={() => setAttendanceTarget(null)}
-        onSubmit={handleAddAttendance}
-        staff={attendanceTarget}
-        isSubmitting={attendanceLoading}
-      />
-
-      {/* Delete Attendance Confirm */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteAttendanceTarget)}
-        onClose={() => setDeleteAttendanceTarget(null)}
-        onConfirm={handleDeleteAttendance}
-        title="Delete Attendance Record"
-        description="Are you sure you want to delete this daily attendance record?"
-        confirmText="Delete"
-        variant="danger"
-        isLoading={deleteAttendanceLoading}
       />
     </div>
   );

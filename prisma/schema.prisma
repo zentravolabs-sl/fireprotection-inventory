@@ -53,6 +53,7 @@ enum ReferenceType {
   PIPE_CUT
   RETURN
   MANUAL
+  PROJECT_TRANSFER
 }
 
 /// Pipe cut piece lifecycle states.
@@ -143,6 +144,9 @@ model User {
   toolHistoriesCreated      ToolHistory[]       @relation("ToolHistoryCreatedBy")
   labourAssignments         ProjectLabour[]     @relation("LabourAssignedByUser")
   otCreated                 LabourOT[]          @relation("OTCreatedByUser")
+  staffAssignments          ProjectStaff[]      @relation("StaffAssignments")
+  transfersRequested        ProjectTransfer[]   @relation("TransferRequestedBy")
+  transfersApproved         ProjectTransfer[]   @relation("TransferApprovedBy")
 
   @@index([email])
   @@index([role])
@@ -324,6 +328,7 @@ model Inventory {
   materialIssueItems   MaterialIssueItem[]
   projectMaterials     ProjectMaterial[]
   materialReturnItems  MaterialReturnItem[]
+  projectTransferItems ProjectTransferItem[]
 
   @@index([itemCode])
   @@index([barcode])
@@ -414,8 +419,9 @@ model StockBatch {
   inventory          Inventory           @relation(fields: [inventoryId], references: [id])
   stockReceiveItem   StockReceiveItem    @relation(fields: [stockReceiveItemId], references: [id])
   stockMovements     StockMovement[]
-  pipeCutPieces      PipeCutPiece[]
-  materialIssueItems MaterialIssueItem[]
+  pipeCutPieces        PipeCutPiece[]
+  materialIssueItems   MaterialIssueItem[]
+  projectTransferItems ProjectTransferItem[]
 
   @@index([inventoryId])
   @@index([batchNo])
@@ -479,13 +485,17 @@ model PipeCutPiece {
   // Foreign keys
   inventoryId  Int
   stockBatchId Int
+  projectId    Int?
 
   // Relations
-  inventory  Inventory  @relation(fields: [inventoryId], references: [id])
-  stockBatch StockBatch @relation(fields: [stockBatchId], references: [id])
+  inventory            Inventory             @relation(fields: [inventoryId], references: [id])
+  stockBatch           StockBatch            @relation(fields: [stockBatchId], references: [id])
+  project              Project?              @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectTransferItems ProjectTransferItem[]
 
   @@index([inventoryId])
   @@index([stockBatchId])
+  @@index([projectId])
   @@index([barcode])
   @@index([status])
   @@map("pipe_cut_piece")
@@ -508,8 +518,9 @@ model Tool {
   updatedAt DateTime      @updatedAt
 
   // Relations
-  assignmentItems ToolAssignmentItem[]
-  histories       ToolHistory[]
+  assignmentItems     ToolAssignmentItem[]
+  histories            ToolHistory[]
+  projectTransferItems ProjectTransferItem[]
 
   @@index([toolCode])
   @@index([name])
@@ -571,6 +582,14 @@ enum ReturnCondition {
   SCRAP
 }
 
+enum ProjectTransferStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
 enum ExpenseType {
   MATERIAL
   LABOUR
@@ -595,6 +614,18 @@ enum LabourReleaseStatus {
   ACTIVE
   RELEASED
   ON_LEAVE
+}
+
+/// Role of an internal staff member (User) on a project.
+enum ProjectStaffRole {
+  PROJECT_MANAGER
+  ENGINEER
+}
+
+/// Active / released lifecycle for an internal staff assignment.
+enum ProjectStaffStatus {
+  ACTIVE
+  RELEASED
 }
 
 // ============================================================
@@ -639,6 +670,10 @@ model Project {
   toolAssignments  ToolAssignment[]
   toolHistories    ToolHistory[]
   projectLabours   ProjectLabour[]
+  staffAssignments ProjectStaff[]
+  transfersFrom    ProjectTransfer[] @relation("ProjectTransferFrom")
+  transfersTo      ProjectTransfer[] @relation("ProjectTransferTo")
+  pipeCutPieces    PipeCutPiece[]
 
   @@index([projectCode])
   @@index([customerId])
@@ -1044,3 +1079,93 @@ model LabourOT {
   @@index([otDate])
   @@map("labour_ot")
 }
+
+// ============================================================
+// Internal Staff Assignment Model (User → Project)
+// ============================================================
+
+/// Junction table linking internal Users (engineers/PMs) to a Project.
+/// Tracks role, cost, and release status per assignment.
+/// User details (name, email, role) come from the User relation — never duplicated here.
+model ProjectStaff {
+  id           Int               @id @default(autoincrement())
+  projectId    Int
+  userId       String            // references User.id
+  role         ProjectStaffRole
+  isLead       Boolean           @default(false)
+  assignedDate DateTime          @default(now())
+  releasedDate DateTime?
+  status       ProjectStaffStatus @default(ACTIVE)
+  salaryCost   Float             @default(0)
+  otHours      Float             @default(0)
+  otCost       Float             @default(0)
+  remarks      String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation("StaffAssignments", fields: [userId], references: [id])
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@map("project_staff")
+}
+
+// ============================================================
+// Project Stock Transfer Models
+// ============================================================
+
+model ProjectTransfer {
+  id            Int                   @id @default(autoincrement())
+  transferNo    String                @unique
+  fromProjectId Int
+  toProjectId   Int
+  transferDate  DateTime              @default(now())
+  status        ProjectTransferStatus @default(DRAFT)
+  requestedById String
+  approvedById  String?
+  remarks       String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  fromProject Project @relation("ProjectTransferFrom", fields: [fromProjectId], references: [id], onDelete: Restrict)
+  toProject   Project @relation("ProjectTransferTo", fields: [toProjectId], references: [id], onDelete: Restrict)
+  requestedBy User    @relation("TransferRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  approvedBy  User?   @relation("TransferApprovedBy", fields: [approvedById], references: [id], onDelete: Restrict)
+
+  items ProjectTransferItem[]
+
+  @@index([fromProjectId])
+  @@index([toProjectId])
+  @@index([status])
+  @@index([transferDate])
+  @@map("project_transfer")
+}
+
+model ProjectTransferItem {
+  id                Int   @id @default(autoincrement())
+  projectTransferId Int
+  inventoryId       Int?
+  stockBatchId      Int?
+  pipeCutPieceId    Int?
+  toolId            Int?
+  qty               Float @default(0)
+  unit              String
+  unitCost          Float @default(0)
+  remarks           String?
+
+  projectTransfer ProjectTransfer @relation(fields: [projectTransferId], references: [id], onDelete: Cascade)
+  inventory       Inventory?      @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+  stockBatch      StockBatch?     @relation(fields: [stockBatchId], references: [id], onDelete: Restrict)
+  pipeCutPiece    PipeCutPiece?   @relation(fields: [pipeCutPieceId], references: [id], onDelete: Restrict)
+  tool            Tool?           @relation(fields: [toolId], references: [id], onDelete: Restrict)
+
+  @@index([projectTransferId])
+  @@index([inventoryId])
+  @@index([stockBatchId])
+  @@index([pipeCutPieceId])
+  @@index([toolId])
+  @@map("project_transfer_item")
+}
+

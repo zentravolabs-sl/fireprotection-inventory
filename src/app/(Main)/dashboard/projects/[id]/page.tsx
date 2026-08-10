@@ -11,6 +11,7 @@ import { getProjectToolAssignments } from "@/lib/repositories/toolAssignmentRepo
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { ProjectDetailsClient } from "./ProjectDetailsClient";
+
 import { getProjectStaff } from "@/lib/repositories/staffRepository";
 
 export const revalidate = 0;
@@ -38,7 +39,7 @@ export default async function ProjectDetailPage(props: PageProps) {
     notFound();
   }
 
-  const [timeline, inventoryItems, allUsers, toolAssignments, projectLabours, projectStaff] = await Promise.all([
+  const [timeline, inventoryItems, allUsers, toolAssignments, projectLabours, projectStaff, projectTransfers, allProjects] = await Promise.all([
     getProjectTimelineService(projectId),
     prisma.inventory.findMany({
       select: {
@@ -73,6 +74,29 @@ export default async function ProjectDetailPage(props: PageProps) {
       orderBy: { createdAt: "asc" },
     }),
     getProjectStaff(projectId),
+    prisma.projectTransfer.findMany({
+      where: {
+        OR: [{ fromProjectId: projectId }, { toProjectId: projectId }],
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        fromProject: { select: { id: true, projectCode: true, projectName: true } },
+        toProject: { select: { id: true, projectCode: true, projectName: true } },
+        requestedBy: { select: { id: true, name: true } },
+        approvedBy: { select: { id: true, name: true } },
+        items: {
+          include: {
+            inventory: { select: { id: true, itemCode: true, name: true, unit: true } },
+            pipeCutPiece: { select: { id: true, pieceLength: true, unit: true } },
+            tool: { select: { id: true, toolCode: true, name: true } },
+          },
+        },
+      },
+    }),
+    prisma.project.findMany({
+      select: { id: true, projectCode: true, projectName: true },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
   // Labours that are available for assignment to this project:
@@ -110,6 +134,8 @@ export default async function ProjectDetailPage(props: PageProps) {
       projectLabours={(projectLabours || []) as any}
       availableLabours={(availableLabours || []) as any}
       projectStaff={(projectStaff || []) as any}
+      projectTransfers={(projectTransfers || []) as any}
+      allProjects={allProjects || []}
       currentUserRole={currentUserRole}
     />
   );
