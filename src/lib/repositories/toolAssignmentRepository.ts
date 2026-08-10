@@ -274,8 +274,8 @@ export async function returnToolItem(
         status: allReturned
           ? "RETURNED"
           : someReturned
-          ? "PARTIALLY_RETURNED"
-          : "ACTIVE",
+            ? "PARTIALLY_RETURNED"
+            : "ACTIVE",
       },
     });
 

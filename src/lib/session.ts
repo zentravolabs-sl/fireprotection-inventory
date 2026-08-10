@@ -18,10 +18,15 @@ import type { UserRole } from "@/types/auth";
  * Wrapped in React `cache()` to deduplicate per request.
  */
 export const getSession = cache(async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  return session ?? null;
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    return session ?? null;
+  } catch (error) {
+    console.error("Failed to retrieve auth session:", error);
+    return null;
+  }
 });
 
 /**
