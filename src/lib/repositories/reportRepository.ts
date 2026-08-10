@@ -13,6 +13,7 @@ export async function getProjectCostSummaryReport() {
       projectManager: true,
       engineers: { include: { engineer: true } },
       expenses: true,
+      projectLabours: { include: { overtimes: true } },
     },
     orderBy: { createdAt: "desc" },
   });

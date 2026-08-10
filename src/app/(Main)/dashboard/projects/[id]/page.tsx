@@ -9,7 +9,9 @@ import { findProjectById } from "@/lib/repositories/projectRepository";
 import { getProjectTimelineService } from "@/lib/services/projectService";
 import { getProjectToolAssignments } from "@/lib/repositories/toolAssignmentRepository";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import { ProjectDetailsClient } from "./ProjectDetailsClient";
+import { getProjectStaff } from "@/lib/repositories/staffRepository";
 
 export const revalidate = 0;
 
@@ -27,13 +29,16 @@ export default async function ProjectDetailPage(props: PageProps) {
     notFound();
   }
 
+  const session = await getSession();
+  const currentUserRole = (session?.user as any)?.role ?? "USER";
+
   const project = await findProjectById(projectId);
 
   if (!project) {
     notFound();
   }
 
-  const [timeline, inventoryItems, allUsers, toolAssignments] = await Promise.all([
+  const [timeline, inventoryItems, allUsers, toolAssignments, projectLabours, projectStaff] = await Promise.all([
     getProjectTimelineService(projectId),
     prisma.inventory.findMany({
       select: {
@@ -49,27 +54,63 @@ export default async function ProjectDetailPage(props: PageProps) {
     }),
     prisma.user.findMany({
       where: { isActive: true },
-      select: { id: true, name: true, role: true, email: true },
+      select: { id: true, name: true, role: true, email: true, isActive: true },
       orderBy: { name: "asc" },
     }),
     getProjectToolAssignments(projectId),
+    prisma.projectLabour.findMany({
+      where: { projectId },
+      include: {
+        labour: {
+          include: { labourType: { select: { id: true, name: true } } },
+        },
+        assignedByUser: { select: { id: true, name: true } },
+        overtimes: {
+          include: { createdByUser: { select: { id: true, name: true } } },
+          orderBy: { otDate: "desc" },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    getProjectStaff(projectId),
   ]);
 
-  const formattedInventory = inventoryItems.map((item) => ({
+  // Labours that are available for assignment to this project:
+  // active AND not currently ACTIVE on any project
+  const assignedActiveLabourIds = await prisma.projectLabour.findMany({
+    where: { releaseStatus: "ACTIVE" },
+    select: { labourId: true },
+  });
+  const busyIds = assignedActiveLabourIds.map((r) => r.labourId);
+
+  const availableLabours = await prisma.labour.findMany({
+    where: {
+      isActive: true,
+      id: { notIn: busyIds.length > 0 ? busyIds : [-1] },
+    },
+    include: { labourType: { select: { id: true, name: true } } },
+    orderBy: { name: "asc" },
+  });
+
+  const formattedInventory = (inventoryItems || []).map((item: any) => ({
     id: item.id,
     itemCode: item.itemCode,
     name: item.name,
     unit: item.unit,
-    availableStock: item.stockBatches.reduce((sum, b) => sum + b.availableQty, 0),
+    availableStock: (item.stockBatches || []).reduce((sum: number, b: any) => sum + (b.availableQty || 0), 0),
   }));
 
   return (
     <ProjectDetailsClient
       project={project as any}
-      timeline={timeline}
+      timeline={timeline || []}
       inventoryItems={formattedInventory}
-      users={allUsers}
-      toolAssignments={toolAssignments as any}
+      users={allUsers || []}
+      toolAssignments={(toolAssignments || []) as any}
+      projectLabours={(projectLabours || []) as any}
+      availableLabours={(availableLabours || []) as any}
+      projectStaff={(projectStaff || []) as any}
+      currentUserRole={currentUserRole}
     />
   );
 }

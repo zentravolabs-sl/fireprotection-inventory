@@ -112,6 +112,8 @@ export interface ProjectCostBreakdown {
 
   actualMaterialCost: number;
   actualLabourCost: number;
+  actualStaffCost?: number;
+  actualStaffOTCost?: number;
   actualTransportCost: number;
   actualEquipmentCost: number;
   actualOtherCost: number;
@@ -294,16 +296,16 @@ export interface ProjectTimelineEvent {
   title: string;
   description: string;
   type:
-    | "CREATED"
-    | "ASSIGNMENT"
-    | "REQUEST"
-    | "APPROVED"
-    | "ISSUED"
-    | "RETURNED"
-    | "TRANSPORT"
-    | "EXPENSE"
-    | "COMPLETED"
-    | "STATUS";
+  | "CREATED"
+  | "ASSIGNMENT"
+  | "REQUEST"
+  | "APPROVED"
+  | "ISSUED"
+  | "RETURNED"
+  | "TRANSPORT"
+  | "EXPENSE"
+  | "COMPLETED"
+  | "STATUS";
   user?: string;
   statusBadge?: string;
 }

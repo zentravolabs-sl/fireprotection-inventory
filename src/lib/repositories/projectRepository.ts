@@ -97,12 +97,17 @@ export async function findProjectById(id: number) {
           },
         },
       },
+      projectLabours: {
+        include: {
+          overtimes: true,
+        },
+      },
     },
   });
 
   if (!project) return null;
 
-  // Calculate actual costs strictly from ProjectExpense ledger
+  // Calculate actual costs strictly from ProjectExpense ledger + Labour module (Labour + OT)
   const costBreakdown = calculateProjectCostBreakdown(project);
 
   return {
@@ -119,9 +124,17 @@ export function calculateProjectCostBreakdown(project: any): ProjectCostBreakdow
     .filter((e: any) => e.expenseType === "MATERIAL")
     .reduce((sum: number, e: any) => sum + e.amount, 0);
 
-  const actualLabourCost = expenses
+  const actualLabourCostFromExpenses = expenses
     .filter((e: any) => e.expenseType === "LABOUR")
     .reduce((sum: number, e: any) => sum + e.amount, 0);
+
+  const labourModuleCost = (project.projectLabours || []).reduce((sum: number, pl: any) => {
+    const cost = pl.labourCost || 0;
+    const otTotal = (pl.overtimes || []).reduce((otSum: number, ot: any) => otSum + (ot.otAmount || 0), 0);
+    return sum + cost + otTotal;
+  }, 0);
+
+  const actualLabourCost = actualLabourCostFromExpenses + labourModuleCost;
 
   const actualTransportCost = expenses
     .filter((e: any) => e.expenseType === "TRANSPORT")
@@ -253,6 +266,12 @@ export async function findProjects(params: {
         },
         expenses: {
           select: { amount: true, expenseType: true },
+        },
+        projectLabours: {
+          select: {
+            labourCost: true,
+            overtimes: { select: { otAmount: true } },
+          },
         },
         _count: {
           select: {

@@ -100,15 +100,15 @@ export function AssignedToolsTab({
   const [returnTarget, setReturnTarget] = useState<AssignedToolItem | null>(null);
 
   // Flatten items for stats
-  const allItems = toolAssignments.flatMap((a) => a.items);
+  const allItems = (toolAssignments || []).flatMap((a) => a?.items || []);
   const totalAssigned = allItems.length;
   const currentlyInUse = allItems.filter((i) => i.returnedAt === null).length;
   const returned = allItems.filter((i) => i.returnedAt !== null && i.returnCondition !== "Damaged" && i.returnCondition !== null).length;
   const underRepair = allItems.filter(
     (i) => i.returnedAt !== null && i.returnCondition === "Damaged"
   ).length;
-  const lost = toolAssignments.reduce(
-    (acc, a) => acc + a.items.filter((i) => i.tool.status === "Lost" && i.returnedAt !== null).length,
+  const lost = (toolAssignments || []).reduce(
+    (acc, a) => acc + (a?.items || []).filter((i) => i?.tool?.status === "Lost" && i?.returnedAt !== null).length,
     0
   );
 

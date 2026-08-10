@@ -732,7 +732,7 @@ export async function getProjectTimelineService(projectId: number): Promise<Proj
     id: `create-${project.id}`,
     timestamp: project.createdAt,
     title: "Project Created",
-    description: `Project ${project.projectCode} (${project.projectName}) created for customer "${project.customer.companyName}".`,
+    description: `Project ${project.projectCode} (${project.projectName}) created for customer "${project.customer?.companyName || "N/A"}".`,
     type: "CREATED",
     user: project.projectManager?.name,
     statusBadge: project.status,
@@ -787,7 +787,7 @@ export async function getProjectTimelineService(projectId: number): Promise<Proj
         id: `req-${req.id}`,
         timestamp: req.createdAt,
         title: `Material Request Submitted (${req.requestNo})`,
-        description: `${req.items.length} item(s) requested by ${req.engineer?.name || "Engineer"}.`,
+        description: `${req.items?.length || 0} item(s) requested by ${req.engineer?.name || "Engineer"}.`,
         type: "REQUEST",
         user: req.engineer?.name,
         statusBadge: req.status,
@@ -796,7 +796,7 @@ export async function getProjectTimelineService(projectId: number): Promise<Proj
       if (req.status === "APPROVED" || req.status === "ISSUED" || req.status === "PARTIAL") {
         events.push({
           id: `app-${req.id}`,
-          timestamp: req.updatedAt,
+          timestamp: req.updatedAt || req.createdAt,
           title: `Material Request Approved (${req.requestNo})`,
           description: `Approved by Project Manager. Remarks: ${req.remarks || "None"}`,
           type: "APPROVED",
@@ -808,7 +808,7 @@ export async function getProjectTimelineService(projectId: number): Promise<Proj
   // Issued Materials
   const issues = await findMaterialIssuesByProject(projectId);
   for (const issue of issues) {
-    const totalItems = issue.items.reduce((sum, i) => sum + i.qty, 0);
+    const totalItems = (issue.items || []).reduce((sum, i) => sum + (i.qty || 0), 0);
     events.push({
       id: `iss-${issue.id}`,
       timestamp: issue.issueDate,
@@ -822,7 +822,7 @@ export async function getProjectTimelineService(projectId: number): Promise<Proj
   // Material Returns
   if (project.materialReturns) {
     for (const ret of project.materialReturns) {
-      const totalReturned = ret.items.reduce((sum, i) => sum + i.qtyReturned, 0);
+      const totalReturned = (ret.items || []).reduce((sum, i) => sum + (i.qtyReturned || 0), 0);
       events.push({
         id: `ret-${ret.id}`,
         timestamp: ret.returnedDate,
@@ -847,7 +847,11 @@ export async function getProjectTimelineService(projectId: number): Promise<Proj
   }
 
   // Sort chronological
-  events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  events.sort((a, b) => {
+    const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return timeB - timeA;
+  });
 
   return events;
 }

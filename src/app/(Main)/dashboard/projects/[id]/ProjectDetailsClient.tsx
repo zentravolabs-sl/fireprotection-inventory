@@ -19,6 +19,8 @@ import { LogTransportModal } from "@/components/projects/LogTransportModal";
 import { AssignedToolsTab } from "@/components/tools/AssignedToolsTab";
 import { AddExpenseModal } from "@/components/projects/AddExpenseModal";
 import { UpdateProjectCostsModal } from "@/components/projects/UpdateProjectCostsModal";
+import { ProjectLabourTab } from "@/components/labour/ProjectLabourTab";
+import { ProjectStaffTab } from "@/components/staff";
 import {
   completeProjectAction,
   updateProjectStatusAction,
@@ -43,8 +45,13 @@ interface ProjectDetailsClientProps {
     name: string;
     role: string;
     email: string;
+    isActive: boolean;
   }[];
   toolAssignments: any[];
+  projectLabours: any[];
+  availableLabours: any[];
+  projectStaff: any[];
+  currentUserRole?: string;
 }
 
 export function ProjectDetailsClient({
@@ -53,10 +60,14 @@ export function ProjectDetailsClient({
   inventoryItems,
   users,
   toolAssignments,
+  projectLabours,
+  availableLabours,
+  projectStaff,
+  currentUserRole = "USER",
 }: ProjectDetailsClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "engineers" | "requests" | "issues" | "transport" | "expenses" | "returns" | "timeline" | "tools"
+    "overview" | "engineers" | "requests" | "issues" | "transport" | "expenses" | "returns" | "timeline" | "tools" | "labour" | "staff"
   >("overview");
 
   // Modals state
@@ -220,11 +231,10 @@ export function ProjectDetailsClient({
 
         {message && (
           <div
-            className={`p-3 rounded-lg text-sm border ${
-              message.type === "success"
+            className={`p-3 rounded-lg text-sm border ${message.type === "success"
                 ? "bg-green-50 text-green-800 border-green-200"
                 : "bg-red-50 text-red-800 border-red-200"
-            }`}
+              }`}
           >
             {message.text}
           </div>
@@ -260,11 +270,10 @@ export function ProjectDetailsClient({
               Est. Profit (%)
             </span>
             <span
-              className={`text-sm font-bold ${
-                costBreakdown.estimatedProfit >= 0 ? "text-emerald-700 dark:text-emerald-300" : "text-red-600"
-              }`}
+              className={`text-sm font-bold ${costBreakdown.estimatedProfit >= 0 ? "text-emerald-700 dark:text-emerald-300" : "text-red-600"
+                }`}
             >
-              {formatCurrency(costBreakdown.estimatedProfit)} ({costBreakdown.estimatedProfitMargin.toFixed(1)}%)
+              {formatCurrency(costBreakdown.estimatedProfit)} ({(costBreakdown.estimatedProfitMargin || 0).toFixed(1)}%)
             </span>
           </div>
 
@@ -273,11 +282,10 @@ export function ProjectDetailsClient({
               Actual Profit (%)
             </span>
             <span
-              className={`text-sm font-bold ${
-                costBreakdown.actualProfit >= 0 ? "text-amber-800 dark:text-amber-200" : "text-red-600"
-              }`}
+              className={`text-sm font-bold ${costBreakdown.actualProfit >= 0 ? "text-amber-800 dark:text-amber-200" : "text-red-600"
+                }`}
             >
-              {formatCurrency(costBreakdown.actualProfit)} ({costBreakdown.actualProfitMargin.toFixed(1)}%)
+              {formatCurrency(costBreakdown.actualProfit)} ({(costBreakdown.actualProfitMargin || 0).toFixed(1)}%)
             </span>
           </div>
 
@@ -304,7 +312,9 @@ export function ProjectDetailsClient({
           [
             { id: "overview", label: "📊 Overview & Budget" },
             { id: "engineers", label: `👥 Engineers (${project.engineers?.length || 0})` },
-            { id: "tools", label: `🔧 Assigned Tools (${toolAssignments.flatMap((a: any) => a.items).length})` },
+            { id: "tools", label: `🔧 Assigned Tools (${(toolAssignments || []).flatMap((a: any) => a?.items || []).length})` },
+            { id: "labour", label: `👷 Labour (${(projectLabours || []).length})` },
+            { id: "staff", label: `👥 Staff (${(projectStaff || []).length})` },
             { id: "requests", label: `📋 Requests (${project.materialRequests?.length || 0})` },
             { id: "issues", label: `📦 Material Issues (${project.projectMaterials?.length || 0})` },
             { id: "transport", label: `🚚 Transport (${project.transports?.length || 0})` },
@@ -316,11 +326,10 @@ export function ProjectDetailsClient({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px ${
-              activeTab === tab.id
+            className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px ${activeTab === tab.id
                 ? "border-red-600 text-red-600 dark:text-red-400"
                 : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-            }`}
+              }`}
           >
             {tab.label}
           </button>
@@ -412,6 +421,12 @@ export function ProjectDetailsClient({
                     <td className="px-4 py-3 text-right">{formatCurrency(costBreakdown.estimatedLabourCost - costBreakdown.actualLabourCost)}</td>
                   </tr>
                   <tr>
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">👥 Project Staff Cost</td>
+                    <td className="px-4 py-3 text-right">{formatCurrency(0)}</td>
+                    <td className="px-4 py-3 text-right text-purple-600 font-semibold">{formatCurrency(costBreakdown.actualStaffCost || 0)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrency(0 - (costBreakdown.actualStaffCost || 0))}</td>
+                  </tr>
+                  <tr>
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">🚚 Transport Cost</td>
                     <td className="px-4 py-3 text-right">{formatCurrency(costBreakdown.estimatedTransportCost)}</td>
                     <td className="px-4 py-3 text-right text-blue-600 font-semibold">{formatCurrency(costBreakdown.actualTransportCost)}</td>
@@ -444,13 +459,13 @@ export function ProjectDetailsClient({
                   <tr className="bg-emerald-50/70 dark:bg-emerald-950/40 font-bold text-emerald-900 dark:text-emerald-100 text-xs">
                     <td className="px-4 py-3">📈 Estimated Profit & Margin %</td>
                     <td className="px-4 py-3 text-right" colSpan={3}>
-                      {formatCurrency(costBreakdown.estimatedProfit)} ({costBreakdown.estimatedProfitMargin.toFixed(2)}%)
+                      {formatCurrency(costBreakdown.estimatedProfit)} ({(costBreakdown.estimatedProfitMargin || 0).toFixed(2)}%)
                     </td>
                   </tr>
                   <tr className="bg-amber-50/70 dark:bg-amber-950/40 font-bold text-amber-900 dark:text-amber-100 text-xs">
                     <td className="px-4 py-3">🏆 Actual Profit & Margin %</td>
                     <td className="px-4 py-3 text-right" colSpan={3}>
-                      {formatCurrency(costBreakdown.actualProfit)} ({costBreakdown.actualProfitMargin.toFixed(2)}%)
+                      {formatCurrency(costBreakdown.actualProfit)} ({(costBreakdown.actualProfitMargin || 0).toFixed(2)}%)
                     </td>
                   </tr>
                 </tbody>
@@ -775,17 +790,16 @@ export function ProjectDetailsClient({
                       <td className="px-4 py-3 font-mono font-bold text-gray-900 dark:text-gray-100">{exp.expenseNo}</td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
-                            exp.expenseType === "MATERIAL"
+                          className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${exp.expenseType === "MATERIAL"
                               ? "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300"
                               : exp.expenseType === "TRANSPORT"
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
-                              : exp.expenseType === "LABOUR"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                              : exp.expenseType === "EQUIPMENT"
-                              ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
-                          }`}
+                                ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                                : exp.expenseType === "LABOUR"
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                  : exp.expenseType === "EQUIPMENT"
+                                    ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
+                                    : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                            }`}
                         >
                           {exp.expenseType}
                         </span>
@@ -851,11 +865,10 @@ export function ProjectDetailsClient({
                           <td className="px-3 py-2 font-semibold text-gray-800 dark:text-gray-200">{item.qtyReturned} {item.inventory.unit}</td>
                           <td className="px-3 py-2">
                             <span
-                              className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
-                                item.condition === "GOOD"
+                              className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${item.condition === "GOOD"
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
-                              }`}
+                                }`}
                             >
                               {item.condition}
                             </span>
@@ -877,6 +890,28 @@ export function ProjectDetailsClient({
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-4">Project Activity Timeline</h3>
           <ProjectTimeline events={timeline} />
         </div>
+      )}
+
+      {/* TAB 9: LABOUR */}
+      {activeTab === "labour" && (
+        <ProjectLabourTab
+          projectId={project.id}
+          projectLabours={projectLabours || []}
+          availableLabours={availableLabours || []}
+          projectStatus={project.status}
+          currentUserRole={currentUserRole}
+        />
+      )}
+
+      {/* TAB 10: STAFF */}
+      {activeTab === "staff" && (
+        <ProjectStaffTab
+          projectId={project.id}
+          projectStaff={projectStaff || []}
+          users={users}
+          projectStatus={project.status}
+          currentUserRole={currentUserRole}
+        />
       )}
 
       {/* MODALS */}

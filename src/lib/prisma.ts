@@ -28,7 +28,7 @@ function createPrismaClient() {
   } as ConstructorParameters<typeof PrismaClient>[0]);
 }
 
-if (globalForPrisma.prisma && !("toolAssignment" in globalForPrisma.prisma)) {
+if (globalForPrisma.prisma && !("projectLabour" in globalForPrisma.prisma)) {
   globalForPrisma.prisma = undefined;
 }
 

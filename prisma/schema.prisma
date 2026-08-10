@@ -105,42 +105,44 @@ enum ToolHistoryAction {
 
 /// Represents an authenticated user account in the system.
 model User {
-  id            String   @id @default(cuid())
+  id            String  @id @default(cuid())
   name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  email         String  @unique
+  emailVerified Boolean @default(false)
   image         String?
   password      String?
-  role          Role     @default(USER)
-  isActive      Boolean  @default(true)
+  role          Role    @default(USER)
+  isActive      Boolean @default(true)
 
   // Employee / profile fields
-  employeeCode  String?  @unique
-  phone         String?
-  designation   String?
-  department    String?
+  employeeCode String? @unique
+  phone        String?
+  designation  String?
+  department   String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  sessions                 Session[]
-  accounts                 Account[]
-  auditLogs                AuditLog[]
-  stockReceives            StockReceive[]      @relation("ReceivedByUser")
-  stockMovements           StockMovement[]     @relation("CreatedByUser")
-  managedProjects          Project[]           @relation("ProjectManager")
-  projectAssignmentsBy     ProjectAssignment[] @relation("AssignedByUser")
-  pmAssignments            ProjectAssignment[] @relation("PMAssignments")
-  assignedEngineers        ProjectEngineer[]   @relation("AssignedEngineers")
-  engineerAssignmentsBy    ProjectEngineer[]   @relation("EngineerAssignedByUser")
-  materialRequests         MaterialRequest[]   @relation("EngineerRequests")
-  issuedMaterialIssues     MaterialIssue[]     @relation("IssuedByUser")
-  processedMaterialReturns MaterialReturn[]    @relation("EngineerReturns")
-  createdProjectExpenses   ProjectExpense[]    @relation("ExpenseCreatedByUser")
-  createdProjectTransports ProjectTransport[]  @relation("TransportCreatedByUser")
-  toolAssignmentsAsEngineer ToolAssignment[]   @relation("AssignedToEngineer")
-  toolHistoriesCreated      ToolHistory[]      @relation("ToolHistoryCreatedBy")
+  sessions                  Session[]
+  accounts                  Account[]
+  auditLogs                 AuditLog[]
+  stockReceives             StockReceive[]      @relation("ReceivedByUser")
+  stockMovements            StockMovement[]     @relation("CreatedByUser")
+  managedProjects           Project[]           @relation("ProjectManager")
+  projectAssignmentsBy      ProjectAssignment[] @relation("AssignedByUser")
+  pmAssignments             ProjectAssignment[] @relation("PMAssignments")
+  assignedEngineers         ProjectEngineer[]   @relation("AssignedEngineers")
+  engineerAssignmentsBy     ProjectEngineer[]   @relation("EngineerAssignedByUser")
+  materialRequests          MaterialRequest[]   @relation("EngineerRequests")
+  issuedMaterialIssues      MaterialIssue[]     @relation("IssuedByUser")
+  processedMaterialReturns  MaterialReturn[]    @relation("EngineerReturns")
+  createdProjectExpenses    ProjectExpense[]    @relation("ExpenseCreatedByUser")
+  createdProjectTransports  ProjectTransport[]  @relation("TransportCreatedByUser")
+  toolAssignmentsAsEngineer ToolAssignment[]    @relation("AssignedToEngineer")
+  toolHistoriesCreated      ToolHistory[]       @relation("ToolHistoryCreatedBy")
+  labourAssignments         ProjectLabour[]     @relation("LabourAssignedByUser")
+  otCreated                 LabourOT[]          @relation("OTCreatedByUser")
 
   @@index([email])
   @@index([role])
@@ -232,10 +234,10 @@ model AuditLog {
 
 /// Top-level product/equipment category (e.g. Pipes, Sprinklers, Valves).
 model Category {
-  id           Int         @id @default(autoincrement())
-  categoryName String      @unique
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id           Int      @id @default(autoincrement())
+  categoryName String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   subCategories SubCategory[]
@@ -293,19 +295,19 @@ model Supplier {
 /// Master item catalogue. Current stock is NEVER stored here.
 /// Compute it as: SUM(StockBatch.availableQty) WHERE inventoryId = this.id
 model Inventory {
-  id            Int      @id @default(autoincrement())
-  itemCode      String   @unique
-  name          String
-  brand         String?
-  unit          String
-  minStock      Float    @default(0)
-  barcode       String?  @unique
-  rackLocation  String?
-  warehouse     String?
-  defaultSellPrice Float @default(0)
-  imageUrl      String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  itemCode         String   @unique
+  name             String
+  brand            String?
+  unit             String
+  minStock         Float    @default(0)
+  barcode          String?  @unique
+  rackLocation     String?
+  warehouse        String?
+  defaultSellPrice Float    @default(0)
+  imageUrl         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Foreign keys
   categoryId    Int
@@ -348,13 +350,13 @@ model StockReceive {
   updatedAt   DateTime           @updatedAt
 
   // Foreign keys
-  supplierId  Int
-  receivedBy  String             // references User.id
+  supplierId Int
+  receivedBy String // references User.id
 
   // Relations
-  supplier    Supplier           @relation(fields: [supplierId], references: [id])
-  receivedByUser User            @relation("ReceivedByUser", fields: [receivedBy], references: [id])
-  items       StockReceiveItem[]
+  supplier       Supplier           @relation(fields: [supplierId], references: [id])
+  receivedByUser User               @relation("ReceivedByUser", fields: [receivedBy], references: [id])
+  items          StockReceiveItem[]
 
   @@index([supplierId])
   @@index([receiveDate])
@@ -392,7 +394,7 @@ model StockReceiveItem {
 /// Represents one received batch — the unit of FIFO consumption.
 /// availableQty decreases as stock is issued; it must never go below 0.
 model StockBatch {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   batchNo      String?
   receivedQty  Float
   availableQty Float
@@ -401,12 +403,12 @@ model StockBatch {
   receiveDate  DateTime
   rackLocation String?
   warehouse    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // Foreign keys
   inventoryId        Int
-  stockReceiveItemId Int @unique     // 1-to-1: one batch per receive line
+  stockReceiveItemId Int @unique // 1-to-1: one batch per receive line
 
   // Relations
   inventory          Inventory           @relation(fields: [inventoryId], references: [id])
@@ -433,19 +435,19 @@ model StockMovement {
   qty           Float
   movementType  MovementType
   referenceType ReferenceType
-  referenceId   Int?          // polymorphic FK: ID of the source document
+  referenceId   Int? // polymorphic FK: ID of the source document
   remarks       String?
   createdAt     DateTime      @default(now())
 
   // Foreign keys
   inventoryId  Int
   stockBatchId Int
-  createdBy    String         // references User.id
+  createdBy    String // references User.id
 
   // Relations
-  inventory  Inventory  @relation(fields: [inventoryId], references: [id])
-  stockBatch StockBatch @relation(fields: [stockBatchId], references: [id])
-  createdByUser User    @relation("CreatedByUser", fields: [createdBy], references: [id])
+  inventory     Inventory  @relation(fields: [inventoryId], references: [id])
+  stockBatch    StockBatch @relation(fields: [stockBatchId], references: [id])
+  createdByUser User       @relation("CreatedByUser", fields: [createdBy], references: [id])
 
   @@index([inventoryId])
   @@index([stockBatchId])
@@ -464,8 +466,8 @@ model StockMovement {
 /// Each piece is traceable back to its original batch (FIFO chain).
 model PipeCutPiece {
   id           Int           @id @default(autoincrement())
-  parentLength Float         // original full pipe length (metres / feet per unit)
-  pieceLength  Float         // remaining cut piece length
+  parentLength Float // original full pipe length (metres / feet per unit)
+  pieceLength  Float // remaining cut piece length
   unit         String
   barcode      String?       @unique
   rackLocation String?
@@ -532,7 +534,7 @@ model Customer {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  projects      Project[]
+  projects Project[]
 
   @@index([companyName])
   @@index([contactPerson])
@@ -585,34 +587,45 @@ enum TransportStatus {
 }
 
 // ============================================================
+// Enums — Labour Management Module
+// ============================================================
+
+/// Lifecycle state of a labour assignment to a project.
+enum LabourReleaseStatus {
+  ACTIVE
+  RELEASED
+  ON_LEAVE
+}
+
+// ============================================================
 // Project Management Models
 // ============================================================
 
 model Project {
-  id                      Int           @id @default(autoincrement())
-  projectCode             String        @unique
-  projectName             String
-  customerId              Int
-  projectManagerId        String
-  location                String?
-  startDate               DateTime?
-  endDate                 DateTime?
-  status                  ProjectStatus @default(PENDING)
-  description             String?
+  id               Int           @id @default(autoincrement())
+  projectCode      String        @unique
+  projectName      String
+  customerId       Int
+  projectManagerId String
+  location         String?
+  startDate        DateTime?
+  endDate          DateTime?
+  status           ProjectStatus @default(PENDING)
+  description      String?
 
   // Project Value (Contract Value / Customer Price)
-  projectValue            Float         @default(0)
+  projectValue Float @default(0)
 
   // Estimated Costs
-  estimatedMaterialCost   Float         @default(0)
-  estimatedLabourCost     Float         @default(0)
-  estimatedTransportCost  Float         @default(0)
-  estimatedEquipmentCost  Float         @default(0)
-  estimatedOtherCost      Float         @default(0)
-  estimatedTotalCost      Float         @default(0)
+  estimatedMaterialCost  Float @default(0)
+  estimatedLabourCost    Float @default(0)
+  estimatedTransportCost Float @default(0)
+  estimatedEquipmentCost Float @default(0)
+  estimatedOtherCost     Float @default(0)
+  estimatedTotalCost     Float @default(0)
 
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   customer         Customer            @relation(fields: [customerId], references: [id])
   projectManager   User                @relation("ProjectManager", fields: [projectManagerId], references: [id])
@@ -625,6 +638,7 @@ model Project {
   expenses         ProjectExpense[]
   toolAssignments  ToolAssignment[]
   toolHistories    ToolHistory[]
+  projectLabours   ProjectLabour[]
 
   @@index([projectCode])
   @@index([customerId])
@@ -896,7 +910,7 @@ model ToolAssignment {
 
 /// One tool within a tool assignment batch.
 model ToolAssignmentItem {
-  id               Int       @id @default(autoincrement())
+  id               Int            @id @default(autoincrement())
   toolAssignmentId Int
   toolId           Int
   conditionAtIssue ToolCondition
@@ -915,19 +929,19 @@ model ToolAssignmentItem {
 
 /// Immutable audit log for every tool lifecycle event.
 model ToolHistory {
-  id        Int               @id @default(autoincrement())
-  toolId    Int
-  projectId Int?
+  id         Int               @id @default(autoincrement())
+  toolId     Int
+  projectId  Int?
   engineerId String?
-  action    ToolHistoryAction
-  remarks   String?
-  createdBy String
-  createdAt DateTime          @default(now())
+  action     ToolHistoryAction
+  remarks    String?
+  createdBy  String
+  createdAt  DateTime          @default(now())
 
   // Relations
-  tool      Tool    @relation(fields: [toolId], references: [id])
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  createdByUser User @relation("ToolHistoryCreatedBy", fields: [createdBy], references: [id])
+  tool          Tool     @relation(fields: [toolId], references: [id])
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdByUser User     @relation("ToolHistoryCreatedBy", fields: [createdBy], references: [id])
 
   @@index([toolId])
   @@index([projectId])
@@ -935,4 +949,98 @@ model ToolHistory {
   @@index([action])
   @@index([createdAt])
   @@map("tool_history")
+}
+
+// ============================================================
+// Labour Management Models
+// ============================================================
+
+/// Master table of labour categories / trade types.
+/// Soft-deletable — never hard-deleted if referenced by Labour records.
+model LabourType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  labours Labour[]
+
+  @@index([name])
+  @@index([isActive])
+  @@map("labour_type")
+}
+
+/// Physical worker master record.
+/// monthlySalary is reference/master info only — project cost is set per-assignment.
+model Labour {
+  id            Int      @id @default(autoincrement())
+  labourCode    String   @unique
+  name          String
+  labourTypeId  Int
+  nic           String?  @unique
+  phone         String?
+  monthlySalary Float    @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  labourType     LabourType      @relation(fields: [labourTypeId], references: [id])
+  projectLabours ProjectLabour[]
+
+  @@index([labourCode])
+  @@index([labourTypeId])
+  @@index([isActive])
+  @@map("labour")
+}
+
+/// Junction table — a labour assigned to a specific project.
+/// A labour must be RELEASED before being assigned to another project.
+/// History is NEVER deleted — status changes only.
+model ProjectLabour {
+  id            Int                 @id @default(autoincrement())
+  projectId     Int
+  labourId      Int
+  labourCost    Float               @default(0) // manually entered total project cost for this labour
+  startDate     DateTime?
+  endDate       DateTime?
+  releaseStatus LabourReleaseStatus @default(ACTIVE)
+  releasedAt    DateTime?
+  remarks       String?
+  assignedBy    String // references User.id
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  project        Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  labour         Labour     @relation(fields: [labourId], references: [id])
+  assignedByUser User       @relation("LabourAssignedByUser", fields: [assignedBy], references: [id])
+  overtimes      LabourOT[]
+
+  @@index([projectId, labourId])
+  @@index([projectId])
+  @@index([labourId])
+  @@index([releaseStatus])
+  @@map("project_labour")
+}
+
+/// Overtime records per project-labour assignment.
+model LabourOT {
+  id              Int      @id @default(autoincrement())
+  projectLabourId Int
+  otDate          DateTime
+  otHours         Float
+  otRatePerHour   Float
+  otAmount        Float // server-computed: otHours × otRatePerHour
+  remarks         String?
+  createdBy       String // references User.id
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  projectLabour ProjectLabour @relation(fields: [projectLabourId], references: [id], onDelete: Cascade)
+  createdByUser User          @relation("OTCreatedByUser", fields: [createdBy], references: [id])
+
+  @@index([projectLabourId])
+  @@index([otDate])
+  @@map("labour_ot")
 }
