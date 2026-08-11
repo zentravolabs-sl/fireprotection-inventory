@@ -162,7 +162,7 @@ async function validateSourceStock(
 ) {
   for (const item of items) {
     if (item.inventoryId) {
-      // Material validation
+      // Material validation with expiry check
       const projectMaterials = await tx.projectMaterial.findMany({
         where: {
           projectId: fromProjectId,
@@ -172,8 +172,26 @@ async function validateSourceStock(
             : {}),
           balanceQty: { gt: 0 },
         },
-        include: { inventory: { select: { name: true, unit: true } } },
+        include: {
+          inventory: { select: { name: true, unit: true } },
+          materialIssueItem: {
+            include: { stockBatch: true },
+          },
+        },
       });
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Reject if underlying stock batch is expired
+      for (const pm of projectMaterials) {
+        const batch = pm.materialIssueItem?.stockBatch;
+        if (batch?.expiryDate && new Date(batch.expiryDate) < today) {
+          throw new Error(
+            `This stock batch (${batch.batchNo || `#${batch.id}`}) has expired and cannot be issued or transferred.`
+          );
+        }
+      }
 
       const totalAvailable = projectMaterials.reduce(
         (sum: number, pm: any) => sum + pm.balanceQty,

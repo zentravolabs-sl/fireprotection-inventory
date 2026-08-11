@@ -37,6 +37,7 @@ type ItemRow = {
   qty: number;
   unitCost: number;
   batchNo: string;
+  manufactureDate: string;
   expiryDate: string;
 };
 
@@ -66,6 +67,7 @@ export default function StockReceiveForm({
       qty: i.qty,
       unitCost: i.unitCost,
       batchNo: i.batchNo ?? "",
+      manufactureDate: i.manufactureDate ? new Date(i.manufactureDate).toISOString().slice(0, 10) : "",
       expiryDate: i.expiryDate ? new Date(i.expiryDate).toISOString().slice(0, 10) : "",
     })) ?? [
       {
@@ -73,6 +75,7 @@ export default function StockReceiveForm({
         qty: 1,
         unitCost: 0,
         batchNo: "",
+        manufactureDate: "",
         expiryDate: "",
       },
     ]
@@ -89,6 +92,7 @@ export default function StockReceiveForm({
         qty: 1,
         unitCost: 0,
         batchNo: "",
+        manufactureDate: "",
         expiryDate: "",
       },
     ]);
@@ -148,6 +152,7 @@ export default function StockReceiveForm({
         qty: Number(i.qty),
         unitCost: Number(i.unitCost),
         batchNo: i.batchNo,
+        manufactureDate: i.manufactureDate || null,
         expiryDate: i.expiryDate || null,
       })),
     };
@@ -328,6 +333,7 @@ export default function StockReceiveForm({
                 <th className="py-2.5 px-3 w-28 text-right">Qty *</th>
                 <th className="py-2.5 px-3 w-32 text-right">Unit Cost ($)</th>
                 <th className="py-2.5 px-3 w-36">Batch No</th>
+                <th className="py-2.5 px-3 w-36">Mfg Date</th>
                 <th className="py-2.5 px-3 w-36">Expiry Date</th>
                 <th className="py-2.5 px-3 w-28 text-right">Subtotal ($)</th>
                 <th className="py-2.5 px-3 w-12 text-center"></th>
@@ -383,6 +389,15 @@ export default function StockReceiveForm({
                         value={row.batchNo}
                         onChange={(e) => updateItemRow(idx, "batchNo", e.target.value)}
                         className="w-full px-3 py-1.5 text-xs bg-[#080c12] border border-[#1e2a3d] rounded-xl text-[#dce3ef] font-mono outline-none focus:border-[#e02424]"
+                      />
+                    </td>
+
+                    <td className="py-3 px-3">
+                      <input
+                        type="date"
+                        value={row.manufactureDate}
+                        onChange={(e) => updateItemRow(idx, "manufactureDate", e.target.value)}
+                        className="w-full px-3 py-1.5 text-xs bg-[#080c12] border border-[#1e2a3d] rounded-xl text-[#dce3ef] outline-none focus:border-[#e02424]"
                       />
                     </td>
 

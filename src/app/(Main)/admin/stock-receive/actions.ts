@@ -28,6 +28,7 @@ export type StockReceiveItem = {
   qty: number;
   unitCost: number;
   batchNo: string | null;
+  manufactureDate: Date | null;
   expiryDate: Date | null;
   inventory: {
     id: number;
@@ -93,6 +94,7 @@ const receiveSelect = {
       qty: true,
       unitCost: true,
       batchNo: true,
+      manufactureDate: true,
       expiryDate: true,
       inventory: {
         select: { id: true, itemCode: true, name: true, unit: true },
@@ -187,6 +189,7 @@ export async function createStockReceive(
             qty: item.qty,
             unitCost: item.unitCost,
             batchNo: item.batchNo ?? null,
+            manufactureDate: item.manufactureDate ? new Date(item.manufactureDate) : null,
             expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
           })),
         },
@@ -240,6 +243,7 @@ export async function updateStockReceive(
               qty: item.qty,
               unitCost: item.unitCost,
               batchNo: item.batchNo ?? null,
+              manufactureDate: item.manufactureDate ? new Date(item.manufactureDate) : null,
               expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
             })),
           },
@@ -276,6 +280,7 @@ export async function confirmStockReceive(id: number): Promise<ActionState> {
           qty: true,
           unitCost: true,
           batchNo: true,
+          manufactureDate: true,
           expiryDate: true,
           inventory: { select: { rackLocation: true, warehouse: true } },
         },
@@ -307,6 +312,7 @@ export async function confirmStockReceive(id: number): Promise<ActionState> {
             receivedQty: item.qty,
             availableQty: item.qty,
             unitCost: item.unitCost,
+            manufactureDate: item.manufactureDate,
             expiryDate: item.expiryDate,
             receiveDate: receive.receiveDate,
             rackLocation: item.inventory.rackLocation,

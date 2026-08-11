@@ -5,7 +5,7 @@
 
 import { requireRole } from "@/lib/session";
 import Link from "next/link";
-import { ArrowLeft, Users, ShieldCheck, Tag, Layers, Building2, Package, Wrench } from "lucide-react";
+import { ArrowLeft, Users, ShieldCheck, Tag, Layers, Building2, Package, Wrench, Clock } from "lucide-react";
 
 export const metadata = {
   title: "Admin Panel — CDN Fire Engineering",
@@ -69,6 +69,15 @@ export default async function AdminPage() {
       color: "text-cyan-600",
       bg: "bg-cyan-50",
       border: "hover:border-cyan-200",
+    },
+    {
+      href: "/inventory/expiry",
+      icon: Clock,
+      label: "Expiry Management",
+      description: "Track stock batch expiry, FEFO allocation rules, alert windows, and valuation.",
+      color: "text-amber-400",
+      bg: "bg-amber-500/10",
+      border: "hover:border-amber-500/40",
     },
   ];
 

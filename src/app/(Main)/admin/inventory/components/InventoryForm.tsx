@@ -58,6 +58,7 @@ export default function InventoryForm({
       warehouse: initialData?.warehouse ?? "Main Warehouse",
       defaultSellPrice: initialData?.defaultSellPrice ?? 0,
       imageUrl: initialData?.imageUrl ?? "",
+      expiryControlled: initialData?.expiryControlled ?? false,
     },
   });
 
@@ -316,6 +317,25 @@ export default function InventoryForm({
             className={inputClass(!!errors.imageUrl)}
           />
           {errors.imageUrl && <p className="mt-1 text-xs text-red-600 font-medium">{errors.imageUrl.message}</p>}
+        </div>
+      </div>
+
+      {/* Expiry Controlled Settings */}
+      <div className="p-3.5 bg-amber-50/70 border border-amber-200/70 rounded-xl flex items-start gap-3">
+        <input
+          id="expiryControlled"
+          type="checkbox"
+          {...register("expiryControlled")}
+          disabled={isSubmitting}
+          className="mt-0.5 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer"
+        />
+        <div>
+          <label htmlFor="expiryControlled" className="text-xs font-bold text-gray-900 cursor-pointer block">
+            Expiry Controlled Item
+          </label>
+          <p className="text-[11px] text-gray-600 leading-tight">
+            Enable batch-level expiry date tracking & FEFO (First Expiry, First Out) issuing rule (e.g. Sealant, Battery, Chemical Extinguisher).
+          </p>
         </div>
       </div>
 

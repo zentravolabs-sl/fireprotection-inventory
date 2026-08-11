@@ -5,9 +5,10 @@
 
 import { requireSession } from "@/lib/session";
 import Link from "next/link";
-import { LogOut, Settings, ShieldCheck, Shield, User, Wrench, AlertTriangle } from "lucide-react";
+import { LogOut, Settings, ShieldCheck, Shield, User, Wrench, AlertTriangle, Clock } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { getToolDashboardStats } from "@/lib/repositories/toolAssignmentRepository";
+import { getExpiryDashboardData } from "@/lib/services/expiryService";
 
 export const revalidate = 0;
 
@@ -17,7 +18,10 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const session = await requireSession();
-  const toolStats = await getToolDashboardStats();
+  const [toolStats, expiryData] = await Promise.all([
+    getToolDashboardStats(),
+    getExpiryDashboardData(),
+  ]);
   const user = session.user as {
     name: string;
     email: string;
@@ -157,6 +161,56 @@ export default async function DashboardPage() {
             >
               → Manage Tools
             </Link>
+          </div>
+        </div>
+
+        {/* Expiry Status Overview */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-[#dce3ef] flex items-center gap-2">
+              <Clock size={18} className="text-amber-400" />
+              Stock Expiry Overview
+            </h2>
+            <Link
+              href="/inventory/expiry"
+              className="text-sm text-[#e02424] hover:underline font-semibold"
+            >
+              View Expiry Dashboard →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="rounded-2xl border border-red-800/30 bg-red-900/10 p-5">
+              <p className="text-xs font-semibold text-red-400 uppercase tracking-wider">Expired Stock Value</p>
+              <p className="text-xl sm:text-2xl font-black text-red-400 mt-1">
+                LKR {(expiryData?.expiredStockValue || 0).toLocaleString()}
+              </p>
+              <p className="text-xs text-[#5a657a] mt-1">{expiryData?.expiredBatchesCount || 0} batches expired</p>
+            </div>
+
+            <div className="rounded-2xl border border-amber-800/30 bg-amber-900/10 p-5">
+              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Expiring $\le$ 7 Days</p>
+              <p className="text-xl sm:text-2xl font-black text-amber-400 mt-1">
+                LKR {(expiryData?.expiring7DaysValue || 0).toLocaleString()}
+              </p>
+              <p className="text-xs text-[#5a657a] mt-1">{expiryData?.expiring7DaysCount || 0} batches expiring soon</p>
+            </div>
+
+            <div className="rounded-2xl border border-amber-800/30 bg-amber-900/10 p-5">
+              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Expiring $\le$ 30 Days</p>
+              <p className="text-xl sm:text-2xl font-black text-amber-400 mt-1">
+                LKR {(expiryData?.expiring30DaysValue || 0).toLocaleString()}
+              </p>
+              <p className="text-xs text-[#5a657a] mt-1">{expiryData?.expiring30DaysCount || 0} batches warning</p>
+            </div>
+
+            <div className="rounded-2xl border border-[#1e2a3d] bg-[#0F1524] p-5">
+              <p className="text-xs font-semibold text-[#5a657a] uppercase tracking-wider">Expiry-Controlled Items</p>
+              <p className="text-xl sm:text-2xl font-black text-[#dce3ef] mt-1">
+                {expiryData?.totalExpiryControlledItems || 0}
+              </p>
+              <p className="text-xs text-[#5a657a] mt-1">Items requiring FEFO</p>
+            </div>
           </div>
         </div>
 

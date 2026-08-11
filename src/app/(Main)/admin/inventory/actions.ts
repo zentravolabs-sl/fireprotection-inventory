@@ -26,6 +26,7 @@ export type InventoryRow = {
   rackLocation: string | null;
   warehouse: string | null;
   defaultSellPrice: number;
+  expiryControlled: boolean;
   imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -69,6 +70,7 @@ const inventorySelect = {
   rackLocation: true,
   warehouse: true,
   defaultSellPrice: true,
+  expiryControlled: true,
   imageUrl: true,
   createdAt: true,
   updatedAt: true,
@@ -202,6 +204,7 @@ export async function createInventory(
         rackLocation: data.rackLocation ?? null,
         warehouse: data.warehouse ?? null,
         defaultSellPrice: data.defaultSellPrice,
+        expiryControlled: data.expiryControlled ?? false,
         imageUrl: data.imageUrl ?? null,
       },
       select: {
@@ -262,6 +265,7 @@ export async function updateInventory(
         rackLocation: data.rackLocation ?? null,
         warehouse: data.warehouse ?? null,
         defaultSellPrice: data.defaultSellPrice,
+        expiryControlled: data.expiryControlled ?? false,
         imageUrl: data.imageUrl ?? null,
       },
       select: {

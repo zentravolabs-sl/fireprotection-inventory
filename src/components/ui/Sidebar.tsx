@@ -196,7 +196,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Stock Batches",     href: "/admin/stock-batch",      icon: Icons.projectStock },
       { label: "Stock Movements",   href: "/admin/stock-movement",   icon: Icons.reports },
       { label: "Pipe & Cut Pieces", href: "/admin/pipe-cut-pieces",  icon: Icons.pipe },
-      { label: "Expiry Management", href: "/dashboard/expiry-management",icon: Icons.expiry,           badge: 2 },
+      { label: "Expiry Management", href: "/inventory/expiry", icon: Icons.expiry },
     ],
   },
   {

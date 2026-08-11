@@ -362,19 +362,30 @@ export async function issueMaterialsFIFOService(input: IssueMaterialsFIFOInput, 
       requestItemId: number;
     }[] = [];
 
-    // FIFO Allocation process
+    // FEFO / FIFO Allocation process
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     for (const reqItem of request.items) {
       const pendingQtyToIssue = reqItem.qtyApproved - reqItem.qtyIssued;
 
       if (pendingQtyToIssue <= 0) continue;
 
-      // Find available batches ordered by receiveDate ASC, id ASC (FIFO!)
+      const isExpiryControlled = reqItem.inventory.expiryControlled ?? false;
+
+      // Find available NON-EXPIRED batches. Expired stock (expiryDate < today) is strictly BLOCKED.
       const batches = await tx.stockBatch.findMany({
         where: {
           inventoryId: reqItem.inventoryId,
           availableQty: { gt: 0 },
+          OR: [
+            { expiryDate: null },
+            { expiryDate: { gte: today } },
+          ],
         },
-        orderBy: [{ receiveDate: "asc" }, { id: "asc" }],
+        orderBy: isExpiryControlled
+          ? [{ expiryDate: "asc" }, { receiveDate: "asc" }, { id: "asc" }]
+          : [{ receiveDate: "asc" }, { id: "asc" }],
       });
 
       let remainingToAllocate = pendingQtyToIssue;
@@ -405,8 +416,9 @@ export async function issueMaterialsFIFOService(input: IssueMaterialsFIFOInput, 
 
       if (remainingToAllocate > 0) {
         const allocated = pendingQtyToIssue - remainingToAllocate;
+        const modeLabel = isExpiryControlled ? "FEFO" : "FIFO";
         throw new Error(
-          `Insufficient warehouse stock to complete FIFO issue for item "${reqItem.inventory.name}". Needed: ${pendingQtyToIssue}, Available: ${allocated}.`
+          `Insufficient non-expired warehouse stock to complete ${modeLabel} issue for item "${reqItem.inventory.name}". Needed: ${pendingQtyToIssue}, Available valid: ${allocated}.`
         );
       }
     }

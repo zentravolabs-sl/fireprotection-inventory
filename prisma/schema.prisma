@@ -309,6 +309,7 @@ model Inventory {
   rackLocation     String?
   warehouse        String?
   defaultSellPrice Float    @default(0)
+  expiryControlled Boolean  @default(false)
   imageUrl         String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -374,9 +375,10 @@ model StockReceive {
 model StockReceiveItem {
   id         Int       @id @default(autoincrement())
   qty        Float
-  unitCost   Float
-  batchNo    String?
-  expiryDate DateTime?
+  unitCost        Float
+  batchNo         String?
+  manufactureDate DateTime?
+  expiryDate      DateTime?
 
   // Foreign keys
   stockReceiveId Int
@@ -403,28 +405,31 @@ model StockBatch {
   batchNo      String?
   receivedQty  Float
   availableQty Float
-  unitCost     Float
-  expiryDate   DateTime?
-  receiveDate  DateTime
-  rackLocation String?
-  warehouse    String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  unitCost        Float
+  manufactureDate DateTime?
+  expiryDate      DateTime?
+  receiveDate     DateTime
+  rackLocation    String?
+  warehouse       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   // Foreign keys
   inventoryId        Int
   stockReceiveItemId Int @unique // 1-to-1: one batch per receive line
 
   // Relations
-  inventory          Inventory           @relation(fields: [inventoryId], references: [id])
-  stockReceiveItem   StockReceiveItem    @relation(fields: [stockReceiveItemId], references: [id])
-  stockMovements     StockMovement[]
+  inventory            Inventory           @relation(fields: [inventoryId], references: [id])
+  stockReceiveItem     StockReceiveItem    @relation(fields: [stockReceiveItemId], references: [id])
+  stockMovements       StockMovement[]
   pipeCutPieces        PipeCutPiece[]
   materialIssueItems   MaterialIssueItem[]
   projectTransferItems ProjectTransferItem[]
 
   @@index([inventoryId])
   @@index([batchNo])
+  @@index([expiryDate])
+  @@index([availableQty])
   @@index([receiveDate])
   @@map("stock_batch")
 }
@@ -1167,5 +1172,42 @@ model ProjectTransferItem {
   @@index([pipeCutPieceId])
   @@index([toolId])
   @@map("project_transfer_item")
+}
+
+// ============================================================
+// Expiry & System Notification Models
+// ============================================================
+
+enum NotificationType {
+  EXPIRY_7_DAYS
+  EXPIRY_30_DAYS
+  STOCK_EXPIRED
+  INFO
+  WARNING
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  batchId   Int?
+  userId    String?          // null = broadcast to all authorized roles
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notification")
+}
+
+model SystemSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("system_setting")
 }
 

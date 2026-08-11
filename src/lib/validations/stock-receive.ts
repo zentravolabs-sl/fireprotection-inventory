@@ -29,12 +29,33 @@ export const stockReceiveItemSchema = z.object({
     .nullable()
     .transform((v) => v?.trim() || null),
 
+  manufactureDate: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((v) => (v && v !== "" ? v : null)),
+
   expiryDate: z
     .string()
     .optional()
     .nullable()
     .transform((v) => (v && v !== "" ? v : null)),
-});
+}).refine(
+  (data) => {
+    if (data.manufactureDate && data.expiryDate) {
+      const mDate = new Date(data.manufactureDate);
+      const eDate = new Date(data.expiryDate);
+      if (!isNaN(mDate.getTime()) && !isNaN(eDate.getTime())) {
+        return eDate >= mDate;
+      }
+    }
+    return true;
+  },
+  {
+    message: "Expiry date cannot be before manufacture date.",
+    path: ["expiryDate"],
+  }
+);
 
 export type StockReceiveItemFormValues = z.infer<typeof stockReceiveItemSchema>;
 

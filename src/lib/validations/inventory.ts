@@ -78,6 +78,8 @@ export const inventorySchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v?.trim() || null),
+
+  expiryControlled: z.boolean().default(false),
 });
 
 export type InventoryFormValues = z.infer<typeof inventorySchema>;
