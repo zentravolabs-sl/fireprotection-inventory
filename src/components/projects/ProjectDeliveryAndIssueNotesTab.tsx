@@ -359,76 +359,162 @@ export function ProjectDeliveryAndIssueNotesTab({
       const originalRef = printRef.current;
 
       const canvas = await html2canvas(originalRef, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
-        windowWidth: 1200,
-        windowHeight: 1600,
+        windowWidth: 1000,
         onclone: (clonedDoc: Document) => {
           const clonedRef = clonedDoc.querySelector("[data-pdf-content='true']") as HTMLElement;
-          if (clonedRef && originalRef) {
-            inlineComputedStyles(originalRef, clonedRef);
-          }
-
-          // Remove inputs from cloned DOM so box outlines don't render in PDF
           if (clonedRef) {
+            // STEP 1: Format main paper container
+            clonedRef.style.width = "794px";
+            clonedRef.style.padding = "32px";
+            clonedRef.style.backgroundColor = "#ffffff";
+            clonedRef.style.color = "#111827";
+
+            // STEP 2: Force outer border box
+            const outerBox = clonedRef.querySelector("div[style*='2px solid']") as HTMLElement || clonedRef.firstElementChild as HTMLElement;
+            if (outerBox) {
+              outerBox.style.border = "2px solid #1f2937";
+              outerBox.style.padding = "24px";
+              outerBox.style.boxSizing = "border-box";
+            }
+
+            // STEP 3: Force red company title
+            const h1 = clonedRef.querySelector("h1");
+            if (h1) {
+              h1.style.color = "#dc2626";
+              h1.style.fontWeight = "900";
+              h1.style.textAlign = "center";
+              h1.style.lineHeight = "1.2";
+              h1.style.margin = "0 0 4px 0";
+            }
+
+            // STEP 4: Decorate ALL tables, rows, headers, and cells explicitly with borders, colors, and symmetric padding
+            const tables = clonedRef.querySelectorAll("table");
+            tables.forEach((tbl) => {
+              const tableEl = tbl as HTMLElement;
+              tableEl.style.borderCollapse = "collapse";
+              tableEl.style.width = "100%";
+              tableEl.style.border = "1px solid #1f2937";
+
+              const rows = tbl.querySelectorAll("tr");
+              rows.forEach((row, rowIdx) => {
+                const rowEl = row as HTMLElement;
+                rowEl.style.height = "auto";
+
+                if (rowIdx < rows.length - 1) {
+                  rowEl.style.borderBottom = "1px solid #1f2937";
+                }
+
+                const cells = row.querySelectorAll("th, td");
+                cells.forEach((cell, cellIdx) => {
+                  const cellEl = cell as HTMLElement;
+                  
+                  // Add right border to all cells except last column
+                  if (cellIdx < cells.length - 1 && !cellEl.getAttribute("colspan")) {
+                    cellEl.style.borderRight = "1px solid #1f2937";
+                  }
+
+                  // Force bottom border on cell level
+                  cellEl.style.borderBottom = "1px solid #1f2937";
+                  
+                  // Symmetric padding & centering for html2canvas
+                  cellEl.style.paddingTop = "7px";
+                  cellEl.style.paddingBottom = "7px";
+                  cellEl.style.paddingLeft = "10px";
+                  cellEl.style.paddingRight = "10px";
+                  cellEl.style.lineHeight = "1.3";
+                  cellEl.style.verticalAlign = "middle";
+                  cellEl.style.height = "auto";
+                  cellEl.style.boxSizing = "border-box";
+
+                  // Gray headers & labels
+                  if (cellEl.tagName.toLowerCase() === "th" || cellEl.classList.contains("bg-gray-100") || cellEl.style.backgroundColor) {
+                    cellEl.style.backgroundColor = "#f3f4f6";
+                  }
+                });
+              });
+            });
+
+            // Force signature labels to sit clearly above table top border line with zero overlap
+            const sigLabels = clonedRef.querySelectorAll(".signature-label");
+            sigLabels.forEach((lbl) => {
+              const el = lbl as HTMLElement;
+              el.style.display = "block";
+              el.style.marginTop = "10px";
+              el.style.marginBottom = "6px";
+              el.style.fontWeight = "700";
+              el.style.color = "#111827";
+              el.style.fontSize = "12px";
+              el.style.lineHeight = "1.4";
+            });
+
+            // Seal box vertical centering
+            const sealCells = clonedRef.querySelectorAll("td[rowspan]");
+            sealCells.forEach((sc) => {
+              const el = sc as HTMLElement;
+              el.style.paddingTop = "20px";
+              el.style.paddingBottom = "20px";
+              el.style.verticalAlign = "middle";
+              el.style.textAlign = "center";
+            });
+
+            // STEP 5: Force transport container borders & padding
+            const transportBox = clonedRef.querySelector("div[style*='display: flex']") as HTMLElement;
+            if (transportBox) {
+              transportBox.style.border = "1px solid #1f2937";
+              const labelDiv = transportBox.firstElementChild as HTMLElement;
+              if (labelDiv) {
+                labelDiv.style.borderRight = "1px solid #1f2937";
+                labelDiv.style.backgroundColor = "#f3f4f6";
+                labelDiv.style.paddingTop = "7px";
+                labelDiv.style.paddingBottom = "7px";
+                labelDiv.style.paddingLeft = "10px";
+                labelDiv.style.paddingRight = "10px";
+              }
+              const valDiv = transportBox.lastElementChild as HTMLElement;
+              if (valDiv) {
+                valDiv.style.paddingTop = "7px";
+                valDiv.style.paddingBottom = "7px";
+                valDiv.style.paddingLeft = "14px";
+              }
+            }
+
+            // STEP 6: Clean up input elements and reveal hidden spans
             const inputs = clonedRef.querySelectorAll("input");
             inputs.forEach((input) => input.remove());
 
-            // Ensure static formatted spans are visible in PDF
             const hiddenSpans = clonedRef.querySelectorAll("span.hidden");
             hiddenSpans.forEach((s) => ((s as HTMLElement).style.display = "inline"));
-
-            // Force explicit colors for key branding & table elements
-            const redTitle = clonedRef.querySelector(".text-red-600");
-            if (redTitle) (redTitle as HTMLElement).style.color = "#dc2626";
-
-            const tealTotals = clonedRef.querySelectorAll(".text-teal-900, .text-teal-800, .text-teal-600");
-            tealTotals.forEach((el) => ((el as HTMLElement).style.color = "#0f766e"));
-
-            const grayHeaders = clonedRef.querySelectorAll(".bg-gray-100");
-            grayHeaders.forEach((el) => ((el as HTMLElement).style.backgroundColor = "#f3f4f6"));
           }
 
-          // Strip style tags that contain unsupported lab/oklch parser rules
+          // STEP 7: Strip style & link tags so lab()/oklch() NEVER crashes html2canvas
           const styles = clonedDoc.querySelectorAll("style, link[rel='stylesheet']");
           styles.forEach((s) => s.remove());
 
-          // Inject clean, exact print reset stylesheet
+          // STEP 8: Inject clean reset stylesheet
           const baseStyle = clonedDoc.createElement("style");
           baseStyle.innerHTML = `
-            * { box-sizing: border-box; }
+            * { box-sizing: border-box; text-decoration: none !important; }
             body { background: #ffffff !important; color: #000000 !important; font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; padding: 0; }
-            table { border-collapse: collapse; width: 100%; }
+            table { border-collapse: collapse; width: 100%; border-spacing: 0; }
+            td, th { vertical-align: middle !important; }
           `;
           clonedDoc.head.appendChild(baseStyle);
         },
       });
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
       });
 
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 20) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
+      // 200mm x 287mm fill - outer border sits cleanly with uniform 5mm margin around full A4 sheet
+      pdf.addImage(imgData, "PNG", 5, 5, 200, 287);
       pdf.save(`${docNo || "Document"}.pdf`);
     } catch (err: any) {
       console.error("PDF Download error:", err);
@@ -553,216 +639,244 @@ export function ProjectDeliveryAndIssueNotesTab({
         <div
           ref={printRef}
           data-pdf-content="true"
-          className="mx-auto bg-white text-gray-900 p-8 shadow-lg w-[794px] min-h-[1123px] flex flex-col justify-between border border-gray-300 font-sans text-xs box-border"
+          className="mx-auto bg-white text-gray-900 p-8 shadow-lg w-[794px] font-sans text-xs box-border"
+          style={{ width: "794px", backgroundColor: "#ffffff", color: "#111827", padding: "32px", boxSizing: "border-box" }}
         >
-          <div className="border-2 border-gray-800 p-6 flex-1 flex flex-col justify-between space-y-6 box-border">
-            {/* TOP SECTION: Header, Info Table, Delivery/Issue Details, Transport */}
-            <div className="space-y-5">
-              {/* Header with explicit spacing */}
-              <div className="text-center py-1 space-y-1">
-                <h1 className="text-2xl font-black text-red-600 tracking-wide uppercase">
-                  CDN ENGINEERS PVT LTD
-                </h1>
-                <h2 className="text-sm font-bold text-gray-900 tracking-wider uppercase underline decoration-1 pt-0.5">
-                  {docType === "delivery" ? "MATERIAL DELIVERY NOTE" : "MATERIAL ISSUE NOTE"}
-                </h2>
-              </div>
+          <div
+            className="border-2 border-gray-800 p-6 space-y-5 box-border"
+            style={{ border: "2px solid #1f2937", padding: "24px", boxSizing: "border-box" }}
+          >
+            {/* Header */}
+            <div className="text-center space-y-1" style={{ textAlign: "center", marginBottom: "14px" }}>
+              <h1
+                className="text-2xl font-black text-red-600 tracking-wide uppercase"
+                style={{ color: "#dc2626", fontSize: "22px", fontWeight: 900, textTransform: "uppercase", textAlign: "center", margin: 0, lineHeight: "1.2" }}
+              >
+                CDN ENGINEERS PVT LTD
+              </h1>
+              <h2
+                className="text-sm font-bold text-gray-900 tracking-wider uppercase underline pt-0.5"
+                style={{ color: "#111827", fontSize: "13px", fontWeight: 700, textTransform: "uppercase", textDecoration: "underline", textAlign: "center", marginTop: "4px", lineHeight: "1.2" }}
+              >
+                {docType === "delivery" ? "MATERIAL DELIVERY NOTE" : "MATERIAL ISSUE NOTE"}
+              </h2>
+            </div>
 
-              {/* Info table */}
-              <div className="border border-gray-800">
-                <table className="w-full text-xs text-left border-collapse">
-                  <tbody>
-                    {[
-                      ["Company Name", project.customer?.companyName || "N/A"],
-                      ["Address", project.customer?.address || project.location || "N/A"],
-                      ["Contact Number", `${project.customer?.phone || "N/A"}${project.customer?.contactPerson ? ` (${project.customer.contactPerson})` : ""}`],
-                      [docType === "delivery" ? "Delivery Note No." : "Issue Note No.", docNo],
-                      ["Date", formatDate(docDate)],
-                      ["Project Name / Site", `${project.projectName} (${project.projectCode})`],
-                      ["Site Address", project.location || project.customer?.address || "N/A"],
-                    ].map(([label, value], i, arr) => (
-                      <tr key={label} className={i < arr.length - 1 ? "border-b border-gray-800" : ""}>
-                        <td className="w-1/3 px-3 py-1.5 font-bold bg-gray-100 border-r border-gray-800">{label}</td>
-                        <td className="px-3 py-1.5 font-medium">{value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Section 1: Items */}
-              <div className="space-y-2">
-                <h3 className="font-bold text-xs text-gray-900">
-                  1. {docType === "delivery" ? "Delivery Details" : "Issue Details"}
-                </h3>
-                <table className="w-full text-xs text-left border-collapse border border-gray-800">
-                  <thead>
-                    <tr className="bg-gray-100 border-b border-gray-800 text-gray-900 font-bold">
-                      <th className="px-2.5 py-1.5 border-r border-gray-800 text-center w-12">Item No.</th>
-                      <th className="px-3 py-1.5 border-r border-gray-800">Description of Material</th>
-                      <th className="px-2.5 py-1.5 border-r border-gray-800 text-center w-16">Unit</th>
-                      <th className="px-2.5 py-1.5 border-r border-gray-800 text-center w-20">Quantity</th>
-                      {docType === "issue" && (
-                        <>
-                          <th className="px-3 py-1.5 border-r border-gray-800 text-right w-28">Unit Price (LKR)</th>
-                          <th className="px-3 py-1.5 border-r border-gray-800 text-right w-32">Total Price (LKR)</th>
-                        </>
-                      )}
-                      <th className="px-3 py-1.5">Remarks</th>
+            {/* Info Table */}
+            <div className="border border-gray-800" style={{ border: "1px solid #1f2937", marginBottom: "14px" }}>
+              <table className="w-full text-xs text-left border-collapse" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <tbody>
+                  {[
+                    ["Company Name", project.customer?.companyName || "N/A"],
+                    ["Address", project.customer?.address || project.location || "N/A"],
+                    ["Contact Number", `${project.customer?.phone || "N/A"}${project.customer?.contactPerson ? ` (${project.customer.contactPerson})` : ""}`],
+                    [docType === "delivery" ? "Delivery Note No." : "Issue Note No.", docNo],
+                    ["Date", formatDate(docDate)],
+                    ["Project Name / Site", `${project.projectName} (${project.projectCode})`],
+                    ["Site Address", project.location || project.customer?.address || "N/A"],
+                  ].map(([label, value], i, arr) => (
+                    <tr key={label} style={{ borderBottom: i < arr.length - 1 ? "1px solid #1f2937" : "none" }}>
+                      <td
+                        className="w-1/3 px-3 py-1.5 font-bold bg-gray-100 border-r border-gray-800"
+                        style={{ width: "33%", padding: "6px 10px", fontWeight: "bold", backgroundColor: "#f3f4f6", borderRight: "1px solid #1f2937", color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}
+                      >
+                        {label}
+                      </td>
+                      <td className="px-3 py-1.5 font-medium" style={{ padding: "6px 10px", fontWeight: 500, color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                        {value}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-800">
-                    {deliveryLineItems.length === 0 ? (
-                      <tr>
-                        <td colSpan={docType === "issue" ? 7 : 5} className="text-center py-6 text-gray-500">
-                          No items found for the selected date filter.
-                        </td>
-                      </tr>
-                    ) : (
-                      deliveryLineItems.map((item, idx) => {
-                        const rowTotal = item.quantity * item.unitPrice;
-                        return (
-                          <tr key={item.id} className="border-b border-gray-800">
-                            <td className="px-2.5 py-2 border-r border-gray-800 text-center font-medium">
-                              {String(idx + 1).padStart(2, "0")}
-                            </td>
-                            <td className="px-3 py-2 border-r border-gray-800 font-medium">{item.description}</td>
-                            <td className="px-2.5 py-2 border-r border-gray-800 text-center">{item.unit}</td>
-                            <td className="px-2.5 py-2 border-r border-gray-800 text-center font-bold">{item.quantity}</td>
-                            {docType === "issue" && (
-                              <>
-                                <td className="px-3 py-2 border-r border-gray-800 text-right font-mono">
-                                  {/* Print & PDF static formatted value */}
-                                  <span className="hidden print:inline font-bold">{formatCurrency(item.unitPrice)}</span>
-                                  <input
-                                    type="number"
-                                    step="0.01"
-                                    value={item.unitPrice}
-                                    onChange={(e) =>
-                                      setCustomPrices({ ...customPrices, [item.id]: parseFloat(e.target.value) || 0 })
-                                    }
-                                    className="print:hidden w-20 px-1 py-0.5 border border-gray-300 rounded text-right font-mono"
-                                  />
-                                </td>
-                                <td className="px-3 py-2 border-r border-gray-800 text-right font-mono font-bold">
-                                  {formatCurrency(rowTotal)}
-                                </td>
-                              </>
-                            )}
-                            <td className="px-3 py-2 text-gray-600">{item.remarks}</td>
-                          </tr>
-                        );
-                      })
-                    )}
-                    {/* Minimum rows filler so table maintains a clean pre-printed document feel */}
-                    {deliveryLineItems.length > 0 && deliveryLineItems.length < 5 && (
-                      Array.from({ length: 5 - deliveryLineItems.length }).map((_, idx) => (
-                        <tr key={`filler-${idx}`} className="border-b border-gray-800 h-8">
-                          <td className="px-2.5 py-1.5 border-r border-gray-800 text-center text-gray-400 font-medium">
-                            {String(deliveryLineItems.length + idx + 1).padStart(2, "0")}
-                          </td>
-                          <td className="px-3 py-1.5 border-r border-gray-800">&nbsp;</td>
-                          <td className="px-2.5 py-1.5 border-r border-gray-800">&nbsp;</td>
-                          <td className="px-2.5 py-1.5 border-r border-gray-800">&nbsp;</td>
-                          {docType === "issue" && (
-                            <>
-                              <td className="px-3 py-1.5 border-r border-gray-800">&nbsp;</td>
-                              <td className="px-3 py-1.5 border-r border-gray-800">&nbsp;</td>
-                            </>
-                          )}
-                          <td className="px-3 py-1.5">&nbsp;</td>
-                        </tr>
-                      ))
-                    )}
-                    {docType === "issue" && deliveryLineItems.length > 0 && (
-                      <tr className="bg-gray-100 font-bold border-t-2 border-gray-800">
-                        <td colSpan={5} className="px-3 py-2 text-right border-r border-gray-800 uppercase">
-                          Grand Total (LKR):
-                        </td>
-                        <td className="px-3 py-2 text-right font-mono text-sm border-r border-gray-800 font-black text-teal-900">
-                          {formatCurrency(issueNoteGrandTotal)}
-                        </td>
-                        <td />
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-              {/* Section 2: Transport */}
-              <div className="space-y-1.5">
-                <h3 className="font-bold text-xs text-gray-900">2. Transport Details</h3>
-                <div className="border border-gray-800 flex">
-                  <div className="w-36 px-3 py-2 font-bold bg-gray-100 border-r border-gray-800">Vehicle No</div>
-                  <div className="px-4 py-2 font-semibold font-mono text-gray-900 flex-1">
-                    {vehicleNo || "..........................................................."}
-                  </div>
+            {/* Section 1: Items */}
+            <div className="space-y-1.5" style={{ marginBottom: "14px" }}>
+              <h3 className="font-bold text-xs text-gray-900" style={{ fontWeight: "bold", fontSize: "12px", color: "#111827", margin: "0 0 6px 0" }}>
+                1. {docType === "delivery" ? "Delivery Details" : "Issue Details"}
+              </h3>
+              <table className="w-full text-xs text-left border-collapse border border-gray-800" style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #1f2937" }}>
+                <thead>
+                  <tr className="bg-gray-100 border-b border-gray-800 text-gray-900 font-bold" style={{ backgroundColor: "#f3f4f6", borderBottom: "1px solid #1f2937" }}>
+                    <th className="px-2 py-1.5 border-r border-gray-800 text-center" style={{ padding: "7px 4px", borderRight: "1px solid #1f2937", textAlign: "center", width: "50px", whiteSpace: "nowrap", fontWeight: "bold", color: "#111827", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>Item No.</th>
+                    <th className="px-3 py-1.5 border-r border-gray-800 text-left" style={{ padding: "7px 10px", borderRight: "1px solid #1f2937", textAlign: "left", fontWeight: "bold", color: "#111827", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>Description of Material</th>
+                    <th className="px-2 py-1.5 border-r border-gray-800 text-center" style={{ padding: "7px 4px", borderRight: "1px solid #1f2937", textAlign: "center", width: "48px", fontWeight: "bold", color: "#111827", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>Unit</th>
+                    <th className="px-2 py-1.5 border-r border-gray-800 text-center" style={{ padding: "7px 4px", borderRight: "1px solid #1f2937", textAlign: "center", width: "58px", fontWeight: "bold", color: "#111827", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>Quantity</th>
+                    {docType === "issue" && (
+                      <>
+                        <th className="px-2.5 py-1.5 border-r border-gray-800 text-right" style={{ padding: "7px 6px", borderRight: "1px solid #1f2937", textAlign: "right", width: "78px", fontWeight: "bold", color: "#111827", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>Unit Price</th>
+                        <th className="px-2.5 py-1.5 border-r border-gray-800 text-right" style={{ padding: "7px 6px", borderRight: "1px solid #1f2937", textAlign: "right", width: "88px", fontWeight: "bold", color: "#111827", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>Total Price</th>
+                      </>
+                    )}
+                    <th className="px-3 py-1.5 text-left" style={{ padding: "7px 10px", textAlign: "left", width: "90px", fontWeight: "bold", color: "#111827", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Actual items */}
+                  {deliveryLineItems.map((item, idx) => {
+                    const rowTotal = item.quantity * item.unitPrice;
+                    return (
+                      <tr key={item.id} style={{ borderBottom: "1px solid #1f2937" }}>
+                        <td className="px-2.5 py-1.5 border-r border-gray-800 text-center font-medium" style={{ padding: "6px 6px", borderRight: "1px solid #1f2937", textAlign: "center", fontWeight: 500, color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                          {String(idx + 1).padStart(2, "0")}
+                        </td>
+                        <td className="px-3 py-1.5 border-r border-gray-800 text-left font-medium" style={{ padding: "6px 10px", borderRight: "1px solid #1f2937", textAlign: "left", fontWeight: 500, color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                          {item.description}
+                        </td>
+                        <td className="px-2.5 py-1.5 border-r border-gray-800 text-center" style={{ padding: "6px 6px", borderRight: "1px solid #1f2937", textAlign: "center", color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                          {item.unit}
+                        </td>
+                        <td className="px-2.5 py-1.5 border-r border-gray-800 text-center font-bold" style={{ padding: "6px 6px", borderRight: "1px solid #1f2937", textAlign: "center", fontWeight: "bold", color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                          {item.quantity}
+                        </td>
+                        {docType === "issue" && (
+                          <>
+                            <td className="px-3 py-1.5 border-r border-gray-800 text-right font-mono" style={{ padding: "6px 10px", borderRight: "1px solid #1f2937", textAlign: "right", fontFamily: "monospace", color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                              <span className="hidden print:inline font-bold">
+                                {item.unitPrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={item.unitPrice}
+                                onChange={(e) =>
+                                  setCustomPrices({ ...customPrices, [item.id]: parseFloat(e.target.value) || 0 })
+                                }
+                                className="print:hidden w-20 px-1 py-0.5 border border-gray-300 rounded text-right font-mono"
+                                style={{ textAlign: "right", width: "80px" }}
+                              />
+                            </td>
+                            <td className="px-3 py-1.5 border-r border-gray-800 text-right font-mono font-bold" style={{ padding: "6px 10px", borderRight: "1px solid #1f2937", textAlign: "right", fontFamily: "monospace", fontWeight: "bold", color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                              {rowTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                          </>
+                        )}
+                        <td className="px-3 py-1.5 text-left text-gray-600" style={{ padding: "6px 10px", textAlign: "left", color: "#4b5563", verticalAlign: "middle", lineHeight: "1.3" }}>
+                          {item.remarks}
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {/* Filler rows up to 6 rows total - preserves pre-printed vertical column lines (iri) at all times */}
+                  {Array.from({ length: Math.max(0, 6 - deliveryLineItems.length) }).map((_, idx) => {
+                    const rowNum = deliveryLineItems.length + idx + 1;
+                    return (
+                      <tr key={`filler-${idx}`} style={{ borderBottom: "1px solid #1f2937" }}>
+                        <td className="px-2.5 py-1.5 border-r border-gray-800 text-center text-gray-400 font-medium" style={{ padding: "6px 6px", borderRight: "1px solid #1f2937", textAlign: "center", color: "#9ca3af", verticalAlign: "middle", lineHeight: "1.3" }}>
+                          {String(rowNum).padStart(2, "0")}
+                        </td>
+                        <td className="px-3 py-1.5 border-r border-gray-800" style={{ padding: "6px 10px", borderRight: "1px solid #1f2937", verticalAlign: "middle" }}>&nbsp;</td>
+                        <td className="px-2.5 py-1.5 border-r border-gray-800 text-center" style={{ padding: "6px 6px", borderRight: "1px solid #1f2937", textAlign: "center", verticalAlign: "middle" }}>&nbsp;</td>
+                        <td className="px-2.5 py-1.5 border-r border-gray-800 text-center" style={{ padding: "6px 6px", borderRight: "1px solid #1f2937", textAlign: "center", verticalAlign: "middle" }}>&nbsp;</td>
+                        {docType === "issue" && (
+                          <>
+                            <td className="px-3 py-1.5 border-r border-gray-800" style={{ padding: "6px 10px", borderRight: "1px solid #1f2937", verticalAlign: "middle" }}>&nbsp;</td>
+                            <td className="px-3 py-1.5 border-r border-gray-800" style={{ padding: "6px 10px", borderRight: "1px solid #1f2937", verticalAlign: "middle" }}>&nbsp;</td>
+                          </>
+                        )}
+                        <td className="px-3 py-1.5" style={{ padding: "6px 10px", verticalAlign: "middle" }}>&nbsp;</td>
+                      </tr>
+                    );
+                  })}
+
+                  {docType === "issue" && deliveryLineItems.length > 0 && (
+                    <tr className="bg-gray-100 font-bold border-t-2 border-gray-800" style={{ backgroundColor: "#f3f4f6", fontWeight: "bold", borderTop: "2px solid #1f2937" }}>
+                      <td colSpan={5} className="px-3 py-1.5 text-right border-r border-gray-800 uppercase" style={{ padding: "7px 10px", borderRight: "1px solid #1f2937", textAlign: "right", textTransform: "uppercase", color: "#111827", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>
+                        Grand Total:
+                      </td>
+                      <td className="px-3 py-1.5 text-right font-mono text-sm border-r border-gray-800 font-black text-teal-900" style={{ padding: "7px 10px", borderRight: "1px solid #1f2937", textAlign: "right", fontFamily: "monospace", fontWeight: 900, color: "#0f766e", backgroundColor: "#f3f4f6", verticalAlign: "middle", lineHeight: "1.3" }}>
+                        {issueNoteGrandTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td style={{ backgroundColor: "#f3f4f6", verticalAlign: "middle" }} />
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Section 2: Transport */}
+            <div className="space-y-1.5" style={{ marginBottom: "14px" }}>
+              <h3 className="font-bold text-xs text-gray-900" style={{ fontWeight: "bold", fontSize: "12px", color: "#111827", margin: "0 0 6px 0" }}>
+                2. Transport Details
+              </h3>
+              <div className="border border-gray-800 flex" style={{ border: "1px solid #1f2937", display: "flex" }}>
+                <div className="w-36 px-3 py-1.5 font-bold bg-gray-100 border-r border-gray-800" style={{ width: "140px", padding: "6px 10px", fontWeight: "bold", backgroundColor: "#f3f4f6", borderRight: "1px solid #1f2937", color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                  Vehicle No
+                </div>
+                <div className="px-4 py-1.5 font-semibold font-mono text-gray-900 flex-1" style={{ padding: "6px 14px", fontWeight: 600, fontFamily: "monospace", flex: 1, color: "#111827", verticalAlign: "middle", lineHeight: "1.3" }}>
+                  {vehicleNo || "..........................................................."}
                 </div>
               </div>
             </div>
 
-            {/* BOTTOM SECTION: Confirmation tables & Disclaimer notes */}
-            <div className="space-y-4 pt-2">
-              {/* Section 3: Confirmation */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-xs text-gray-900">3. Confirmation</h3>
-                
-                {/* Delivered By Table */}
-                <div className="space-y-1">
-                  <p className="font-semibold text-xs text-gray-900">Delivered By:</p>
-                  <table className="w-full text-xs border-collapse border border-gray-800">
-                    <tbody>
-                      <tr>
-                        <td className="w-1/3 px-3 py-2.5 border-r border-gray-800">
-                          <strong>Name:</strong> {deliveredBy}
-                        </td>
-                        <td className="w-1/3 px-3 py-2.5 border-r border-gray-800">
-                          <strong>Signature:</strong>
-                        </td>
-                        <td className="w-1/3 px-3 py-2.5">
-                          <strong>Date:</strong>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Received By & Seal Table */}
-                <div className="space-y-1">
-                  <p className="font-semibold text-xs text-gray-900">Received By:</p>
-                  <table className="w-full text-xs border-collapse border border-gray-800">
-                    <tbody>
-                      <tr className="border-b border-gray-800">
-                        <td className="w-1/3 px-3 py-2.5 border-r border-gray-800 align-top">
-                          <strong>Name:</strong> {receivedBy}
-                        </td>
-                        <td className="w-1/3 px-3 py-2.5 border-r border-gray-800 align-top">
-                          <strong>Signature:</strong>
-                        </td>
-                        <td
-                          rowSpan={2}
-                          className="w-1/3 p-3 text-center text-gray-400 font-semibold align-middle border-l border-gray-800"
-                        >
-                          Received Company Seal
-                        </td>
-                      </tr>
-                      <tr>
-                        <td colSpan={2} className="px-3 py-2.5 border-r border-gray-800 align-top">
-                          <strong>Date:</strong>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+            {/* Section 3: Confirmation */}
+            <div className="space-y-3" style={{ marginBottom: "14px" }}>
+              <h3 className="font-bold text-xs text-gray-900" style={{ fontWeight: "bold", fontSize: "12px", color: "#111827", margin: "0 0 10px 0" }}>
+                3. Confirmation
+              </h3>
+              
+              {/* Delivered By Table */}
+              <div style={{ marginBottom: "12px" }}>
+                <p className="font-semibold text-xs text-gray-900 signature-label" style={{ fontWeight: 700, fontSize: "12px", color: "#111827", margin: "0 0 6px 0", lineHeight: "1.4", display: "block" }}>
+                  Delivered By:
+                </p>
+                <table className="w-full text-xs border-collapse border border-gray-800" style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #1f2937" }}>
+                  <tbody>
+                    <tr>
+                      <td className="w-1/3 border-r border-gray-800" style={{ width: "33.33%", padding: "10px 12px", borderRight: "1px solid #1f2937", color: "#111827", verticalAlign: "middle", lineHeight: "1.4" }}>
+                        <strong>Name:</strong> {deliveredBy}
+                      </td>
+                      <td className="w-1/3 border-r border-gray-800" style={{ width: "33.33%", padding: "10px 12px", borderRight: "1px solid #1f2937", color: "#111827", verticalAlign: "middle", lineHeight: "1.4" }}>
+                        <strong>Signature:</strong>
+                      </td>
+                      <td className="w-1/3" style={{ width: "33.33%", padding: "10px 12px", color: "#111827", verticalAlign: "middle", lineHeight: "1.4" }}>
+                        <strong>Date:</strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              {/* Note & Footer Disclaimer */}
-              <div className="pt-2 border-t border-gray-400 text-xs space-y-1 text-gray-800">
-                <p className="font-bold">Note:</p>
-                <p>Please check all materials upon delivery.</p>
-                <p>Any discrepancies or damages should be reported immediately.</p>
-                <div className="pt-3 border-b border-dashed border-gray-400 w-full" />
+              {/* Received By & Seal Table */}
+              <div>
+                <p className="font-semibold text-xs text-gray-900 signature-label" style={{ fontWeight: 700, fontSize: "12px", color: "#111827", margin: "0 0 6px 0", lineHeight: "1.4", display: "block" }}>
+                  Received By:
+                </p>
+                <table className="w-full text-xs border-collapse border border-gray-800" style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #1f2937" }}>
+                  <tbody>
+                    <tr style={{ borderBottom: "1px solid #1f2937" }}>
+                      <td className="w-1/3 border-r border-gray-800" style={{ width: "33.33%", padding: "10px 12px", borderRight: "1px solid #1f2937", borderBottom: "1px solid #1f2937", verticalAlign: "middle", color: "#111827", lineHeight: "1.4" }}>
+                        <strong>Name:</strong> {receivedBy}
+                      </td>
+                      <td className="w-1/3 border-r border-gray-800" style={{ width: "33.33%", padding: "10px 12px", borderRight: "1px solid #1f2937", borderBottom: "1px solid #1f2937", verticalAlign: "middle", color: "#111827", lineHeight: "1.4" }}>
+                        <strong>Signature:</strong>
+                      </td>
+                      <td
+                        rowSpan={2}
+                        className="w-1/3 text-center text-gray-400 font-semibold align-middle border-l border-gray-800"
+                        style={{ width: "33.33%", padding: "20px 8px", textAlign: "center", verticalAlign: "middle", color: "#9ca3af", fontWeight: 600, borderLeft: "1px solid #1f2937", lineHeight: "1.4" }}
+                      >
+                        Received Company Seal
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={2} className="border-r border-gray-800" style={{ padding: "10px 12px", borderRight: "1px solid #1f2937", verticalAlign: "middle", color: "#111827", lineHeight: "1.4" }}>
+                        <strong>Date:</strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
+            </div>
+
+            {/* Note & Footer Disclaimer */}
+            <div className="pt-2 border-t border-gray-400 text-xs space-y-1 text-gray-800" style={{ borderTop: "1px solid #9ca3af", paddingTop: "8px", marginTop: "14px" }}>
+              <p className="font-bold" style={{ fontWeight: "bold", color: "#111827", margin: 0 }}>Note:</p>
+              <p style={{ margin: "2px 0", color: "#374151" }}>Please check all materials upon delivery.</p>
+              <p style={{ margin: "2px 0", color: "#374151" }}>Any discrepancies or damages should be reported immediately.</p>
+              <div className="pt-2 border-b border-dashed border-gray-400 w-full" style={{ borderBottom: "1px dashed #9ca3af", width: "100%", paddingTop: "8px" }} />
             </div>
           </div>
         </div>
