@@ -9,9 +9,10 @@ import React from "react";
 
 interface StatusBadgeProps {
   status: string;
+  className?: string;
 }
 
-export function ProjectStatusBadge({ status }: StatusBadgeProps) {
+export function ProjectStatusBadge({ status, className = "" }: StatusBadgeProps) {
   const getBadgeStyle = (s: string) => {
     switch (s) {
       case "PENDING":
@@ -47,7 +48,7 @@ export function ProjectStatusBadge({ status }: StatusBadgeProps) {
 
   return (
     <span
-      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider"
+      className={`inline-flex items-center justify-center min-w-[155px] px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-center ${className}`}
       style={{
         backgroundColor: style.bg,
         color: style.text,
@@ -55,7 +56,7 @@ export function ProjectStatusBadge({ status }: StatusBadgeProps) {
       }}
     >
       <span
-        className="w-1.5 h-1.5 rounded-full mr-1.5"
+        className="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0"
         style={{ backgroundColor: style.text }}
       />
       {formattedText}

@@ -18,6 +18,8 @@ import {
   UserX,
   ChevronDown,
 } from "lucide-react";
+import Select from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
 import UserAvatar from "@/components/users/user-avatar";
 import UserRoleBadge from "@/components/users/user-role-badge";
 import UserStatusBadge from "@/components/users/user-status-badge";
@@ -73,7 +75,7 @@ function ActionMenu({ user, actorRole, onStatusToggle, onRoleChange }: ActionMen
         <div className="absolute right-0 top-8 z-30 w-44 bg-[#161d2e] border border-[#1e2a3d] rounded-xl shadow-2xl overflow-hidden">
           <div className="py-1">
             <Link
-              href={`/dashboard/users-roles/${user.id}`}
+              href={`/users-roles/${user.id}`}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#dce3ef] hover:bg-[#1e2a3d] transition-colors"
               onClick={() => setOpen(false)}
             >
@@ -82,7 +84,7 @@ function ActionMenu({ user, actorRole, onStatusToggle, onRoleChange }: ActionMen
             </Link>
 
             <Link
-              href={`/dashboard/users-roles/${user.id}/edit`}
+              href={`/users-roles/${user.id}/edit`}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#dce3ef] hover:bg-[#1e2a3d] transition-colors"
               onClick={() => setOpen(false)}
             >
@@ -174,38 +176,32 @@ function ChangeRoleModal({ user, actorRole, onClose }: ChangeRoleModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="change-role-title">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-sm bg-[#0F1524] border border-[#1e2a3d] rounded-2xl shadow-2xl">
-        <div className="px-6 py-5 border-b border-[#1e2a3d]">
-          <h2 id="change-role-title" className="text-base font-bold text-[#dce3ef]">Change Role</h2>
-          <p className="text-sm text-[#5a657a] mt-0.5">{user.name}</p>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <div className="relative w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl overflow-hidden text-gray-900 dark:text-gray-100">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+          <h2 id="change-role-title" className="text-lg font-bold text-gray-900 dark:text-gray-100">Change Role</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user.name}</p>
         </div>
         <div className="px-6 py-5 space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-[#5a657a]">Select Role</label>
-            <div className="relative">
-              <select
-                id="change-role-select"
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                className="w-full h-10 pl-3 pr-8 bg-[#161d2e] border border-[#1e2a3d] rounded-xl text-sm text-[#dce3ef] focus:outline-none focus:border-[#e02424]/60 appearance-none cursor-pointer"
-              >
-                {ROLE_OPTIONS.map((r) => (
-                  <option key={r.value} value={r.value} disabled={!canAssignRole(r.value)}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5a657a] pointer-events-none" />
-            </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Select Role</label>
+            <Select
+              instanceId="change-role-select"
+              options={ROLE_OPTIONS.filter((r) => canAssignRole(r.value))}
+              value={ROLE_OPTIONS.find((r) => r.value === selectedRole) || null}
+              onChange={(val) => val && setSelectedRole(val.value as UserRole)}
+              isSearchable
+              menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+              styles={getCustomSelectStyles()}
+            />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-[#1e2a3d] flex items-center justify-end gap-3">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="px-4 py-2 text-sm font-semibold text-[#5a657a] hover:text-[#dce3ef] border border-[#1e2a3d] rounded-xl transition-colors disabled:opacity-50"
+            className="py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center disabled:opacity-50"
           >
             Cancel
           </button>
@@ -213,10 +209,10 @@ function ChangeRoleModal({ user, actorRole, onClose }: ChangeRoleModalProps) {
             type="button"
             onClick={handleConfirm}
             disabled={isPending || selectedRole === user.role}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#e02424] hover:bg-[#c51c1c] rounded-xl transition-colors shadow-sm disabled:opacity-50"
+            className="inline-flex items-center gap-2 py-3 px-5 text-sm font-semibold text-white rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg shadow-red-500/25 transition-all duration-200 disabled:opacity-60"
           >
             {isPending ? (
-              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : null}
             Confirm
           </button>

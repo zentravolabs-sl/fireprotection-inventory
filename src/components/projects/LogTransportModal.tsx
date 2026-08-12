@@ -64,7 +64,7 @@ export function LogTransportModal({
           </div>
         )}
 
-        <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-md text-xs text-blue-800 dark:text-blue-300">
+        <div className="p-3.5 bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40 rounded-xl text-xs text-red-800 dark:text-red-300">
           💡 <strong>Automatic Expense Rule:</strong> Transport total cost will automatically create a <code>TRANSPORT</code> expense in the project expense ledger.
         </div>
 
@@ -83,7 +83,7 @@ export function LogTransportModal({
           <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Cost Breakdown</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fuel Cost</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Fuel Cost</label>
               <input
                 type="number"
                 min="0"
@@ -91,12 +91,12 @@ export function LogTransportModal({
                 name="fuelCost"
                 value={fuelCost}
                 onChange={(e) => setFuelCost(Number(e.target.value))}
-                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Vehicle Hire</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Vehicle Hire</label>
               <input
                 type="number"
                 min="0"
@@ -104,12 +104,12 @@ export function LogTransportModal({
                 name="vehicleHireCost"
                 value={vehicleHireCost}
                 onChange={(e) => setVehicleHireCost(Number(e.target.value))}
-                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Loading Cost</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Loading Cost</label>
               <input
                 type="number"
                 min="0"
@@ -117,12 +117,12 @@ export function LogTransportModal({
                 name="loadingCost"
                 value={loadingCost}
                 onChange={(e) => setLoadingCost(Number(e.target.value))}
-                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Unloading Cost</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Unloading Cost</label>
               <input
                 type="number"
                 min="0"
@@ -130,12 +130,12 @@ export function LogTransportModal({
                 name="unloadingCost"
                 value={unloadingCost}
                 onChange={(e) => setUnloadingCost(Number(e.target.value))}
-                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Other Cost</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Other Cost</label>
               <input
                 type="number"
                 min="0"
@@ -143,11 +143,11 @@ export function LogTransportModal({
                 name="otherCost"
                 value={otherCost}
                 onChange={(e) => setOtherCost(Number(e.target.value))}
-                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-800/80 p-2.5 rounded-lg border flex flex-col justify-center">
+            <div className="bg-gray-50 dark:bg-gray-800/80 p-3 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col justify-center">
               <span className="text-xs text-gray-500 font-medium">Total Transport Cost</span>
               <span className="text-base font-bold text-gray-900 dark:text-gray-100">
                 LKR {calculatedTotalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -157,26 +157,28 @@ export function LogTransportModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Remarks / Dispatch Notes
           </label>
           <textarea
             name="remarks"
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900 resize-none placeholder-gray-400 dark:placeholder-gray-500"
             placeholder="Delivery instructions, gate passes, driver contacts..."
           />
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Cancel
           </button>
-          <FormButton loading={loading}>Save Transport Record</FormButton>
+          <FormButton loading={loading} fullWidth={false} className="w-48">
+            Save Transport Record
+          </FormButton>
         </div>
       </form>
     </Modal>

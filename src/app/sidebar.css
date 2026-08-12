@@ -14,7 +14,7 @@
 
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root {
-  --sb-width:          220px;
+  --sb-width:          260px;
   --sb-width-collapsed: 64px;
   --sb-bg:             #0F1524;
   --sb-bg-hover:       #161d2e;
@@ -499,3 +499,244 @@
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   TOP NAVBAR  (.app-topnav)
+   Sticky bar inside the content column — right of the sidebar.
+   ══════════════════════════════════════════════════════════════ */
+
+.app-topnav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 56px;
+  padding: 0 24px;
+  background: var(--sb-bg);
+  border-bottom: 1px solid var(--sb-border);
+  box-shadow: 0 1px 0 0 var(--sb-border), 0 4px 20px rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
+}
+
+/* Left — page title */
+.app-topnav-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.app-topnav-heading {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sb-text);
+  letter-spacing: 0.01em;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Right — actions cluster */
+.app-topnav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Icon button (bell etc.) */
+.app-topnav-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--sb-border);
+  color: var(--sb-text-muted);
+  cursor: pointer;
+  transition:
+    background var(--sb-transition),
+    color var(--sb-transition),
+    border-color var(--sb-transition);
+}
+
+.app-topnav-icon-btn:hover {
+  background: var(--sb-bg-hover);
+  color: var(--sb-text);
+  border-color: #2a3650;
+}
+
+/* Role badge */
+.app-topnav-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* User name */
+.app-topnav-username {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sb-text-muted);
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Logout button */
+.app-topnav-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--sb-border);
+  color: var(--sb-text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--sb-transition),
+    color var(--sb-transition),
+    border-color var(--sb-transition),
+    box-shadow var(--sb-transition);
+}
+
+.app-topnav-logout:hover {
+  background: rgba(224, 36, 36, 0.12);
+  color: var(--sb-accent);
+  border-color: rgba(224, 36, 36, 0.4);
+  box-shadow: 0 0 8px var(--sb-accent-glow);
+}
+
+/* Content area between navbar and footer */
+.app-content {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Page content width ─────────────────────────────────────────
+   Pages use max-w-7xl mx-auto which creates huge side gaps on
+   wide monitors when the sidebar is already consuming space.
+   Override: let content fill the available column width with
+   consistent horizontal padding only.
+   ─────────────────────────────────────────────────────────────── */
+.app-content .max-w-7xl {
+  max-width: 100% !important;
+  padding-left: 28px !important;
+  padding-right: 28px !important;
+  padding-bottom: 28px !important;
+}
+
+/* Tighten on small screens */
+@media (max-width: 767px) {
+  .app-content .max-w-7xl {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 20px !important;
+  }
+}
+
+/* ── Mobile: topnav hidden on small screens (mobile topbar takes over) */
+@media (max-width: 767px) {
+  .app-topnav {
+    /* On mobile the MobileTopBar is the header, so we keep topnav visible
+       but push it below the 56px mobile top bar (already handled by
+       padding-top on sidebar-offset). We hide username + role to save space. */
+    padding: 0 16px;
+    height: 50px;
+  }
+
+  .app-topnav-username,
+  .app-topnav-role {
+    display: none;
+  }
+
+  .app-topnav-logout span {
+    display: none;
+  }
+
+  .app-topnav-logout {
+    padding: 6px 8px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FOOTER  (.app-footer)
+   Sits at the bottom of the content column, below all page content.
+   ══════════════════════════════════════════════════════════════ */
+
+.app-footer {
+  border-top: 1px solid var(--sb-border);
+  background: var(--sb-bg);
+  padding: 14px 24px;
+  flex-shrink: 0;
+}
+
+.app-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+/* Brand cluster */
+.app-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.app-footer-flame {
+  color: var(--sb-accent);
+  flex-shrink: 0;
+}
+
+.app-footer-brand-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--sb-text);
+  letter-spacing: 0.02em;
+}
+
+/* Copyright */
+.app-footer-copy {
+  font-size: 11.5px;
+  color: var(--sb-text-muted);
+  margin: 0;
+}
+
+/* Version */
+.app-footer-version {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--sb-text-group);
+  background: var(--sb-bg-hover);
+  border: 1px solid var(--sb-border);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+@media (max-width: 480px) {
+  .app-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}

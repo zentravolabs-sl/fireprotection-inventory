@@ -54,8 +54,8 @@ export function SetLabourCostModal({ isOpen, onClose, onSubmit, assignment, isSu
   };
 
   const inputCls =
-    "w-full px-3 py-2.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors";
-  const labelCls = "block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide";
+    "w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900 placeholder-gray-400 dark:placeholder-gray-500";
+  const labelCls = "block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5";
 
   if (!assignment) return null;
 
@@ -63,20 +63,20 @@ export function SetLabourCostModal({ isOpen, onClose, onSubmit, assignment, isSu
     <Modal isOpen={isOpen} onClose={handleClose} title={`Set Labour Cost — ${assignment.labour.name}`} maxWidth="max-w-md">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">{error}</div>
+          <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-xl">{error}</div>
         )}
 
-        <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/50">
-          <p className="text-xs text-blue-800 dark:text-blue-300 font-medium">
+        <div className="p-3.5 bg-red-50/50 dark:bg-red-950/20 rounded-xl border border-red-100 dark:border-red-900/40">
+          <p className="text-xs text-red-800 dark:text-red-300 font-medium">
             Worker: <strong>{assignment.labour.name}</strong> ({assignment.labour.labourCode})
           </p>
-          <p className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5">
+          <p className="text-[11px] text-red-600 dark:text-red-400 mt-0.5">
             Manually enter the agreed total labour cost for this project assignment.
           </p>
         </div>
 
         <div>
-          <label className={labelCls}>Agreed Labour Cost (LKR) <span className="text-red-500">*</span></label>
+          <label className={labelCls}>Agreed Labour Cost (LKR) *</label>
           <input
             type="number"
             value={labourCost}
@@ -100,19 +100,19 @@ export function SetLabourCostModal({ isOpen, onClose, onSubmit, assignment, isSu
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors disabled:opacity-50"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-60 shadow-sm"
+            className="w-40 py-3 px-5 inline-flex items-center justify-center gap-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg shadow-red-500/25 rounded-xl transition-all duration-200 disabled:opacity-60"
           >
             {isSubmitting && (
               <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">

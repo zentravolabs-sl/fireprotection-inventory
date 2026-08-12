@@ -89,8 +89,8 @@ export async function createTransportAction(formData: FormData) {
       createdBy: actorId,
     });
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${parsed.data.projectId}`);
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${parsed.data.projectId}`);
     return {
       success: true,
       message: `Transport record ${transport.transportNo} created successfully! Automatic TRANSPORT expense logged.`,

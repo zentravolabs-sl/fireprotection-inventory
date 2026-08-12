@@ -4,8 +4,7 @@
 // ============================================================
 
 import { requireRole } from "@/lib/session";
-import Link from "next/link";
-import { ArrowLeft, Crown, Database } from "lucide-react";
+import { Crown, Database } from "lucide-react";
 
 export const metadata = {
   title: "Super Admin — CDN Fire Engineering",
@@ -16,40 +15,23 @@ export default async function SuperAdminPage() {
   const user = session.user as { name: string; role?: string };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-gray-100">
-      <nav className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-red-600 transition-colors"
-          >
-            <ArrowLeft size={16} />
-            Dashboard
-          </Link>
-          <span className="text-gray-300">|</span>
-          <div className="flex items-center gap-2">
-            <Crown size={20} className="text-purple-600" />
-            <span className="font-bold text-gray-800">Super Admin Panel</span>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="bg-[#0F1524] rounded-2xl border border-[#1e2a3d] shadow-sm p-8 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-purple-900/30 flex items-center justify-center mx-auto mb-4">
+          <Crown size={28} className="text-purple-400" />
         </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">Super Admin Panel</h1>
-        <p className="text-gray-500 mb-8">
-          Logged in as <strong>{user.name}</strong> ({user.role})
+        <h2 className="text-xl font-bold text-[#dce3ef] mb-1">
+          System Administration
+        </h2>
+        <p className="text-[#5a657a] text-sm mb-1">
+          Logged in as <strong className="text-[#dce3ef]">{user.name}</strong>{" "}
+          <span className="text-[#3d4c62]">({user.role})</span>
         </p>
-
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
-          <Database size={40} className="text-purple-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-700 mb-2">
-            System Administration
-          </h2>
-          <p className="text-gray-400 text-sm">
-            Full system access including user roles, audit logs, and database controls.
-          </p>
-        </div>
-      </main>
+        <p className="text-[#3d4c62] text-sm mt-3 flex items-center justify-center gap-2">
+          <Database size={14} />
+          Full system access including user roles, audit logs, and database controls.
+        </p>
+      </div>
     </div>
   );
 }

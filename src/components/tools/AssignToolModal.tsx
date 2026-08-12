@@ -6,6 +6,8 @@
 // ============================================================
 
 import React, { useState, useEffect, useMemo } from "react";
+import Select from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
 import { Modal } from "@/components/ui/Modal";
 import { FormButton } from "@/components/ui/FormButton";
 import { assignToolsAction, getAvailableToolsAction } from "@/app/actions/tool-assignments";
@@ -142,40 +144,36 @@ export function AssignToolModal({
         {/* Project (readonly) + Engineer */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
               Project
             </label>
-            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 font-medium">
+            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 font-medium">
               {projectName}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
               Assign To Engineer *
             </label>
-            <select
-              value={engineerId}
-              onChange={(e) => setEngineerId(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            >
-              {engineers.length === 0 && (
-                <option value="">No engineers assigned to project</option>
-              )}
-              {engineers.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
+            <Select
+              instanceId="assign-tool-engineer-select"
+              options={engineers.map((e) => ({ value: e.id, label: e.name }))}
+              value={engineers.filter((e) => e.id === engineerId).map((e) => ({ value: e.id, label: e.name }))[0] || null}
+              onChange={(val) => setEngineerId(val ? val.value : "")}
+              placeholder={engineers.length === 0 ? "No engineers assigned to project" : "Search & Select Engineer..."}
+              isSearchable
+              isClearable
+              menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+              styles={getCustomSelectStyles()}
+            />
           </div>
         </div>
 
         {/* Dates + Remarks */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
               Assign Date *
             </label>
             <input
@@ -183,24 +181,24 @@ export function AssignToolModal({
               value={assignDate}
               onChange={(e) => setAssignDate(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
               Expected Return Date
             </label>
             <input
               type="date"
               value={expectedReturn}
               onChange={(e) => setExpectedReturn(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Remarks
           </label>
           <textarea
@@ -209,35 +207,35 @@ export function AssignToolModal({
             rows={2}
             maxLength={500}
             placeholder="Optional remarks..."
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500 resize-none"
+            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900 resize-none placeholder-gray-400 dark:placeholder-gray-500"
           />
         </div>
 
         {/* Available Tools Table */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Available Tools{" "}
               {selectedIds.size > 0 && (
-                <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-bold text-[11px]">
+                <span className="ml-2 px-2 py-0.5 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 rounded-full font-bold text-xs">
                   {selectedIds.size} selected
                 </span>
               )}
             </label>
             {/* Search */}
             <div className="relative w-52">
-              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search tools..."
-                className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500"
+                className="w-full pl-9 pr-3 py-2 text-xs border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:border-red-500"
               />
             </div>
           </div>
 
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
             {fetching ? (
               <div className="p-6 text-center text-sm text-gray-500">
                 <Wrench size={20} className="mx-auto mb-2 animate-pulse text-gray-300" />
@@ -332,7 +330,7 @@ export function AssignToolModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Cancel
           </button>
@@ -341,6 +339,7 @@ export function AssignToolModal({
             loadingText="Assigning..."
             fullWidth={false}
             disabled={selectedIds.size === 0 || engineers.length === 0}
+            className="w-48"
           >
             🔧 Assign {selectedIds.size > 0 ? `${selectedIds.size} Tool${selectedIds.size > 1 ? "s" : ""}` : "Tools"}
           </FormButton>

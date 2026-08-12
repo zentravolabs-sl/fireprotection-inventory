@@ -51,14 +51,14 @@ export async function issueMaterialsFIFOAction(data: {
     });
 
     if (req?.projectId) {
-      revalidatePath(`/dashboard/projects/${req.projectId}`);
+      revalidatePath(`/projects/${req.projectId}`);
     }
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath("/dashboard/material-requests");
-    revalidatePath("/dashboard/project-stock");
-    revalidatePath("/admin/stock-batch");
-    revalidatePath("/admin/stock-movement");
+    revalidatePath("/projects");
+    revalidatePath("/material-requests");
+    revalidatePath("/project-stock");
+    revalidatePath("/stock-batch");
+    revalidatePath("/stock-movement");
 
     return {
       success: true,

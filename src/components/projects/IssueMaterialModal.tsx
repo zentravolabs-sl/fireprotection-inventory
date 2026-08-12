@@ -64,12 +64,12 @@ export function IssueMaterialModal({
           </div>
         )}
 
-        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-md p-3 text-xs text-amber-800 dark:text-amber-300">
+        <div className="bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40 rounded-xl p-3.5 text-xs text-red-800 dark:text-red-300">
           ⚡ <strong>FIFO Stock Selection Rule:</strong> System will automatically pick stock from the oldest received warehouse batches.
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Dispatch Warehouse
           </label>
           <input
@@ -77,7 +77,7 @@ export function IssueMaterialModal({
             value={warehouse}
             onChange={(e) => setWarehouse(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
           />
         </div>
 
@@ -91,14 +91,14 @@ export function IssueMaterialModal({
               return (
                 <div
                   key={idx}
-                  className="p-2.5 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 flex justify-between items-center text-sm"
+                  className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex justify-between items-center text-sm"
                 >
                   <span className="font-medium text-gray-900 dark:text-gray-100">
                     {item.inventoryName}
                   </span>
                   <span className="text-xs text-gray-600 dark:text-gray-400">
                     Approved: {item.qtyApproved} {item.unit} | Issued: {item.qtyIssued} |{" "}
-                    <strong className="text-blue-600 dark:text-blue-400">
+                    <strong className="text-red-600 dark:text-red-400">
                       To Issue: {pending} {item.unit}
                     </strong>
                   </span>
@@ -108,15 +108,17 @@ export function IssueMaterialModal({
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Cancel
           </button>
-          <FormButton loading={loading}>Confirm FIFO Stock Issue</FormButton>
+          <FormButton loading={loading} fullWidth={false} className="w-52">
+            Confirm FIFO Stock Issue
+          </FormButton>
         </div>
       </form>
     </Modal>

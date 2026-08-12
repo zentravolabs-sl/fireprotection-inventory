@@ -174,6 +174,24 @@ const Icons = {
       <path d="M12 14v3m-3-2h6" />
     </svg>
   ),
+  categories: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3h7v7H3z" /><path d="M14 3h7v7h-7z" /><path d="M3 14h7v7H3z" />
+      <path d="M14 17.5h7" /><path d="M17.5 14v7" />
+    </svg>
+  ),
+  subCategories: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="4" rx="1" />
+      <rect x="3" y="10" width="5" height="4" rx="1" />
+      <rect x="3" y="17" width="5" height="4" rx="1" />
+      <line x1="8" y1="12" x2="14" y2="12" />
+      <line x1="8" y1="19" x2="14" y2="19" />
+      <line x1="14" y1="12" x2="14" y2="19" />
+      <rect x="14" y="9" width="7" height="5" rx="1" />
+      <rect x="14" y="16" width="7" height="5" rx="1" />
+    </svg>
+  ),
 };
 
 // ─── Navigation Data ──────────────────────────────────────────────────────────
@@ -182,45 +200,47 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: "PROJECT MANAGEMENT",
     items: [
-      { label: "Projects",          href: "/dashboard/projects",         icon: Icons.projects,         badge: 12 },
-      { label: "Material Requests", href: "/dashboard/material-requests", icon: Icons.materialRequests, badge: 2 },
-      { label: "Project Stock",     href: "/dashboard/project-stock",    icon: Icons.projectStock },
-      { label: "Project Transfers", href: "/dashboard/transfers",        icon: Icons.returns },
+      { label: "Projects",          href: "/projects",          icon: Icons.projects },
+      { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests },
+      { label: "Project Stock",     href: "/project-stock",    icon: Icons.projectStock },
+      { label: "Project Transfers", href: "/transfers",        icon: Icons.returns },
     ],
   },
   {
     title: "WAREHOUSE",
     items: [
-      { label: "Inventory Master",  href: "/admin/inventory",        icon: Icons.inventory },
-      { label: "Stock Receive",     href: "/admin/stock-receive",    icon: Icons.suppliers },
-      { label: "Stock Batches",     href: "/admin/stock-batch",      icon: Icons.projectStock },
-      { label: "Stock Movements",   href: "/admin/stock-movement",   icon: Icons.reports },
-      { label: "Pipe & Cut Pieces", href: "/admin/pipe-cut-pieces",  icon: Icons.pipe },
-      { label: "Expiry Management", href: "/inventory/expiry", icon: Icons.expiry },
+      { label: "Categories",        href: "/categories",       icon: Icons.categories },
+      { label: "Sub-Categories",    href: "/sub-categories",   icon: Icons.subCategories },
+      { label: "Inventory Master",  href: "/inventory",        icon: Icons.inventory },
+      { label: "Stock Receive",     href: "/stock-receive",    icon: Icons.suppliers },
+      { label: "Stock Batches",     href: "/stock-batch",      icon: Icons.projectStock },
+      { label: "Stock Movements",   href: "/stock-movement",   icon: Icons.reports },
+      { label: "Pipe & Cut Pieces", href: "/pipe-cut-pieces",  icon: Icons.pipe },
+      { label: "Expiry Management", href: "/expiry",           icon: Icons.expiry },
     ],
   },
   {
     title: "ASSETS & BUSINESS",
     items: [
-      { label: "Tools",             href: "/admin/tools",            icon: Icons.tools },
-      { label: "Suppliers",         href: "/admin/suppliers",        icon: Icons.suppliers },
-      { label: "Customers",         href: "/admin/customers",        icon: Icons.customers },
-      { label: "Quotations",        href: "/dashboard/quotations",       icon: Icons.quotations },
+      { label: "Tools",             href: "/tools",            icon: Icons.tools },
+      { label: "Suppliers",         href: "/suppliers",        icon: Icons.suppliers },
+      { label: "Customers",         href: "/customers",        icon: Icons.customers },
+      { label: "Quotations",        href: "/quotations",       icon: Icons.quotations },
     ],
   },
   {
     title: "LABOUR",
     items: [
-      { label: "Labour Types",      href: "/admin/labour-types",     icon: Icons.labourTypes },
-      { label: "Labour Master",     href: "/admin/labour",           icon: Icons.labour },
+      { label: "Labour Types",      href: "/labour-types",     icon: Icons.labourTypes },
+      { label: "Labour Master",     href: "/labour",           icon: Icons.labour },
     ],
   },
   {
     title: "MANAGEMENT",
     items: [
-      { label: "Reports",           href: "/dashboard/reports",          icon: Icons.reports },
-      { label: "Users & Roles",     href: "/dashboard/users-roles",      icon: Icons.users },
-      { label: "Audit Log",         href: "/dashboard/audit-log",        icon: Icons.audit },
+      { label: "Reports",           href: "/reports",          icon: Icons.reports },
+      { label: "Users & Roles",     href: "/users-roles",      icon: Icons.users },
+      { label: "Audit Log",         href: "/audit-log",        icon: Icons.audit },
     ],
   },
 ];

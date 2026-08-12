@@ -411,7 +411,7 @@ export function ProjectDeliveryAndIssueNotesTab({
                 const cells = row.querySelectorAll("th, td");
                 cells.forEach((cell, cellIdx) => {
                   const cellEl = cell as HTMLElement;
-                  
+
                   // Add right border to all cells except last column
                   if (cellIdx < cells.length - 1 && !cellEl.getAttribute("colspan")) {
                     cellEl.style.borderRight = "1px solid #1f2937";
@@ -419,7 +419,7 @@ export function ProjectDeliveryAndIssueNotesTab({
 
                   // Force bottom border on cell level
                   cellEl.style.borderBottom = "1px solid #1f2937";
-                  
+
                   // Symmetric padding & centering for html2canvas
                   cellEl.style.paddingTop = "7px";
                   cellEl.style.paddingBottom = "7px";
@@ -816,7 +816,7 @@ export function ProjectDeliveryAndIssueNotesTab({
               <h3 className="font-bold text-xs text-gray-900" style={{ fontWeight: "bold", fontSize: "12px", color: "#111827", margin: "0 0 10px 0" }}>
                 3. Confirmation
               </h3>
-              
+
               {/* Delivered By Table */}
               <div style={{ marginBottom: "12px" }}>
                 <p className="font-semibold text-xs text-gray-900 signature-label" style={{ fontWeight: 700, fontSize: "12px", color: "#111827", margin: "0 0 6px 0", lineHeight: "1.4", display: "block" }}>
