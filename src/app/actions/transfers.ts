@@ -61,9 +61,9 @@ export async function createProjectTransferAction(input: CreateProjectTransferIn
 
     const transfer = await createProjectTransferService(parsed.data, actorId);
 
-    revalidatePath("/dashboard/transfers");
-    revalidatePath(`/dashboard/projects/${parsed.data.fromProjectId}`);
-    revalidatePath(`/dashboard/projects/${parsed.data.toProjectId}`);
+    revalidatePath("/transfers");
+    revalidatePath(`/projects/${parsed.data.fromProjectId}`);
+    revalidatePath(`/projects/${parsed.data.toProjectId}`);
 
     return {
       success: true,
@@ -83,10 +83,10 @@ export async function submitProjectTransferAction(transferId: number) {
     const actorId = await getActorId();
     const transfer = await submitProjectTransferService(transferId, actorId);
 
-    revalidatePath("/dashboard/transfers");
-    revalidatePath(`/dashboard/transfers/${transferId}`);
-    revalidatePath(`/dashboard/projects/${transfer.fromProjectId}`);
-    revalidatePath(`/dashboard/projects/${transfer.toProjectId}`);
+    revalidatePath("/transfers");
+    revalidatePath(`/transfers/${transferId}`);
+    revalidatePath(`/projects/${transfer.fromProjectId}`);
+    revalidatePath(`/projects/${transfer.toProjectId}`);
 
     return {
       success: true,
@@ -106,10 +106,10 @@ export async function approveProjectTransferAction(transferId: number) {
     const actorId = await getActorId();
     const transfer = await approveProjectTransferService(transferId, actorId);
 
-    revalidatePath("/dashboard/transfers");
-    revalidatePath(`/dashboard/transfers/${transferId}`);
-    revalidatePath(`/dashboard/projects/${transfer.fromProjectId}`);
-    revalidatePath(`/dashboard/projects/${transfer.toProjectId}`);
+    revalidatePath("/transfers");
+    revalidatePath(`/transfers/${transferId}`);
+    revalidatePath(`/projects/${transfer.fromProjectId}`);
+    revalidatePath(`/projects/${transfer.toProjectId}`);
 
     return {
       success: true,
@@ -129,12 +129,12 @@ export async function completeProjectTransferAction(transferId: number) {
     const actorId = await getActorId();
     const transfer = await completeProjectTransferService(transferId, actorId);
 
-    revalidatePath("/dashboard/transfers");
-    revalidatePath(`/dashboard/transfers/${transferId}`);
-    revalidatePath(`/dashboard/projects/${transfer.fromProjectId}`);
-    revalidatePath(`/dashboard/projects/${transfer.toProjectId}`);
-    revalidatePath("/admin/stock-movement");
-    revalidatePath("/dashboard/reports");
+    revalidatePath("/transfers");
+    revalidatePath(`/transfers/${transferId}`);
+    revalidatePath(`/projects/${transfer.fromProjectId}`);
+    revalidatePath(`/projects/${transfer.toProjectId}`);
+    revalidatePath("/stock-movement");
+    revalidatePath("/reports");
 
     return {
       success: true,
@@ -154,10 +154,10 @@ export async function cancelProjectTransferAction(transferId: number) {
     const actorId = await getActorId();
     const transfer = await cancelProjectTransferService(transferId, actorId);
 
-    revalidatePath("/dashboard/transfers");
-    revalidatePath(`/dashboard/transfers/${transferId}`);
-    revalidatePath(`/dashboard/projects/${transfer.fromProjectId}`);
-    revalidatePath(`/dashboard/projects/${transfer.toProjectId}`);
+    revalidatePath("/transfers");
+    revalidatePath(`/transfers/${transferId}`);
+    revalidatePath(`/projects/${transfer.fromProjectId}`);
+    revalidatePath(`/projects/${transfer.toProjectId}`);
 
     return {
       success: true,

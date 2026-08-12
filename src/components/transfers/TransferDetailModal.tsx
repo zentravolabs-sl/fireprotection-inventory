@@ -271,25 +271,25 @@ export function TransferDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-300 bg-gray-800 hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Close
           </button>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
             {transfer.status === "DRAFT" && (
               <>
                 <button
                   disabled={loading}
                   onClick={() => handleAction(submitProjectTransferAction)}
-                  className="px-4 py-2 rounded-lg font-semibold bg-amber-600 hover:bg-amber-700 text-white transition-colors disabled:opacity-50"
+                  className="py-3 px-5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg shadow-red-500/25 rounded-xl transition-all duration-200 disabled:opacity-60"
                 >
                   Submit for Approval
                 </button>
                 <button
                   disabled={loading}
                   onClick={() => handleAction(cancelProjectTransferAction)}
-                  className="px-4 py-2 rounded-lg font-semibold bg-red-950 text-red-300 border border-red-800 hover:bg-red-900 transition-colors disabled:opacity-50"
+                  className="py-3 px-5 text-sm font-semibold text-red-300 bg-red-950/60 hover:bg-red-900 border border-red-800 rounded-xl transition-all duration-200 disabled:opacity-60"
                 >
                   Cancel Transfer
                 </button>
@@ -301,14 +301,14 @@ export function TransferDetailModal({
                 <button
                   disabled={loading}
                   onClick={() => handleAction(approveProjectTransferAction)}
-                  className="px-4 py-2 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+                  className="py-3 px-5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg shadow-red-500/25 rounded-xl transition-all duration-200 disabled:opacity-60"
                 >
                   Approve Transfer
                 </button>
                 <button
                   disabled={loading}
                   onClick={() => handleAction(cancelProjectTransferAction)}
-                  className="px-4 py-2 rounded-lg font-semibold bg-red-950 text-red-300 border border-red-800 hover:bg-red-900 transition-colors disabled:opacity-50"
+                  className="py-3 px-5 text-sm font-semibold text-red-300 bg-red-950/60 hover:bg-red-900 border border-red-800 rounded-xl transition-all duration-200 disabled:opacity-60"
                 >
                   Cancel Transfer
                 </button>
@@ -320,14 +320,14 @@ export function TransferDetailModal({
                 <button
                   disabled={loading}
                   onClick={() => handleAction(completeProjectTransferAction)}
-                  className="px-5 py-2 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors disabled:opacity-50"
+                  className="py-3 px-5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg shadow-red-500/25 rounded-xl transition-all duration-200 disabled:opacity-60"
                 >
                   ✓ Complete Transfer & Update Stock
                 </button>
                 <button
                   disabled={loading}
                   onClick={() => handleAction(cancelProjectTransferAction)}
-                  className="px-4 py-2 rounded-lg font-semibold bg-red-950 text-red-300 border border-red-800 hover:bg-red-900 transition-colors disabled:opacity-50"
+                  className="py-3 px-5 text-sm font-semibold text-red-300 bg-red-950/60 hover:bg-red-900 border border-red-800 rounded-xl transition-all duration-200 disabled:opacity-60"
                 >
                   Cancel Transfer
                 </button>
@@ -335,13 +335,13 @@ export function TransferDetailModal({
             )}
 
             {transfer.status === "COMPLETED" && (
-              <span className="px-3 py-1.5 rounded-lg font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+              <span className="px-4 py-2.5 rounded-xl font-bold bg-emerald-950 text-emerald-300 border border-emerald-800 text-xs">
                 ✓ Transfer Completed & Locked
               </span>
             )}
 
             {transfer.status === "CANCELLED" && (
-              <span className="px-3 py-1.5 rounded-lg font-bold bg-red-950 text-red-300 border border-red-800">
+              <span className="px-4 py-2.5 rounded-xl font-bold bg-red-950 text-red-300 border border-red-800 text-xs">
                 ✕ Transfer Cancelled
               </span>
             )}

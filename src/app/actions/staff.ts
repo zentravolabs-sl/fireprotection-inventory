@@ -39,7 +39,7 @@ export async function assignProjectStaffAction(data: {
     }
 
     const result = await assignProjectStaffService(parsed.data);
-    revalidatePath(`/dashboard/projects/${data.projectId}`);
+    revalidatePath(`/projects/${data.projectId}`);
     return {
       success: true,
       message: `Staff member assigned to project as ${result.role}.`,
@@ -57,7 +57,7 @@ export async function setLeadEngineerStaffAction(projectStaffId: number, project
     await requireAnyRole(["SUPER_ADMIN", "ADMIN", "PROJECT_MANAGER"]);
 
     const result = await setLeadEngineerStaffService(projectId, projectStaffId);
-    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}`);
     return {
       success: true,
       message: `${result.user.name} designated as Lead Engineer.`,
@@ -86,7 +86,7 @@ export async function updateProjectStaffAction(data: {
     }
 
     const result = await updateProjectStaffService(parsed.data);
-    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}`);
     return {
       success: true,
       message: "Staff financial costs updated successfully.",
@@ -112,7 +112,7 @@ export async function releaseProjectStaffAction(data: {
     }
 
     const result = await releaseProjectStaffService(parsed.data);
-    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}`);
     return {
       success: true,
       message: `Staff member released from project.`,

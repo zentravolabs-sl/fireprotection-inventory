@@ -6,6 +6,8 @@
 // ============================================================
 
 import React, { useState, useEffect } from "react";
+import Select from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
 import {
   createProjectTransferAction,
   getAvailableStockAction,
@@ -338,47 +340,44 @@ export function CreateTransferModal({
           {/* Project Header Selection */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-950/60 border border-gray-800/80 rounded-xl">
             <div>
-              <label className="block text-gray-300 font-semibold mb-1">
-                FROM PROJECT (Source) <span className="text-red-400">*</span>
+              <label className="block text-sm font-semibold text-gray-300 mb-1.5">
+                FROM PROJECT (Source) *
               </label>
-              <select
-                value={fromProjectId}
-                onChange={(e) => setFromProjectId(Number(e.target.value))}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-red-500 font-medium"
-              >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.projectCode} — {p.projectName}
-                  </option>
-                ))}
-              </select>
+              <Select
+                instanceId="transfer-from-project-select"
+                options={projects.map((p) => ({ value: p.id, label: `${p.projectCode} — ${p.projectName}` }))}
+                value={projects.filter((p) => p.id === fromProjectId).map((p) => ({ value: p.id, label: `${p.projectCode} — ${p.projectName}` }))[0] || null}
+                onChange={(val) => setFromProjectId(val ? val.value : 0)}
+                isSearchable
+                menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+                styles={getCustomSelectStyles()}
+              />
             </div>
 
             <div>
-              <label className="block text-gray-300 font-semibold mb-1">
-                TO PROJECT (Destination) <span className="text-red-400">*</span>
+              <label className="block text-sm font-semibold text-gray-300 mb-1.5">
+                TO PROJECT (Destination) *
               </label>
-              <select
-                value={toProjectId}
-                onChange={(e) => setToProjectId(Number(e.target.value))}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-red-500 font-medium"
-              >
-                <option value={0}>-- Select Destination Project --</option>
-                {availableDestinationProjects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.projectCode} — {p.projectName}
-                  </option>
-                ))}
-              </select>
+              <Select
+                instanceId="transfer-to-project-select"
+                options={availableDestinationProjects.map((p) => ({ value: p.id, label: `${p.projectCode} — ${p.projectName}` }))}
+                value={availableDestinationProjects.filter((p) => p.id === toProjectId).map((p) => ({ value: p.id, label: `${p.projectCode} — ${p.projectName}` }))[0] || null}
+                onChange={(val) => setToProjectId(val ? val.value : 0)}
+                placeholder="-- Select Destination Project --"
+                isSearchable
+                isClearable
+                menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+                styles={getCustomSelectStyles()}
+              />
             </div>
 
             <div>
-              <label className="block text-gray-300 font-semibold mb-1">Transfer Date</label>
+              <label className="block text-sm font-semibold text-gray-300 mb-1.5">Transfer Date</label>
               <input
                 type="date"
                 value={transferDate}
                 onChange={(e) => setTransferDate(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-red-500"
+                className="w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-900 text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-900"
               />
             </div>
           </div>
@@ -433,21 +432,27 @@ export function CreateTransferModal({
                 <>
                   <div className="md:col-span-2">
                     <label className="block text-gray-400 mb-1">Select Material Item</label>
-                    <select
-                      value={selectedMaterialKey}
-                      onChange={(e) => setSelectedMaterialKey(e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100"
-                    >
-                      <option value="">-- Choose Material --</option>
-                      {availableStock.materials.map((m) => (
-                        <option
-                          key={`${m.inventoryId}_${m.stockBatchId}`}
-                          value={`${m.inventoryId}_${m.stockBatchId}`}
-                        >
-                          {m.name} [{m.itemCode}] — Avail: {m.availableQty} {m.unit} ({m.batchNo})
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      instanceId="transfer-material-select"
+                      options={availableStock.materials.map((m) => ({
+                        value: `${m.inventoryId}_${m.stockBatchId}`,
+                        label: `${m.name} [${m.itemCode}] — Avail: ${m.availableQty} ${m.unit} (${m.batchNo})`,
+                      }))}
+                      value={
+                        availableStock.materials
+                          .filter((m) => `${m.inventoryId}_${m.stockBatchId}` === selectedMaterialKey)
+                          .map((m) => ({
+                            value: `${m.inventoryId}_${m.stockBatchId}`,
+                            label: `${m.name} [${m.itemCode}] — Avail: ${m.availableQty} ${m.unit} (${m.batchNo})`,
+                          }))[0] || null
+                      }
+                      onChange={(val) => setSelectedMaterialKey(val ? val.value : "")}
+                      placeholder="-- Choose Material --"
+                      isSearchable
+                      isClearable
+                      menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+                      styles={getCustomSelectStyles()}
+                    />
                   </div>
 
                   <div>
@@ -467,36 +472,54 @@ export function CreateTransferModal({
               {selectedType === "PIPE_CUT" && (
                 <div className="md:col-span-3">
                   <label className="block text-gray-400 mb-1">Select Pipe Cut Piece</label>
-                  <select
-                    value={selectedPipeKey}
-                    onChange={(e) => setSelectedPipeKey(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100"
-                  >
-                    <option value="">-- Choose Pipe Cut Piece --</option>
-                    {availableStock.pipeCutPieces.map((pc) => (
-                      <option key={pc.id} value={pc.id}>
-                        {pc.name} — Length: {pc.pieceLength} {pc.unit} ({pc.barcode || `#${pc.id}`})
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    instanceId="transfer-pipecut-select"
+                    options={availableStock.pipeCutPieces.map((pc) => ({
+                      value: String(pc.id),
+                      label: `${pc.name} — Length: ${pc.pieceLength} ${pc.unit} (${pc.barcode || `#${pc.id}`})`,
+                    }))}
+                    value={
+                      availableStock.pipeCutPieces
+                        .filter((pc) => String(pc.id) === selectedPipeKey)
+                        .map((pc) => ({
+                          value: String(pc.id),
+                          label: `${pc.name} — Length: ${pc.pieceLength} ${pc.unit} (${pc.barcode || `#${pc.id}`})`,
+                        }))[0] || null
+                    }
+                    onChange={(val) => setSelectedPipeKey(val ? val.value : "")}
+                    placeholder="-- Choose Pipe Cut Piece --"
+                    isSearchable
+                    isClearable
+                    menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+                    styles={getCustomSelectStyles()}
+                  />
                 </div>
               )}
 
               {selectedType === "TOOL" && (
                 <div className="md:col-span-3">
                   <label className="block text-gray-400 mb-1">Select Assigned Tool</label>
-                  <select
-                    value={selectedToolKey}
-                    onChange={(e) => setSelectedToolKey(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100"
-                  >
-                    <option value="">-- Choose Tool --</option>
-                    {availableStock.tools.map((t) => (
-                      <option key={t.toolId} value={t.toolId}>
-                        {t.name} [{t.toolCode}] (S/N: {t.serialNo || "N/A"}) — {t.condition}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    instanceId="transfer-tool-select"
+                    options={availableStock.tools.map((t) => ({
+                      value: String(t.toolId),
+                      label: `${t.name} [${t.toolCode}] (S/N: ${t.serialNo || "N/A"}) — ${t.condition}`,
+                    }))}
+                    value={
+                      availableStock.tools
+                        .filter((t) => String(t.toolId) === selectedToolKey)
+                        .map((t) => ({
+                          value: String(t.toolId),
+                          label: `${t.name} [${t.toolCode}] (S/N: ${t.serialNo || "N/A"}) — ${t.condition}`,
+                        }))[0] || null
+                    }
+                    onChange={(val) => setSelectedToolKey(val ? val.value : "")}
+                    placeholder="-- Choose Tool --"
+                    isSearchable
+                    isClearable
+                    menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+                    styles={getCustomSelectStyles()}
+                  />
                 </div>
               )}
 
@@ -594,13 +617,13 @@ export function CreateTransferModal({
           </div>
 
           <div>
-            <label className="block text-gray-300 font-semibold mb-1">Transfer Remarks / Notes</label>
+            <label className="block text-sm font-semibold text-gray-300 mb-1.5">Transfer Remarks / Notes</label>
             <textarea
               rows={2}
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Provide reason or context for this project transfer..."
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-red-500"
+              className="w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-900 text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-900 resize-none placeholder-gray-500"
             />
           </div>
         </div>
@@ -610,7 +633,7 @@ export function CreateTransferModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-300 bg-gray-800 hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Cancel
           </button>
@@ -620,7 +643,7 @@ export function CreateTransferModal({
               type="button"
               disabled={loading}
               onClick={() => handleSubmit(false)}
-              className="px-5 py-2 rounded-lg font-semibold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors disabled:opacity-50"
+              className="w-48 py-3 px-5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg shadow-red-500/25 rounded-xl transition-all duration-200 disabled:opacity-60"
             >
               {loading ? "Saving..." : "Save Draft Transfer"}
             </button>

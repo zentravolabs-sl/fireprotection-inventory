@@ -6,6 +6,8 @@
 // ============================================================
 
 import React, { useState } from "react";
+import Select from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
 import { Modal } from "@/components/ui/Modal";
 import { FormButton } from "@/components/ui/FormButton";
 import { assignEngineerAction } from "@/app/actions/projects";
@@ -31,14 +33,20 @@ export function AssignEngineerModal({
 }: AssignEngineerModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedEngineerId, setSelectedEngineerId] = useState<string>("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!selectedEngineerId) {
+      setError("Please select an engineer.");
+      return;
+    }
     setLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
     formData.set("projectId", projectId.toString());
+    formData.set("engineerId", selectedEngineerId);
 
     const res = await assignEngineerAction(formData);
 
@@ -61,24 +69,23 @@ export function AssignEngineerModal({
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Select Engineer *
           </label>
-          <select
-            name="engineerId"
-            required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
-          >
-            <option value="">Choose an active engineer...</option>
-            {engineers.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.role})
-              </option>
-            ))}
-          </select>
+          <Select
+            instanceId="assign-engineer-select"
+            options={engineers.map((u) => ({ value: u.id, label: `${u.name} (${u.role})` }))}
+            value={engineers.filter((u) => u.id === selectedEngineerId).map((u) => ({ value: u.id, label: `${u.name} (${u.role})` }))[0] || null}
+            onChange={(val) => setSelectedEngineerId(val ? val.value : "")}
+            placeholder="Choose an active engineer..."
+            isSearchable
+            isClearable
+            menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+            styles={getCustomSelectStyles()}
+          />
         </div>
 
-        <div className="flex items-center space-x-2 pt-2">
+        <div className="flex items-center space-x-2.5 pt-2">
           <input
             type="checkbox"
             id="isLead"
@@ -86,20 +93,22 @@ export function AssignEngineerModal({
             value="true"
             className="rounded border-gray-300 text-red-600 focus:ring-red-500 h-4 w-4"
           />
-          <label htmlFor="isLead" className="text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer">
+          <label htmlFor="isLead" className="text-sm font-semibold text-gray-800 dark:text-gray-200 cursor-pointer">
             Designate as Lead Engineer ⭐
           </label>
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Cancel
           </button>
-          <FormButton loading={loading}>Assign Engineer</FormButton>
+          <FormButton loading={loading} fullWidth={false} className="w-40">
+            Assign Engineer
+          </FormButton>
         </div>
       </form>
     </Modal>

@@ -152,7 +152,7 @@ export default function UserForm({ mode, defaultValues, actorRole }: UserFormPro
     if (!state?.message) return;
     if (state.success) {
       toast.success(state.message);
-      router.push("/dashboard/users-roles");
+      router.push("/users-roles");
     } else if (state.message && !state.errors) {
       toast.error(state.message);
     }

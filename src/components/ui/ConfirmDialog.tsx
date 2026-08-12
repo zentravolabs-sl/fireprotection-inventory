@@ -50,12 +50,12 @@ export default function ConfirmDialog({
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50"
+            className="w-32 py-3 px-5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 text-center disabled:opacity-50"
           >
             {cancelText}
           </button>
@@ -65,9 +65,7 @@ export default function ConfirmDialog({
               await onConfirm();
             }}
             disabled={isLoading}
-            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-xl transition-colors shadow-sm disabled:opacity-60 ${
-              isDanger ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className={`w-32 py-3 px-5 inline-flex items-center justify-center gap-2 text-sm font-semibold text-white rounded-xl transition-all duration-200 bg-red-600 hover:bg-red-700 active:bg-red-800 focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg shadow-red-500/25 disabled:opacity-60`}
           >
             {isLoading && <Loader2 size={14} className="animate-spin" />}
             {confirmText}

@@ -86,14 +86,14 @@ export function ApproveRequestModal({
         )}
 
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Review Item Quantities *
           </label>
 
           {items.map((item) => (
             <div
               key={item.id}
-              className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4"
+              className="p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4"
             >
               <div>
                 <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
@@ -108,7 +108,7 @@ export function ApproveRequestModal({
               </div>
 
               <div className="w-32">
-                <label className="block text-xs text-gray-500 mb-1">Qty Approved</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Qty Approved</label>
                 <input
                   type="number"
                   min="0"
@@ -117,7 +117,7 @@ export function ApproveRequestModal({
                   value={approvedQtys[item.id] ?? item.qtyRequested}
                   onChange={(e) => handleQtyChange(item.id, Number(e.target.value))}
                   required
-                  className="w-full px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
                 />
               </div>
             </div>
@@ -125,27 +125,29 @@ export function ApproveRequestModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Approval Remarks / Notes
           </label>
           <textarea
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900 resize-none placeholder-gray-400 dark:placeholder-gray-500"
             placeholder="Approval comments or conditions..."
           />
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Cancel
           </button>
-          <FormButton loading={loading}>Save Approval</FormButton>
+          <FormButton loading={loading} fullWidth={false} className="w-40">
+            Save Approval
+          </FormButton>
         </div>
       </form>
     </Modal>

@@ -7,7 +7,7 @@
 
 import React, { useEffect, useState } from "react";
 import { X, Calendar, Package, DollarSign, Clock, ShieldAlert, ArrowDownRight, ArrowUpRight, RefreshCw, FileText } from "lucide-react";
-import { getBatchExpiryDetailsAction } from "@/app/(Main)/inventory/expiry/actions";
+import { getBatchExpiryDetailsAction } from "@/app/(Main)/expiry/actions";
 
 interface BatchDetailsModalProps {
   batchId: number | null;
@@ -275,10 +275,10 @@ export default function BatchDetailsModal({ batchId, onClose }: BatchDetailsModa
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-3.5 bg-gray-50 border-t border-gray-100 flex items-center justify-end">
+        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-xl transition-colors shadow-sm"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Close
           </button>

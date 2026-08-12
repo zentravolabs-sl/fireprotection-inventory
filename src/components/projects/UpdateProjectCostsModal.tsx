@@ -75,7 +75,7 @@ export function UpdateProjectCostsModal({
         )}
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Project Value (LKR) — Customer Price *
           </label>
           <input
@@ -86,7 +86,7 @@ export function UpdateProjectCostsModal({
             value={projVal}
             onChange={(e) => setProjVal(Number(e.target.value))}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm font-bold focus:ring-2 focus:ring-red-500"
+            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-bold outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
           />
         </div>
 
@@ -94,7 +94,7 @@ export function UpdateProjectCostsModal({
           <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Estimated Cost Breakdown</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                 Est. Material Cost
               </label>
               <input
@@ -104,12 +104,12 @@ export function UpdateProjectCostsModal({
                 name="estimatedMaterialCost"
                 value={estMat}
                 onChange={(e) => setEstMat(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                 Est. Labour Cost
               </label>
               <input
@@ -119,12 +119,12 @@ export function UpdateProjectCostsModal({
                 name="estimatedLabourCost"
                 value={estLab}
                 onChange={(e) => setEstLab(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                 Est. Transport Cost
               </label>
               <input
@@ -134,12 +134,12 @@ export function UpdateProjectCostsModal({
                 name="estimatedTransportCost"
                 value={estTrn}
                 onChange={(e) => setEstTrn(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                 Est. Equipment Cost
               </label>
               <input
@@ -149,12 +149,12 @@ export function UpdateProjectCostsModal({
                 name="estimatedEquipmentCost"
                 value={estEqp}
                 onChange={(e) => setEstEqp(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                 Est. Other Cost
               </label>
               <input
@@ -164,30 +164,32 @@ export function UpdateProjectCostsModal({
                 name="estimatedOtherCost"
                 value={estOth}
                 onChange={(e) => setEstOth(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
               />
             </div>
 
-            <div className="bg-emerald-50 dark:bg-emerald-950/40 p-3 rounded-lg border border-emerald-200 dark:border-emerald-900 flex flex-col justify-center">
-              <span className="text-xs text-emerald-700 dark:text-emerald-300 font-medium uppercase tracking-wider">
+            <div className="bg-red-50/50 dark:bg-red-950/20 p-3 rounded-xl border border-red-100 dark:border-red-900/40 flex flex-col justify-center">
+              <span className="text-xs text-red-700 dark:text-red-300 font-medium uppercase tracking-wider">
                 Est. Profit & Margin
               </span>
-              <span className={`text-base font-bold ${calculatedEstimatedProfit >= 0 ? "text-emerald-900 dark:text-emerald-100" : "text-red-600"}`}>
+              <span className={`text-base font-bold ${calculatedEstimatedProfit >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600"}`}>
                 LKR {calculatedEstimatedProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })} ({calculatedProfitMargin.toFixed(1)}%)
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800"
+            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
           >
             Cancel
           </button>
-          <FormButton loading={loading}>Save Financial Budget</FormButton>
+          <FormButton loading={loading} fullWidth={false} className="w-48">
+            Save Financial Budget
+          </FormButton>
         </div>
       </form>
     </Modal>

@@ -334,7 +334,7 @@ export async function createUser(
       isActive,
     });
 
-    revalidatePath("/dashboard/users-roles");
+    revalidatePath("/users-roles");
     return { success: true, message: `User ${name} created successfully.` };
   });
 }
@@ -480,8 +480,8 @@ export async function updateUser(
       },
     });
 
-    revalidatePath("/dashboard/users-roles");
-    revalidatePath(`/dashboard/users-roles/${id}`);
+    revalidatePath("/users-roles");
+    revalidatePath(`/users-roles/${id}`);
     return { success: true, message: "User updated successfully." };
   });
 }
@@ -551,8 +551,8 @@ export async function changeUserRole(
       newRole,
     });
 
-    revalidatePath("/dashboard/users-roles");
-    revalidatePath(`/dashboard/users-roles/${userId}`);
+    revalidatePath("/users-roles");
+    revalidatePath(`/users-roles/${userId}`);
     return {
       success: true,
       message: `${target.name}'s role changed to ${newRole}.`,
@@ -581,8 +581,8 @@ export async function activateUser(userId: string): Promise<ActionState> {
     });
     await logAuditEvent("USER_ACTIVATED", actor.id, { targetUserId: userId });
 
-    revalidatePath("/dashboard/users-roles");
-    revalidatePath(`/dashboard/users-roles/${userId}`);
+    revalidatePath("/users-roles");
+    revalidatePath(`/users-roles/${userId}`);
     return { success: true, message: `${target.name} has been activated.` };
   });
 }
@@ -618,8 +618,8 @@ export async function deactivateUser(userId: string): Promise<ActionState> {
       targetUserId: userId,
     });
 
-    revalidatePath("/dashboard/users-roles");
-    revalidatePath(`/dashboard/users-roles/${userId}`);
+    revalidatePath("/users-roles");
+    revalidatePath(`/users-roles/${userId}`);
     return {
       success: true,
       message: `${target.name} has been deactivated.`,

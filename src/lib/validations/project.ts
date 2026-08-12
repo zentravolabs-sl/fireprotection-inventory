@@ -5,23 +5,59 @@
 
 import { z } from "zod";
 
-export const createProjectSchema = z.object({
-  projectName: z.string().min(2, "Project name must be at least 2 characters"),
-  customerId: z.number({ message: "Customer is required" }).int().positive(),
+export const baseProjectSchema = z.object({
+  projectName: z
+    .string()
+    .min(2, "Project name must be at least 2 characters")
+    .trim(),
+  customerId: z.coerce
+    .number({ message: "Customer is required" })
+    .int()
+    .positive("Customer is required"),
   projectManagerId: z.string().min(1, "Project Manager is required"),
   location: z.string().optional().nullable(),
   startDate: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
-  projectValue: z.number().min(0, "Project Value cannot be negative").default(0),
-  estimatedMaterialCost: z.number().min(0).default(0),
-  estimatedLabourCost: z.number().min(0).default(0),
-  estimatedTransportCost: z.number().min(0).default(0),
-  estimatedEquipmentCost: z.number().min(0).default(0),
-  estimatedOtherCost: z.number().min(0).default(0),
+  projectValue: z.coerce
+    .number({ message: "Project Value is required" })
+    .min(0, "Project Value cannot be negative"),
+  estimatedMaterialCost: z.coerce
+    .number()
+    .min(0, "Estimated cost cannot be negative")
+    .default(0),
+  estimatedLabourCost: z.coerce
+    .number()
+    .min(0, "Estimated cost cannot be negative")
+    .default(0),
+  estimatedTransportCost: z.coerce
+    .number()
+    .min(0, "Estimated cost cannot be negative")
+    .default(0),
+  estimatedEquipmentCost: z.coerce
+    .number()
+    .min(0, "Estimated cost cannot be negative")
+    .default(0),
+  estimatedOtherCost: z.coerce
+    .number()
+    .min(0, "Estimated cost cannot be negative")
+    .default(0),
 });
 
-export const updateProjectSchema = createProjectSchema.partial().extend({
+export const createProjectSchema = baseProjectSchema.refine(
+  (data) => {
+    if (data.startDate && data.endDate) {
+      return new Date(data.endDate) >= new Date(data.startDate);
+    }
+    return true;
+  },
+  {
+    message: "End date cannot be earlier than start date",
+    path: ["endDate"],
+  }
+);
+
+export const updateProjectSchema = baseProjectSchema.partial().extend({
   id: z.number().int().positive(),
   status: z
     .enum([
@@ -124,7 +160,8 @@ export const returnMaterialsSchema = z.object({
   items: z.array(returnMaterialItemSchema).min(1, "At least one item to return"),
 });
 
-export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+export type CreateProjectInput = z.output<typeof createProjectSchema>;
+export type CreateProjectFormValues = z.input<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 export type UpdateProjectCostsInput = z.infer<typeof updateProjectCostsSchema>;
 export type AssignEngineerInput = z.infer<typeof assignEngineerSchema>;

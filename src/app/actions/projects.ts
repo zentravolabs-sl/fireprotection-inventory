@@ -74,7 +74,7 @@ export async function createProjectAction(formData: FormData) {
 
     const project = await createProjectService(parsed.data, actorId);
 
-    revalidatePath("/dashboard/projects");
+    revalidatePath("/projects");
     return {
       success: true,
       message: `Project ${project.projectCode} created successfully!`,
@@ -108,8 +108,8 @@ export async function assignEngineerAction(formData: FormData) {
 
     const assignment = await assignEngineerService(parsed.data, actorId);
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${parsed.data.projectId}`);
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${parsed.data.projectId}`);
     return {
       success: true,
       message: "Engineer assigned successfully!",
@@ -128,8 +128,8 @@ export const assignStaffAction = assignEngineerAction;
 export async function removeEngineerAction(projectId: number, engineerId: string) {
   try {
     await removeEngineerService(projectId, engineerId);
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${projectId}`);
     return {
       success: true,
       message: "Engineer removed from project successfully.",
@@ -145,8 +145,8 @@ export async function removeEngineerAction(projectId: number, engineerId: string
 export async function setLeadEngineerAction(projectId: number, engineerId: string) {
   try {
     await setLeadEngineerService(projectId, engineerId);
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${projectId}`);
     return {
       success: true,
       message: "Lead engineer updated successfully.",
@@ -181,8 +181,8 @@ export async function updateProjectCostsAction(formData: FormData) {
 
     const updated = await updateProjectCostsService(parsed.data);
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${parsed.data.projectId}`);
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${parsed.data.projectId}`);
     return {
       success: true,
       message: "Project estimated costs updated successfully!",
@@ -199,8 +199,8 @@ export async function updateProjectCostsAction(formData: FormData) {
 export async function updateProjectStatusAction(projectId: number, status: ProjectStatus) {
   try {
     const updated = await updateProjectStatusService(projectId, status);
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${projectId}`);
     return {
       success: true,
       message: `Project status updated to ${status}.`,
@@ -219,8 +219,8 @@ export async function completeProjectAction(projectId: number) {
     const actorId = await getActorId();
     const updated = await completeProjectService(projectId, actorId);
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${projectId}`);
     return {
       success: true,
       message: `Project ${updated.projectCode} completed successfully!`,
@@ -260,7 +260,7 @@ export async function deleteProjectAction(projectId: number) {
 
     await deleteProject(projectId);
 
-    revalidatePath("/dashboard/projects");
+    revalidatePath("/projects");
     return {
       success: true,
       message: `Project ${project.projectCode} deleted successfully.`,

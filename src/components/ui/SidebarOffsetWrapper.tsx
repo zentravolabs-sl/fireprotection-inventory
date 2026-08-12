@@ -20,6 +20,7 @@ export function SidebarOffsetWrapper({
   return (
     <main
       className={`sidebar-offset ${collapsed ? "sidebar-offset--collapsed" : ""}`}
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
     >
       {children}
     </main>

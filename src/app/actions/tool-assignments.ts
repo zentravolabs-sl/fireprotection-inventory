@@ -60,8 +60,8 @@ export async function assignToolsAction(formData: FormData) {
 
     const assignment = await createToolAssignment(parsed.data, actorId);
 
-    revalidatePath(`/dashboard/projects/${parsed.data.projectId}`);
-    revalidatePath("/admin/tools");
+    revalidatePath(`/projects/${parsed.data.projectId}`);
+    revalidatePath("/tools");
 
     return {
       success: true,
@@ -98,8 +98,8 @@ export async function returnToolItemAction(formData: FormData) {
     const result = await returnToolItem(parsed.data, actorId);
 
     // Revalidate both the project page and tools list
-    revalidatePath("/dashboard/projects/[id]", "page");
-    revalidatePath("/admin/tools");
+    revalidatePath("/projects/[id]", "page");
+    revalidatePath("/tools");
 
     return {
       success: true,

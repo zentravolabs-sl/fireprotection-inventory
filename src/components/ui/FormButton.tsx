@@ -29,7 +29,7 @@ export default function FormButton({
   const isDisabled = disabled || loading;
 
   const baseClasses =
-    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-sm transition-all duration-200 py-3 px-6 focus:outline-none focus:ring-2 focus:ring-offset-1 select-none";
+    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-sm transition-all duration-200 py-3 px-6 focus:outline-none focus:ring-2 focus:ring-offset-1 select-none whitespace-nowrap";
 
   const variantClasses = {
     primary:

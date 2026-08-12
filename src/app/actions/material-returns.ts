@@ -42,11 +42,11 @@ export async function returnMaterialsAction(data: ReturnMaterialsInput) {
 
     const returnHeader = await returnMaterialsService(parsed.data, actorId);
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${data.projectId}`);
-    revalidatePath("/dashboard/project-stock");
-    revalidatePath("/admin/stock-batch");
-    revalidatePath("/admin/stock-movement");
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${data.projectId}`);
+    revalidatePath("/project-stock");
+    revalidatePath("/stock-batch");
+    revalidatePath("/stock-movement");
 
     return {
       success: true,

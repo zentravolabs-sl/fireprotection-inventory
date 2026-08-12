@@ -68,8 +68,8 @@ export async function createExpenseAction(formData: FormData) {
       createdBy: actorId,
     });
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${parsed.data.projectId}`);
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${parsed.data.projectId}`);
     return {
       success: true,
       message: `Expense ${expense.expenseNo} logged successfully! Project actual cost updated.`,

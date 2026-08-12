@@ -35,3 +35,111 @@ select option {
 .dark textarea {
   color-scheme: dark;
 }
+
+/* Base interactive elements cursor behavior */
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* React Datepicker Custom Red Theme & Portal Styles */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.react-datepicker {
+  font-family: inherit !important;
+  border-color: #374151 !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  overflow: hidden;
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+.react-datepicker__header {
+  background-color: #111827 !important;
+  border-bottom-color: #374151 !important;
+  border-top-left-radius: 0.75rem !important;
+  border-top-right-radius: 0.75rem !important;
+  padding-top: 10px !important;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__current-month,
+.react-datepicker__day {
+  color: #f3f4f6 !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border-radius: 0.5rem !important;
+}
+
+.react-datepicker__day:hover {
+  border-radius: 0.5rem !important;
+  background-color: #7f1d1d !important;
+  color: #ffffff !important;
+}
+
+/* React Select Custom Theme Styles matching FormInput */
+.react-select__indicator-separator {
+  display: none !important;
+}
+
+.react-select__control {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+.react-select__menu {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .react-select__control {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+.dark .react-select__control--is-focused {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 1px #ef4444 !important;
+}
+
+.dark .react-select__menu {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .react-select__single-value,
+.dark .react-select__input-container {
+  color: #f9fafb !important;
+}
+
+.dark .react-select__option {
+  color: #f9fafb !important;
+}
+
+.dark .react-select__option--is-focused {
+  background-color: #7f1d1d !important;
+  color: #ffffff !important;
+}
+
+.dark .react-select__option--is-selected {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}

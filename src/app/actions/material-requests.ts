@@ -53,9 +53,9 @@ export async function createMaterialRequestAction(data: {
 
     const request = await createMaterialRequestService(parsed.data, actorId);
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${data.projectId}`);
-    revalidatePath("/dashboard/material-requests");
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${data.projectId}`);
+    revalidatePath("/material-requests");
 
     return {
       success: true,
@@ -88,9 +88,9 @@ export async function approveMaterialRequestAction(data: {
 
     const updated = await approveMaterialRequestService(parsed.data, actorId);
 
-    revalidatePath("/dashboard/projects");
-    revalidatePath(`/dashboard/projects/${updated.projectId}`);
-    revalidatePath("/dashboard/material-requests");
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${updated.projectId}`);
+    revalidatePath("/material-requests");
 
     return {
       success: true,
