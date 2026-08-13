@@ -16,7 +16,10 @@ export function ProjectStatusBadge({ status, className = "" }: StatusBadgeProps)
   const getBadgeStyle = (s: string) => {
     switch (s) {
       case "PENDING":
-        return { bg: "#fef3c7", text: "#92400e", border: "#fde68a" }; // Amber
+      case "PENDING_GM":
+        return { bg: "#fef3c7", text: "#92400e", border: "#fde68a" }; // Amber (GM Pending)
+      case "PENDING_ADMIN":
+        return { bg: "#e0e7ff", text: "#3730a3", border: "#c7d2fe" }; // Indigo (Admin Pending)
       case "MATERIAL_REQUEST":
         return { bg: "#e0f2fe", text: "#075985", border: "#bae6fd" }; // Sky Blue
       case "MATERIAL_APPROVED":

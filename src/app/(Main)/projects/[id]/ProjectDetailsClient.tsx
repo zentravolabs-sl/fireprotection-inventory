@@ -12,6 +12,7 @@ import { ProjectStatusBadge } from "@/components/projects/ProjectStatusBadge";
 import { ProjectTimeline } from "@/components/projects/ProjectTimeline";
 import { MaterialRequestModal } from "@/components/projects/MaterialRequestModal";
 import { ApproveRequestModal } from "@/components/projects/ApproveRequestModal";
+import { EditMaterialRequestModal } from "@/components/projects/EditMaterialRequestModal";
 import { IssueMaterialModal } from "@/components/projects/IssueMaterialModal";
 import { ReturnMaterialModal } from "@/components/projects/ReturnMaterialModal";
 import { AssignEngineerModal } from "@/components/projects/AssignEngineerModal";
@@ -90,9 +91,15 @@ export function ProjectDetailsClient({
   currentUserRole = "USER",
 }: ProjectDetailsClientProps) {
   const router = useRouter();
-  const { can } = usePermissions();
+  const { can, isSuperAdmin, userRole } = usePermissions();
 
-  const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const isEngineerRole = currentUserRole === "ENGINEER";
+  const isPMRole = currentUserRole === "PROJECT_MANAGER";
+  const isRestrictedRole = currentUserRole === "ENGINEER" || currentUserRole === "PROJECT_MANAGER";
+
+  const [activeTab, setActiveTab] = useState<TabType>(
+    isEngineerRole || isPMRole ? "requests" : "overview"
+  );
 
   // Modals state
   const [isRequestOpen, setIsRequestOpen] = useState(false);
@@ -103,6 +110,7 @@ export function ProjectDetailsClient({
 
   const [selectedApproveRequest, setSelectedApproveRequest] = useState<any | null>(null);
   const [selectedIssueRequest, setSelectedIssueRequest] = useState<any | null>(null);
+  const [selectedEditRequest, setSelectedEditRequest] = useState<any | null>(null);
   const [isReturnOpen, setIsReturnOpen] = useState(false);
   const [isCreateTransferOpen, setIsCreateTransferOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<any | null>(null);
@@ -213,7 +221,7 @@ export function ProjectDetailsClient({
 
           {/* Header Action Buttons */}
           <div className="flex items-center flex-wrap gap-2">
-            {project.status === "PENDING" && (
+            {project.status === "PENDING" && !isEngineerRole && (
               <button
                 disabled={actionLoading}
                 onClick={handleStartProject}
@@ -252,7 +260,7 @@ export function ProjectDetailsClient({
                   </button>
                 )}
 
-                {can("project_transfer.create") && (
+                {can("project_transfer.create") && !isEngineerRole && (
                   <button
                     onClick={() => setIsCreateTransferOpen(true)}
                     className="px-3.5 py-2 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-sm transition-colors"
@@ -287,7 +295,8 @@ export function ProjectDetailsClient({
         )}
 
         {/* Financial Overview Metrics Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
+        {!isRestrictedRole && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
           <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-lg border border-indigo-100 dark:border-indigo-900">
             <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">Project Value</span>
             <span className="text-sm font-bold text-indigo-950 dark:text-indigo-100">
@@ -350,6 +359,7 @@ export function ProjectDetailsClient({
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* ERP Module Tabs */}
@@ -372,6 +382,10 @@ export function ProjectDetailsClient({
         const visibleTabs = allTabs.filter((tab) => {
           if (tab.id === "notes" && !can("stock.view_history")) return false;
           if (tab.id === "expenses" && !can("report.financial")) return false;
+          // Engineer role: hide financial/overview/logistics tabs
+          if (isEngineerRole && (tab.id === "overview" || tab.id === "notes" || tab.id === "timeline" || tab.id === "transport")) return false;
+          // PM role: hide overview & budget and delivery & issue notes tabs
+          if (isPMRole && (tab.id === "overview" || tab.id === "notes")) return false;
           return true;
         });
 
@@ -541,6 +555,7 @@ export function ProjectDetailsClient({
             email: e.engineer?.email || "",
           }))}
           toolAssignments={toolAssignments}
+          isSuperAdmin={isSuperAdmin}
         />
       )}
 
@@ -552,12 +567,14 @@ export function ProjectDetailsClient({
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Assigned Site Engineers</h3>
               <p className="text-xs text-gray-500">Multiple engineers can be assigned. One engineer can be marked as Lead.</p>
             </div>
-            <button
-              onClick={() => setIsAssignEngineerOpen(true)}
-              className="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
-            >
-              + Assign Engineer
-            </button>
+            {isSuperAdmin && (
+              <button
+                onClick={() => setIsAssignEngineerOpen(true)}
+                className="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
+              >
+                + Assign Engineer
+              </button>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -568,13 +585,13 @@ export function ProjectDetailsClient({
                   <th className="px-4 py-3">Role</th>
                   <th className="px-4 py-3">Lead Designation</th>
                   <th className="px-4 py-3">Assigned Date</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  {isSuperAdmin && <th className="px-4 py-3 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                 {!project.engineers || project.engineers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-6 text-gray-500">
+                    <td colSpan={isSuperAdmin ? 5 : 4} className="text-center py-6 text-gray-500">
                       No engineers assigned yet. At least one engineer must be assigned before starting the project.
                     </td>
                   </tr>
@@ -596,22 +613,24 @@ export function ProjectDetailsClient({
                         )}
                       </td>
                       <td className="px-4 py-3.5 text-gray-500">{formatDate(item.assignedDate)}</td>
-                      <td className="px-4 py-3.5 text-right space-x-2">
-                        {!item.isLead && (
+                      {isSuperAdmin && (
+                        <td className="px-4 py-3.5 text-right space-x-2">
+                          {!item.isLead && (
+                            <button
+                              onClick={() => handleSetLead(item.engineerId)}
+                              className="px-2.5 py-1 text-[11px] font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md"
+                            >
+                              Set Lead
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleSetLead(item.engineerId)}
-                            className="px-2.5 py-1 text-[11px] font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md"
+                            onClick={() => handleRemoveEngineer(item.engineerId)}
+                            className="px-2.5 py-1 text-[11px] font-medium bg-red-50 text-red-700 hover:bg-red-100 rounded-md"
                           >
-                            Set Lead
+                            Remove
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleRemoveEngineer(item.engineerId)}
-                          className="px-2.5 py-1 text-[11px] font-medium bg-red-50 text-red-700 hover:bg-red-100 rounded-md"
-                        >
-                          Remove
-                        </button>
-                      </td>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
@@ -652,20 +671,46 @@ export function ProjectDetailsClient({
                   </div>
                   <div className="flex items-center space-x-2">
                     <ProjectStatusBadge status={req.status} />
-                    {req.status === "PENDING" && (
-                      <button
-                        onClick={() => setSelectedApproveRequest(req)}
-                        className="px-3 py-1 text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md"
-                      >
-                        PM Approve
-                      </button>
-                    )}
-                    {(req.status === "APPROVED" || req.status === "PARTIAL") && (
+
+                    {/* GM Review Step */}
+                    {(req.status === "PENDING" || req.status === "PENDING_GM") &&
+                      (currentUserRole === "GENERAL_MANAGER" || userRole === "GENERAL_MANAGER" || isSuperAdmin) && (
+                        <button
+                          onClick={() => setSelectedApproveRequest(req)}
+                          className="px-3 py-1 text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 hover:bg-indigo-100 rounded-md"
+                        >
+                          GM Review
+                        </button>
+                      )}
+
+                    {/* Admin Review Step */}
+                    {req.status === "PENDING_ADMIN" &&
+                      (currentUserRole === "ADMIN" || userRole === "ADMIN" || isSuperAdmin) && (
+                        <button
+                          onClick={() => setSelectedApproveRequest(req)}
+                          className="px-3 py-1 text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 hover:bg-purple-100 rounded-md"
+                        >
+                          Admin Review
+                        </button>
+                      )}
+
+                    {/* Super Admin FIFO Issue */}
+                    {(req.status === "APPROVED" || req.status === "PARTIAL") && isSuperAdmin && (
                       <button
                         onClick={() => setSelectedIssueRequest(req)}
                         className="px-3 py-1 text-xs font-semibold bg-teal-600 text-white hover:bg-teal-700 rounded-md"
                       >
                         Issue FIFO
+                      </button>
+                    )}
+
+                    {/* Engineer Edit & Resubmit */}
+                    {req.status === "REJECTED" && (isEngineerRole || isSuperAdmin) && (
+                      <button
+                        onClick={() => setSelectedEditRequest(req)}
+                        className="px-3 py-1 text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 rounded-md"
+                      >
+                        ✏ Edit & Resubmit
                       </button>
                     )}
                   </div>
@@ -1089,6 +1134,21 @@ export function ProjectDetailsClient({
           requestId={selectedApproveRequest.id}
           requestNo={selectedApproveRequest.requestNo}
           items={selectedApproveRequest.items}
+        />
+      )}
+
+      {selectedEditRequest && (
+        <EditMaterialRequestModal
+          isOpen={Boolean(selectedEditRequest)}
+          onClose={() => {
+            setSelectedEditRequest(null);
+            router.refresh();
+          }}
+          requestId={selectedEditRequest.id}
+          requestNo={selectedEditRequest.requestNo}
+          initialRemarks={selectedEditRequest.remarks}
+          initialItems={selectedEditRequest.items}
+          inventoryItems={inventoryItems}
         />
       )}
 

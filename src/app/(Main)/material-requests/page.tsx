@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/material-requests/page.tsx
 // Central Material Requests List & PM/Store Approval Page
 // ============================================================
@@ -7,6 +7,8 @@ import React from "react";
 import { findMaterialRequests } from "@/lib/repositories/materialRequestRepository";
 import { MaterialRequestsClientPage } from "./MaterialRequestsClientPage";
 import { MaterialRequestStatus } from "@/types/project";
+
+import { getSession } from "@/lib/session";
 
 export const revalidate = 0;
 
@@ -26,11 +28,17 @@ export default async function MaterialRequestsPage(props: PageProps) {
   const status = (searchParams.status as MaterialRequestStatus) || undefined;
   const page = Number(searchParams.page) || 1;
 
+  const session = await getSession();
+  const user = session?.user as any;
+  const userRole = user?.role;
+  const userId = user?.id;
+
   const result = await findMaterialRequests({
     search,
     status,
     page,
     limit: 10,
+    ...(userRole === "ENGINEER" ? { engineerId: userId } : {}),
   });
 
   return (

@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full w-full overflow-x-hidden font-sans bg-[#080c12] text-gray-100 selection:bg-red-500 selection:text-white">
+      <body className="min-h-full w-full overflow-x-hidden font-sans bg-[#090e1a] text-gray-100 selection:bg-red-500 selection:text-white">
         {children}
         {/* Global toast notification container */}
         <ToastProvider />

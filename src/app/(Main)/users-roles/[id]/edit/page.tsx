@@ -42,7 +42,7 @@ export default async function EditUserPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#080c12]">
+    <div className="min-h-screen bg-[#090e1a]">
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-[#5a657a] mb-6">

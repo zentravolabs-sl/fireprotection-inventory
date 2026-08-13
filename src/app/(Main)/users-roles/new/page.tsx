@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/users-roles/new/page.tsx
 // Create User form page.
 // Route: /users-roles/new
@@ -22,7 +22,7 @@ export default async function NewUserPage() {
   const actor = await requireAnyRole(["SUPER_ADMIN", "ADMIN"]);
 
   return (
-    <div className="min-h-screen bg-[#080c12]">
+    <div className="min-h-screen bg-[#090e1a]">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-[#5a657a] mb-6">

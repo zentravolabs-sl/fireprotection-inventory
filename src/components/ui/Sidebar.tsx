@@ -352,25 +352,36 @@ export function MobileTopBar() {
 export function Sidebar() {
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
   const pendingMRCount = usePendingMRCount();
-  const { can } = usePermissions();
+  const { can, userRole } = usePermissions();
 
   const closeMobile = () => setMobileOpen(false);
 
-  // Filter nav groups & items based on current user permissions
-  const NAV_GROUPS: NavGroup[] = NAV_GROUPS_STATIC.map((group) => {
-    const authorizedItems = group.items
-      .filter((item) => !item.permission || can(item.permission))
-      .map((item) =>
-        item.href === "/material-requests" && pendingMRCount > 0
-          ? { ...item, badge: pendingMRCount }
-          : item,
-      );
+  // Filter nav groups & items based on current user permissions and role
+  const NAV_GROUPS: NavGroup[] = NAV_GROUPS_STATIC
+    .filter((group) => {
+      if (userRole === "ENGINEER") {
+        const title = group.title.toUpperCase();
+        if (title === "WAREHOUSE" || title === "ASSETS & BUSINESS" || title === "LABOUR") {
+          return false;
+        }
+      }
+      return true;
+    })
+    .map((group) => {
+      const authorizedItems = group.items
+        .filter((item) => !item.permission || can(item.permission))
+        .map((item) =>
+          item.href === "/material-requests" && pendingMRCount > 0
+            ? { ...item, badge: pendingMRCount }
+            : item,
+        );
 
-    return {
-      ...group,
-      items: authorizedItems,
-    };
-  }).filter((group) => group.items.length > 0);
+      return {
+        ...group,
+        items: authorizedItems,
+      };
+    })
+    .filter((group) => group.items.length > 0);
 
   return (
     <>

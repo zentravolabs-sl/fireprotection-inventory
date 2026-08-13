@@ -612,6 +612,8 @@ enum ProjectStatus {
 
 enum MaterialRequestStatus {
   PENDING
+  PENDING_GM
+  PENDING_ADMIN
   APPROVED
   REJECTED
   PARTIAL
@@ -821,7 +823,7 @@ model MaterialRequest {
   projectId   Int
   engineerId  String
   requestDate DateTime              @default(now())
-  status      MaterialRequestStatus @default(PENDING)
+  status      MaterialRequestStatus @default(PENDING_GM)
   remarks     String?
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt

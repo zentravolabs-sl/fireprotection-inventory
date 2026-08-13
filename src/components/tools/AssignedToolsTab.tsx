@@ -49,6 +49,7 @@ interface AssignedToolsTabProps {
   projectName: string;
   engineers: Engineer[];
   toolAssignments: ToolAssignment[];
+  isSuperAdmin?: boolean;
 }
 
 function formatDate(date: Date | null | undefined) {
@@ -95,6 +96,7 @@ export function AssignedToolsTab({
   projectName,
   engineers,
   toolAssignments,
+  isSuperAdmin = false,
 }: AssignedToolsTabProps) {
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [returnTarget, setReturnTarget] = useState<AssignedToolItem | null>(null);
@@ -126,13 +128,15 @@ export function AssignedToolsTab({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsAssignOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
-          >
-            <Plus size={13} />
-            Assign Tool
-          </button>
+          {isSuperAdmin && (
+            <button
+              onClick={() => setIsAssignOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
+            >
+              <Plus size={13} />
+              Assign Tool
+            </button>
+          )}
         </div>
       </div>
 
@@ -202,7 +206,7 @@ export function AssignedToolsTab({
                     <th className="px-4 py-2.5">Return Condition</th>
                     <th className="px-4 py-2.5">Returned At</th>
                     <th className="px-4 py-2.5">Current Status</th>
-                    <th className="px-4 py-2.5 text-right">Actions</th>
+                    {isSuperAdmin && <th className="px-4 py-2.5 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -258,17 +262,19 @@ export function AssignedToolsTab({
                           {getStatusLabel(item.tool.status)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        {!item.returnedAt && (
-                          <button
-                            onClick={() => setReturnTarget(item)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 rounded-md transition-colors border border-orange-200 dark:border-orange-800"
-                          >
-                            <RotateCcw size={11} />
-                            Return
-                          </button>
-                        )}
-                      </td>
+                      {isSuperAdmin && (
+                        <td className="px-4 py-3 text-right">
+                          {!item.returnedAt && (
+                            <button
+                              onClick={() => setReturnTarget(item)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 rounded-md transition-colors border border-orange-200 dark:border-orange-800"
+                            >
+                              <RotateCcw size={11} />
+                              Return
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

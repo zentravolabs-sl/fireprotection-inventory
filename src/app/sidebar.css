@@ -16,7 +16,7 @@
 :root {
   --sb-width:          260px;
   --sb-width-collapsed: 64px;
-  --sb-bg:             #0F1524;
+  --sb-bg:             #090e1a;
   --sb-bg-hover:       #161d2e;
   --sb-bg-active:      #1a2035;
   --sb-accent:         #e02424;
@@ -34,7 +34,7 @@
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  background: #0F1524;
+  background: #090e1a;
 }
 
 .app-main {

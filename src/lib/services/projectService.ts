@@ -235,7 +235,7 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
         projectId: input.projectId,
         engineerId: input.engineerId,
         remarks: input.remarks || null,
-        status: "PENDING",
+        status: "PENDING_GM",
         items: {
           create: input.items.map((i) => ({
             inventoryId: i.inventoryId,
@@ -284,7 +284,7 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
   return request;
 }
 
-// ─── 6. Approve Material Request (PM Approval) ───────────────────────────────
+// ─── 6. Approve / Reject Material Request (Multi-Tier Approval) ─────────────
 
 export async function approveMaterialRequestService(input: ApproveMaterialRequestInput, userId: string) {
   const request = await prisma.materialRequest.findUnique({
@@ -296,33 +296,44 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
     throw new Error("Material request not found.");
   }
 
-  if (request.status !== "PENDING") {
-    throw new Error(`Request cannot be approved because it is currently in '${request.status}' status.`);
+  const decision = input.decision || "APPROVE";
+  let newRequestStatus: "PENDING_GM" | "PENDING_ADMIN" | "APPROVED" | "REJECTED";
+
+  if (request.status === "PENDING" || request.status === "PENDING_GM") {
+    // GM Review Step
+    if (decision === "REJECT") {
+      newRequestStatus = "REJECTED";
+    } else {
+      newRequestStatus = "PENDING_ADMIN";
+    }
+  } else if (request.status === "PENDING_ADMIN") {
+    // Admin Review Step
+    if (decision === "REJECT") {
+      newRequestStatus = "PENDING_GM"; // Send back to GM
+    } else {
+      newRequestStatus = "APPROVED"; // Approved for Super Admin FIFO issue
+    }
+  } else {
+    throw new Error(`Request cannot be processed because it is currently in '${request.status}' status.`);
   }
 
   const updatedRequest = await prisma.$transaction(
     async (tx) => {
-    let hasApprovedItem = false;
+    if (input.items && input.items.length > 0) {
+      for (const itemApproval of input.items) {
+        const item = request.items.find((i) => i.id === itemApproval.itemId);
+        if (!item) continue;
 
-    for (const itemApproval of input.items) {
-      const item = request.items.find((i) => i.id === itemApproval.itemId);
-      if (!item) continue;
+        if (itemApproval.qtyApproved > item.qtyRequested) {
+          throw new Error(`Approved quantity (${itemApproval.qtyApproved}) cannot exceed requested quantity (${item.qtyRequested}).`);
+        }
 
-      if (itemApproval.qtyApproved > item.qtyRequested) {
-        throw new Error(`Approved quantity (${itemApproval.qtyApproved}) cannot exceed requested quantity (${item.qtyRequested}).`);
+        await tx.materialRequestItem.update({
+          where: { id: item.id },
+          data: { qtyApproved: itemApproval.qtyApproved },
+        });
       }
-
-      if (itemApproval.qtyApproved > 0) {
-        hasApprovedItem = true;
-      }
-
-      await tx.materialRequestItem.update({
-        where: { id: item.id },
-        data: { qtyApproved: itemApproval.qtyApproved },
-      });
     }
-
-    const newRequestStatus = hasApprovedItem ? "APPROVED" : "REJECTED";
 
     const updatedRequest = await tx.materialRequest.update({
       where: { id: request.id },
@@ -333,7 +344,7 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
       include: { items: true },
     });
 
-    if (hasApprovedItem) {
+    if (newRequestStatus === "APPROVED") {
       await tx.project.update({
         where: { id: request.projectId },
         data: { status: "MATERIAL_APPROVED" },
@@ -342,9 +353,9 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
 
     await tx.auditLog.create({
       data: {
-        action: "MATERIAL_REQUEST_APPROVED",
+        action: decision === "REJECT" ? "MATERIAL_REQUEST_REJECTED" : "MATERIAL_REQUEST_APPROVED",
         userId,
-        metadata: { requestId: request.id, status: newRequestStatus },
+        metadata: { requestId: request.id, status: newRequestStatus, decision },
       },
     });
 
@@ -352,12 +363,11 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
   }, { maxWait: 15000, timeout: 60000 });
 
   // ── Fire decision notification AFTER transaction commits (non-fatal) ──
-  const decisionStatus = updatedRequest.status as "APPROVED" | "REJECTED";
-  if (decisionStatus === "APPROVED" || decisionStatus === "REJECTED") {
+  if (newRequestStatus === "APPROVED" || newRequestStatus === "REJECTED") {
     await notifyMaterialRequestDecision(
       request.id,
       request.requestNo,
-      decisionStatus,
+      newRequestStatus,
       request.engineerId,
       request.project.projectName,
       updatedRequest.remarks,
@@ -365,6 +375,62 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
   }
 
   return updatedRequest;
+}
+
+// ─── 6b. Resubmit Rejected Material Request (Engineer Action) ───────────────
+
+export async function resubmitMaterialRequestService(
+  input: { requestId: number; remarks?: string | null; items: { inventoryId: number; qtyRequested: number }[] },
+  userId: string
+) {
+  const request = await prisma.materialRequest.findUnique({
+    where: { id: input.requestId },
+    include: { items: true, project: true },
+  });
+
+  if (!request) {
+    throw new Error("Material request not found.");
+  }
+
+  if (request.status !== "REJECTED") {
+    throw new Error("Only rejected material requests can be edited and resubmitted.");
+  }
+
+  return prisma.$transaction(
+    async (tx) => {
+      await tx.materialRequestItem.deleteMany({
+        where: { materialRequestId: request.id },
+      });
+
+      const updated = await tx.materialRequest.update({
+        where: { id: request.id },
+        data: {
+          status: "PENDING_GM",
+          remarks: input.remarks || request.remarks,
+          items: {
+            create: input.items.map((i) => ({
+              inventoryId: i.inventoryId,
+              qtyRequested: i.qtyRequested,
+              qtyApproved: 0,
+              qtyIssued: 0,
+            })),
+          },
+        },
+        include: { items: { include: { inventory: true } } },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          action: "MATERIAL_REQUEST_RESUBMITTED",
+          userId,
+          metadata: { requestId: request.id, requestNo: request.requestNo },
+        },
+      });
+
+      return updated;
+    },
+    { maxWait: 15000, timeout: 60000 }
+  );
 }
 
 // ─── 7. Issue Materials (FIFO Batch Selection + AUTOMATIC MATERIAL EXPENSE) ─

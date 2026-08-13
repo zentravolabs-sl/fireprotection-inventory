@@ -11,6 +11,7 @@ import { ProjectStatusBadge } from "@/components/projects/ProjectStatusBadge";
 import { ProjectsClientPage } from "./ProjectsClientPage";
 import { ProjectStatus } from "@/types/project";
 import { formatCurrency } from "@/lib/dateUtils";
+import { getSession } from "@/lib/session";
 
 export const revalidate = 0;
 
@@ -32,9 +33,20 @@ export default async function ProjectsDashboardPage(props: PageProps) {
   const page = Number(searchParams.page) || 1;
   const limit = Number(searchParams.limit) || 5;
 
+  // Determine if we need to scope projects to the current user
+  const session = await getSession();
+  const currentUser = session?.user as { id: string; role?: string } | undefined;
+  const userRole = currentUser?.role ?? "USER";
+  const userId = currentUser?.id;
+
+  // Engineers and Project Managers only see their assigned projects
+  const engineerFilter = userRole === "ENGINEER" ? userId : undefined;
+  const pmFilter = userRole === "PROJECT_MANAGER" ? userId : undefined;
+  const isRestrictedRole = userRole === "ENGINEER" || userRole === "PROJECT_MANAGER";
+
   const [stats, projectsResult, customers, users] = await Promise.all([
-    getDashboardStats(),
-    findProjects({ search, status, page, limit }),
+    isRestrictedRole ? Promise.resolve(null) : getDashboardStats(),
+    findProjects({ search, status, page, limit, engineerId: engineerFilter, projectManagerId: pmFilter }),
     prisma.customer.findMany({
       select: { id: true, companyName: true },
       orderBy: { companyName: "asc" },
@@ -60,40 +72,42 @@ export default async function ProjectsDashboardPage(props: PageProps) {
         </div>
       </div>
 
-      {/* 6 ERP Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Active Projects</div>
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.activeProjects}</div>
-        </div>
+      {/* 6 ERP Summary Cards — hidden for Engineers & Project Managers */}
+      {!isRestrictedRole && stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Active Projects</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.activeProjects}</div>
+          </div>
 
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Requests</div>
-          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.pendingMaterialRequests}</div>
-        </div>
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Requests</div>
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.pendingMaterialRequests}</div>
+          </div>
 
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Issued Today</div>
-          <div className="text-2xl font-bold text-teal-600 dark:text-teal-400 mt-1">{stats.materialsIssuedToday}</div>
-        </div>
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Issued Today</div>
+            <div className="text-2xl font-bold text-teal-600 dark:text-teal-400 mt-1">{stats.materialsIssuedToday}</div>
+          </div>
 
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Returned Today</div>
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mt-1">{stats.materialsReturnedToday}</div>
-        </div>
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Returned Today</div>
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mt-1">{stats.materialsReturnedToday}</div>
+          </div>
 
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Completed Projects</div>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{stats.completedProjects}</div>
-        </div>
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Completed Projects</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{stats.completedProjects}</div>
+          </div>
 
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Inventory Value</div>
-          <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-            {formatCurrency(stats.totalInventoryValue)}
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Inventory Value</div>
+            <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+              {formatCurrency(stats.totalInventoryValue)}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Interactive Client Data Table & Filter Component */}
       <ProjectsClientPage
@@ -106,6 +120,7 @@ export default async function ProjectsDashboardPage(props: PageProps) {
         users={users}
         currentSearch={search}
         currentStatus={status}
+        userRole={userRole}
       />
     </div>
   );

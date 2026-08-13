@@ -111,13 +111,15 @@ export function TransfersClientPage({
           </p>
         </div>
 
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap h-[42px]"
-        >
-          <span className="text-base leading-none font-bold">+</span>
-          <span>Transfer to Project</span>
-        </button>
+        {currentUserRole !== "ENGINEER" && (
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap h-[42px]"
+          >
+            <span className="text-base leading-none font-bold">+</span>
+            <span>Transfer to Project</span>
+          </button>
+        )}
       </div>
 
       {/* Metric Summary Cards */}

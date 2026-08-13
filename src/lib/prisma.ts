@@ -42,17 +42,8 @@ function createPrismaClient() {
   } as ConstructorParameters<typeof PrismaClient>[0]);
 }
 
-// Bust the cached singleton if it is missing newly-added models
-// (happens after schema migrations in dev without a full restart).
-if (
-  globalForPrisma.prisma &&
-  (
-    !("projectLabour" in globalForPrisma.prisma) ||
-    !("projectStaff" in globalForPrisma.prisma) ||
-    !("projectTransfer" in globalForPrisma.prisma) ||
-    !("notification" in globalForPrisma.prisma)
-  )
-) {
+// Bust the cached singleton in development if new schema models/enums were added
+if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = undefined;
 }
 

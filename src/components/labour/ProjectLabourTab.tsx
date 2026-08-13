@@ -192,6 +192,8 @@ export function ProjectLabourTab({
 
   // Permissions check
   const isAdminOrPM = currentUserRole === "SUPER_ADMIN" || currentUserRole === "ADMIN" || currentUserRole === "PROJECT_MANAGER";
+  // Hide all cost/financial data from Engineers and Project Managers
+  const hideFinancials = currentUserRole === "ENGINEER" || currentUserRole === "PROJECT_MANAGER";
 
   // ── Grouping by Unique Worker (NO DUPLICATES) ────────────────────────────
   const groupedWorkersMap = new Map<number, GroupedLabourWorker>();
@@ -334,7 +336,7 @@ export function ProjectLabourTab({
   return (
     <div className="space-y-6">
       {/* ── Summary Metrics ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className={`grid gap-3 ${hideFinancials ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-4"}`}>
         <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total Workforce</span>
           <span className="text-xl font-black text-gray-900 dark:text-gray-100">{allGroupedWorkers.length} Worker{allGroupedWorkers.length !== 1 ? "s" : ""}</span>
@@ -342,18 +344,24 @@ export function ProjectLabourTab({
             {activeAssignments.length} active · {releasedSummaryWorkers.length} released
           </span>
         </div>
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Labour Cost</span>
-          <span className="text-lg font-black text-blue-700 dark:text-blue-400">{LKR(projectTotalLabourCost)}</span>
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">OT Cost</span>
-          <span className="text-lg font-black text-orange-600 dark:text-orange-400">{LKR(projectTotalOTCost)}</span>
-        </div>
-        <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50 shadow-sm">
-          <span className="text-[11px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider block">Total Labour + OT</span>
-          <span className="text-lg font-black text-red-700 dark:text-red-300">{LKR(projectGrandTotalCost)}</span>
-        </div>
+        {!hideFinancials && (
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Labour Cost</span>
+            <span className="text-lg font-black text-blue-700 dark:text-blue-400">{LKR(projectTotalLabourCost)}</span>
+          </div>
+        )}
+        {!hideFinancials && (
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">OT Cost</span>
+            <span className="text-lg font-black text-orange-600 dark:text-orange-400">{LKR(projectTotalOTCost)}</span>
+          </div>
+        )}
+        {!hideFinancials && (
+          <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50 shadow-sm">
+            <span className="text-[11px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider block">Total Labour + OT</span>
+            <span className="text-lg font-black text-red-700 dark:text-red-300">{LKR(projectGrandTotalCost)}</span>
+          </div>
+        )}
       </div>
 
       {/* ── Sub-Tab Navigation Bar & Action Buttons ── */}
@@ -364,8 +372,8 @@ export function ProjectLabourTab({
             type="button"
             onClick={() => setInnerTab("summary")}
             className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${innerTab === "summary"
-                ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
-                : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
+              ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
+              : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
               }`}
           >
             <Users size={14} />
@@ -376,8 +384,8 @@ export function ProjectLabourTab({
             type="button"
             onClick={() => setInnerTab("logs")}
             className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${innerTab === "logs"
-                ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
-                : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
+              ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
+              : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
               }`}
           >
             <FileText size={14} />
@@ -465,19 +473,21 @@ export function ProjectLabourTab({
 
                     {/* Right: Costs & Admin Actions */}
                     <div className="flex items-center justify-between lg:justify-end gap-4 pt-3 lg:pt-0 border-t lg:border-0 border-gray-100 dark:border-gray-800">
-                      {/* Financial Summary */}
-                      <div className="text-left lg:text-right">
-                        <div className="text-[11px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Final Cost</div>
-                        <div className="text-sm font-extrabold text-gray-900 dark:text-gray-100">
-                          {LKR(worker.grandTotalCost)}
+                      {/* Financial Summary — hidden for restricted roles */}
+                      {!hideFinancials && (
+                        <div className="text-left lg:text-right">
+                          <div className="text-[11px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Final Cost</div>
+                          <div className="text-sm font-extrabold text-gray-900 dark:text-gray-100">
+                            {LKR(worker.grandTotalCost)}
+                          </div>
+                          <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                            Labour: <strong className="text-blue-600 dark:text-blue-400">{LKR(worker.totalLabourCost)}</strong>
+                            {worker.totalOTCost > 0 && (
+                              <> · OT: <strong className="text-orange-600 dark:text-orange-400">{LKR(worker.totalOTCost)}</strong></>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                          Labour: <strong className="text-blue-600 dark:text-blue-400">{LKR(worker.totalLabourCost)}</strong>
-                          {worker.totalOTCost > 0 && (
-                            <> · OT: <strong className="text-orange-600 dark:text-orange-400">{LKR(worker.totalOTCost)}</strong></>
-                          )}
-                        </div>
-                      </div>
+                      )}
 
                       {/* Action Buttons: Set Cost & Log OT */}
                       <div className="flex items-center gap-1.5">
@@ -553,14 +563,16 @@ export function ProjectLabourTab({
                                   <StatusBadge status="RELEASED" />
                                 </div>
 
-                                <div className="flex items-center gap-3 font-semibold text-gray-800 dark:text-gray-200">
-                                  <span>Labour: {LKR(assignment.labourCost)}</span>
-                                  {otTotal > 0 && <span className="text-orange-600 dark:text-orange-400">OT: {LKR(otTotal)}</span>}
-                                </div>
+                                {!hideFinancials && (
+                                  <div className="flex items-center gap-3 font-semibold text-gray-800 dark:text-gray-200">
+                                    <span>Labour: {LKR(assignment.labourCost)}</span>
+                                    {otTotal > 0 && <span className="text-orange-600 dark:text-orange-400">OT: {LKR(otTotal)}</span>}
+                                  </div>
+                                )}
                               </div>
 
                               {/* OT Entries for this specific assignment period */}
-                              {assignment.overtimes.length > 0 && (
+                              {!hideFinancials && assignment.overtimes.length > 0 && (
                                 <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-1">
                                   <p className="text-[11px] font-semibold text-orange-600 dark:text-orange-400">
                                     OT Entries ({assignment.overtimes.length}):
@@ -651,10 +663,12 @@ export function ProjectLabourTab({
                       </div>
                     </div>
                     <div className="flex items-center gap-3 justify-end">
-                      <div className="text-right text-xs">
-                        <span className="block font-bold text-gray-900 dark:text-gray-100">Labour: {LKR(pl.labourCost)}</span>
-                        {plOTTotal > 0 && <span className="block font-bold text-orange-600">OT: {LKR(plOTTotal)}</span>}
-                      </div>
+                      {!hideFinancials && (
+                        <div className="text-right text-xs">
+                          <span className="block font-bold text-gray-900 dark:text-gray-100">Labour: {LKR(pl.labourCost)}</span>
+                          {plOTTotal > 0 && <span className="block font-bold text-orange-600">OT: {LKR(plOTTotal)}</span>}
+                        </div>
+                      )}
                       {!isClosed && (
                         <button
                           type="button"
@@ -707,10 +721,12 @@ export function ProjectLabourTab({
                         </div>
                       </div>
                     </div>
-                    <div className="text-right text-xs">
-                      <span className="block font-bold text-gray-900 dark:text-gray-100">Labour: {LKR(pl.labourCost)}</span>
-                      {plOTTotal > 0 && <span className="block font-bold text-orange-600">OT: {LKR(plOTTotal)}</span>}
-                    </div>
+                    {!hideFinancials && (
+                      <div className="text-right text-xs">
+                        <span className="block font-bold text-gray-900 dark:text-gray-100">Labour: {LKR(pl.labourCost)}</span>
+                        {plOTTotal > 0 && <span className="block font-bold text-orange-600">OT: {LKR(plOTTotal)}</span>}
+                      </div>
+                    )}
                   </div>
                 );
               })

@@ -735,23 +735,47 @@ export async function cancelProjectTransferService(transferId: number, userId: s
 
 // ─── 6. Queries ────────────────────────────────────────────────────────────────
 
-export async function getProjectTransfersService(filters?: ProjectTransferFilterInput & { page?: number; limit?: number }) {
+export async function getProjectTransfersService(filters?: ProjectTransferFilterInput & { page?: number; limit?: number; engineerId?: string }) {
   const where: any = {};
+  const conditions: any[] = [];
 
-  if (filters?.fromProjectId) where.fromProjectId = filters.fromProjectId;
-  if (filters?.toProjectId) where.toProjectId = filters.toProjectId;
-  if (filters?.status) where.status = filters.status;
+  if (filters?.fromProjectId) conditions.push({ fromProjectId: filters.fromProjectId });
+  if (filters?.toProjectId) conditions.push({ toProjectId: filters.toProjectId });
+  if (filters?.status) conditions.push({ status: filters.status });
+
+  if (filters?.engineerId) {
+    conditions.push({
+      OR: [
+        { fromProject: { engineers: { some: { engineerId: filters.engineerId } } } },
+        { toProject: { engineers: { some: { engineerId: filters.engineerId } } } },
+        { requestedById: filters.engineerId },
+      ],
+    });
+  }
 
   if (filters?.search) {
     const s = filters.search.trim();
-    where.OR = [
-      { transferNo: { contains: s, mode: "insensitive" } },
-      { fromProject: { projectName: { contains: s, mode: "insensitive" } } },
-      { fromProject: { projectCode: { contains: s, mode: "insensitive" } } },
-      { toProject: { projectName: { contains: s, mode: "insensitive" } } },
-      { toProject: { projectCode: { contains: s, mode: "insensitive" } } },
-      { requestedBy: { name: { contains: s, mode: "insensitive" } } },
-    ];
+    conditions.push({
+      OR: [
+        { transferNo: { contains: s, mode: "insensitive" } },
+        { fromProject: { projectName: { contains: s, mode: "insensitive" } } },
+        { fromProject: { projectCode: { contains: s, mode: "insensitive" } } },
+        { toProject: { projectName: { contains: s, mode: "insensitive" } } },
+        { toProject: { projectCode: { contains: s, mode: "insensitive" } } },
+        { requestedBy: { name: { contains: s, mode: "insensitive" } } },
+      ],
+    });
+  }
+
+  if (conditions.length > 0) {
+    where.AND = conditions;
+  }
+
+  // Count metrics should respect engineer/project filters, ignoring the status filter itself
+  const countWhere: any = {};
+  const countConditions = conditions.filter((c) => !c.status);
+  if (countConditions.length > 0) {
+    countWhere.AND = countConditions;
   }
 
   const page = Math.max(1, filters?.page || 1);
@@ -779,6 +803,7 @@ export async function getProjectTransfersService(filters?: ProjectTransferFilter
       },
     }),
     prisma.projectTransfer.groupBy({
+      where: countWhere,
       by: ["status"],
       _count: { status: true },
     }),

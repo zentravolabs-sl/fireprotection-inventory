@@ -311,6 +311,8 @@ export function ProjectStaffTab({
   const isAdminOrPM =
     currentUserRole === "SUPER_ADMIN" || currentUserRole === "ADMIN" || currentUserRole === "PROJECT_MANAGER";
   const canEditCost = isAdminOrPM;
+  // Hide financial columns from Engineers and Project Managers
+  const hideFinancials = currentUserRole === "ENGINEER" || currentUserRole === "PROJECT_MANAGER";
 
   // Deduplicate staff by unique (userId, role) to prevent UI duplicate rows
   const cleanProjectStaff = React.useMemo(() => {
@@ -391,7 +393,7 @@ export function ProjectStaffTab({
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className={`grid gap-3 ${hideFinancials ? "grid-cols-2 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"}`}>
         <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Active Staff</span>
           <span className="text-xl font-black text-gray-900 dark:text-gray-100">{activeStaff.length}</span>
@@ -402,33 +404,33 @@ export function ProjectStaffTab({
           <span className="text-xl font-black text-gray-500">{releasedStaff.length}</span>
         </div>
 
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total OT Hours</span>
-          <span className="text-xl font-black text-orange-600 dark:text-orange-400">{totalOTHours} h</span>
-        </div>
+        {!hideFinancials && (
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total OT Hours</span>
+            <span className="text-xl font-black text-orange-600 dark:text-orange-400">{totalOTHours} h</span>
+          </div>
+        )}
 
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Salary Cost</span>
-          <span className="text-lg font-black text-blue-700 dark:text-blue-400">{LKR(totalSalaryCost)}</span>
-        </div>
+        {!hideFinancials && (
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Salary Cost</span>
+            <span className="text-lg font-black text-blue-700 dark:text-blue-400">{LKR(totalSalaryCost)}</span>
+          </div>
+        )}
 
-        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">OT Cost</span>
-          <span className="text-lg font-black text-orange-600 dark:text-orange-400">{LKR(totalOTCost)}</span>
-        </div>
+        {!hideFinancials && (
+          <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">OT Cost</span>
+            <span className="text-lg font-black text-orange-600 dark:text-orange-400">{LKR(totalOTCost)}</span>
+          </div>
+        )}
 
-        <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20 rounded-xl border border-purple-100 dark:border-purple-900/50 shadow-sm">
-          <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Total Staff Cost</span>
-          <span className="text-lg font-black text-purple-700 dark:text-purple-300">{LKR(totalStaffCost)}</span>
-        </div>
-      </div>
-
-      {/* Info notice explaining cost contribution to actual project cost */}
-      <div className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-xl border border-purple-100 dark:border-purple-900/50 flex items-center gap-2 text-xs text-purple-800 dark:text-purple-300">
-        <ShieldCheck size={16} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
-        <span>
-          Engineer & PM <strong>Salary Cost</strong> and <strong>OT Cost</strong> entered here are automatically aggregated into the project&apos;s <strong>Actual Staff Cost</strong> and included in the <strong>Total Actual Project Cost</strong>.
-        </span>
+        {!hideFinancials && (
+          <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20 rounded-xl border border-purple-100 dark:border-purple-900/50 shadow-sm">
+            <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Total Staff Cost</span>
+            <span className="text-lg font-black text-purple-700 dark:text-purple-300">{LKR(totalStaffCost)}</span>
+          </div>
+        )}
       </div>
 
       {/* Navigation Sub-Tabs */}
@@ -446,17 +448,19 @@ export function ProjectStaffTab({
             <span>Staff Members Table ({cleanProjectStaff.length})</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setSubTab("summary")}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${subTab === "summary"
-                ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
-                : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
-              }`}
-          >
-            <PieChart size={14} />
-            <span>Cost Summary Breakdown</span>
-          </button>
+          {!hideFinancials && (
+            <button
+              type="button"
+              onClick={() => setSubTab("summary")}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${subTab === "summary"
+                  ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
+                  : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
+                }`}
+            >
+              <PieChart size={14} />
+              <span>Cost Summary Breakdown</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -485,12 +489,12 @@ export function ProjectStaffTab({
                       <th className="px-4 py-3">Role</th>
                       <th className="px-4 py-3">Lead Designation</th>
                       <th className="px-4 py-3">Assigned Date</th>
-                      <th className="px-4 py-3 text-right">Salary Cost</th>
-                      <th className="px-4 py-3 text-right">OT Hours</th>
-                      <th className="px-4 py-3 text-right">OT Cost</th>
-                      <th className="px-4 py-3 text-right">Total Cost</th>
+                      {!hideFinancials && <th className="px-4 py-3 text-right">Salary Cost</th>}
+                      {!hideFinancials && <th className="px-4 py-3 text-right">OT Hours</th>}
+                      {!hideFinancials && <th className="px-4 py-3 text-right">OT Cost</th>}
+                      {!hideFinancials && <th className="px-4 py-3 text-right">Total Cost</th>}
                       <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
+                      {!hideFinancials && <th className="px-4 py-3 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -536,74 +540,84 @@ export function ProjectStaffTab({
 
                           <td className="px-4 py-3.5 text-gray-500">{fmtDate(s.assignedDate)}</td>
 
-                          <td className="px-4 py-3.5 text-right font-medium text-blue-600 dark:text-blue-400">
-                            {LKR(s.salaryCost)}
-                          </td>
+                          {!hideFinancials && (
+                            <td className="px-4 py-3.5 text-right font-medium text-blue-600 dark:text-blue-400">
+                              {LKR(s.salaryCost)}
+                            </td>
+                          )}
 
-                          <td className="px-4 py-3.5 text-right text-gray-700 dark:text-gray-300 font-medium">
-                            {s.otHours} h
-                          </td>
+                          {!hideFinancials && (
+                            <td className="px-4 py-3.5 text-right text-gray-700 dark:text-gray-300 font-medium">
+                              {s.otHours} h
+                            </td>
+                          )}
 
-                          <td className="px-4 py-3.5 text-right font-medium text-orange-600 dark:text-orange-400">
-                            {LKR(s.otCost)}
-                          </td>
+                          {!hideFinancials && (
+                            <td className="px-4 py-3.5 text-right font-medium text-orange-600 dark:text-orange-400">
+                              {LKR(s.otCost)}
+                            </td>
+                          )}
 
-                          <td className="px-4 py-3.5 text-right font-extrabold text-purple-700 dark:text-purple-300">
-                            {LKR(totalRowCost)}
-                          </td>
+                          {!hideFinancials && (
+                            <td className="px-4 py-3.5 text-right font-extrabold text-purple-700 dark:text-purple-300">
+                              {LKR(totalRowCost)}
+                            </td>
+                          )}
 
                           <td className="px-4 py-3.5">
                             <StatusBadge status={s.status} />
                           </td>
 
-                          <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
-                            <button
-                              type="button"
-                              onClick={() => setDetailsTarget(s)}
-                              title="View Staff Details"
-                              className="px-2.5 py-1 text-[11px] font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 rounded-lg"
-                            >
-                              Details
-                            </button>
+                          {!hideFinancials && (
+                            <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => setDetailsTarget(s)}
+                                title="View Staff Details"
+                                className="px-2.5 py-1 text-[11px] font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 rounded-lg"
+                              >
+                                Details
+                              </button>
 
-                            {!isClosed && (
-                              <>
-                                {canEditCost && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setCostTarget(s)}
-                                    title="Edit Salary & OT Cost"
-                                    className="px-2.5 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
-                                  >
-                                    Edit Cost
-                                  </button>
-                                )}
+                              {!isClosed && (
+                                <>
+                                  {canEditCost && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setCostTarget(s)}
+                                      title="Edit Salary & OT Cost"
+                                      className="px-2.5 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
+                                    >
+                                      Edit Cost
+                                    </button>
+                                  )}
 
-                                {isAdminOrPM && s.role === "ENGINEER" && s.status === "ACTIVE" && !s.isLead && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSetLead(s)}
-                                    disabled={setLeadLoading}
-                                    title="Set Lead Engineer"
-                                    className="px-2.5 py-1 text-[11px] font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 rounded-lg"
-                                  >
-                                    Set Lead
-                                  </button>
-                                )}
+                                  {isAdminOrPM && s.role === "ENGINEER" && s.status === "ACTIVE" && !s.isLead && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetLead(s)}
+                                      disabled={setLeadLoading}
+                                      title="Set Lead Engineer"
+                                      className="px-2.5 py-1 text-[11px] font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 rounded-lg"
+                                    >
+                                      Set Lead
+                                    </button>
+                                  )}
 
-                                {isAdminOrPM && s.status === "ACTIVE" && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setReleaseTarget(s)}
-                                    title="Release Staff Member"
-                                    className="px-2.5 py-1 text-[11px] font-semibold bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 rounded-lg"
-                                  >
-                                    Release
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </td>
+                                  {isAdminOrPM && s.status === "ACTIVE" && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setReleaseTarget(s)}
+                                      title="Release Staff Member"
+                                      className="px-2.5 py-1 text-[11px] font-semibold bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 rounded-lg"
+                                    >
+                                      Release
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </td>
+                          )}
                         </tr>
                       );
                     })}
