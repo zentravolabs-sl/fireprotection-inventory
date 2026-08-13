@@ -1,0 +1,49 @@
+﻿// ============================================================
+// src/app/(Main)/reports/page.tsx
+// Central Fire Protection ERP Reports Page
+// ============================================================
+
+import React from "react";
+import {
+  getProjectCostSummaryReport,
+  getCategoryExpenseReport,
+  getTransportReport,
+  getEngineerProjectsReport,
+  getCustomerProjectsReport,
+  getProjectTransferReport,
+} from "@/lib/repositories/reportRepository";
+import { ReportsClientPage } from "./ReportsClientPage";
+
+export const revalidate = 0;
+
+export const dynamic = "force-dynamic";
+
+export default async function ERPReportsPage() {
+  const [
+    costSummaryReport,
+    categoryExpenseReport,
+    transportReport,
+    engineerReport,
+    customerReport,
+    transferReport,
+  ] = await Promise.all([
+    getProjectCostSummaryReport(),
+    getCategoryExpenseReport(),
+    getTransportReport(),
+    getEngineerProjectsReport(),
+    getCustomerProjectsReport(),
+    getProjectTransferReport(),
+  ]);
+
+  return (
+    <ReportsClientPage
+      costSummaryReport={costSummaryReport}
+      categoryExpenseReport={categoryExpenseReport}
+      transportReport={transportReport}
+      engineerReport={engineerReport}
+      customerReport={customerReport}
+      transferReport={transferReport}
+    />
+  );
+}
+

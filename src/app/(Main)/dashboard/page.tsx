@@ -1,6 +1,6 @@
-// ============================================================
+﻿// ============================================================
 // src/app/(Main)/dashboard/page.tsx
-// Main dashboard — accessible to all authenticated users.
+// Main dashboard â€” accessible to all authenticated users.
 // ============================================================
 
 import { requireSession } from "@/lib/session";
@@ -11,8 +11,10 @@ import { getExpiryDashboardData } from "@/lib/services/expiryService";
 
 export const revalidate = 0;
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
-  title: "Dashboard — CDN Fire Engineering",
+  title: "Dashboard â€” CDN Fire Engineering",
 };
 
 export default async function DashboardPage() {
@@ -31,7 +33,7 @@ export default async function DashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-black text-[#dce3ef]">
-          Welcome back, {user.name.split(" ")[0]}! 👋
+          Welcome back, {user.name.split(" ")[0]}! ðŸ‘‹
         </h1>
         <p className="text-[#5a657a] mt-1 text-sm sm:text-base break-all">{user.email}</p>
       </div>
@@ -115,7 +117,7 @@ export default async function DashboardPage() {
             href="/tools"
             className="text-sm text-[#e02424] hover:underline font-semibold"
           >
-            → Manage Tools
+            â†’ Manage Tools
           </Link>
         </div>
       </div>
@@ -131,7 +133,7 @@ export default async function DashboardPage() {
             href="/expiry"
             className="text-sm text-[#e02424] hover:underline font-semibold"
           >
-            View Expiry Dashboard →
+            View Expiry Dashboard â†’
           </Link>
         </div>
 

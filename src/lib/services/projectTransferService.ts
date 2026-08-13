@@ -735,7 +735,7 @@ export async function cancelProjectTransferService(transferId: number, userId: s
 
 // ─── 6. Queries ────────────────────────────────────────────────────────────────
 
-export async function getProjectTransfersService(filters?: ProjectTransferFilterInput) {
+export async function getProjectTransfersService(filters?: ProjectTransferFilterInput & { page?: number; limit?: number }) {
   const where: any = {};
 
   if (filters?.fromProjectId) where.fromProjectId = filters.fromProjectId;
@@ -754,10 +754,16 @@ export async function getProjectTransfersService(filters?: ProjectTransferFilter
     ];
   }
 
-  const [transfers, stats] = await Promise.all([
+  const page = Math.max(1, filters?.page || 1);
+  const limit = filters?.limit || 5;
+
+  const [total, transfers, stats] = await Promise.all([
+    prisma.projectTransfer.count({ where }),
     prisma.projectTransfer.findMany({
       where,
       orderBy: { createdAt: "desc" },
+      skip: Math.max(0, (page - 1) * limit),
+      take: limit,
       include: {
         fromProject: { select: { id: true, projectCode: true, projectName: true } },
         toProject: { select: { id: true, projectCode: true, projectName: true } },
@@ -792,7 +798,16 @@ export async function getProjectTransfersService(filters?: ProjectTransferFilter
     }
   });
 
-  return { transfers, counts };
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  return {
+    transfers,
+    counts,
+    total,
+    page: Math.min(page, totalPages),
+    limit,
+    totalPages,
+  };
 }
 
 export async function getProjectTransferByIdService(transferId: number) {

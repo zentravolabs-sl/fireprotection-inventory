@@ -24,6 +24,7 @@ import UserAvatar from "@/components/users/user-avatar";
 import UserRoleBadge from "@/components/users/user-role-badge";
 import UserStatusBadge from "@/components/users/user-status-badge";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import Pagination from "@/components/ui/Pagination";
 import { activateUser, deactivateUser, changeUserRole } from "@/app/actions/user-actions";
 import type { UserProfile, UserRole } from "@/types/auth";
 
@@ -32,6 +33,10 @@ import type { UserProfile, UserRole } from "@/types/auth";
 interface UserTableProps {
   users: UserProfile[];
   actorRole: UserRole;
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
 }
 
 interface ActionMenuProps {
@@ -224,7 +229,14 @@ function ChangeRoleModal({ user, actorRole, onClose }: ChangeRoleModalProps) {
 
 // ── Main Table Component ────────────────────────────────────
 
-export default function UserTable({ users, actorRole }: UserTableProps) {
+export default function UserTable({
+  users,
+  actorRole,
+  total = 0,
+  page = 1,
+  limit = 5,
+  totalPages = 1,
+}: UserTableProps) {
   const [statusTarget, setStatusTarget] = useState<{
     user: UserProfile;
     action: "activate" | "deactivate";
@@ -246,14 +258,14 @@ export default function UserTable({ users, actorRole }: UserTableProps) {
 
   if (users.length === 0) {
     return (
-      <div className="bg-[#0F1524] border border-[#1e2a3d] rounded-2xl p-16 text-center">
-        <div className="w-16 h-16 bg-[#161d2e] rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-[#5a657a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-12 text-center shadow-sm">
+        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
-        <p className="text-[#dce3ef] font-semibold">No users found</p>
-        <p className="text-[#5a657a] text-sm mt-1">Try adjusting your search or filters.</p>
+        <p className="text-gray-900 dark:text-gray-100 font-semibold">No users found</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Try adjusting your search or filters.</p>
       </div>
     );
   }
@@ -261,82 +273,76 @@ export default function UserTable({ users, actorRole }: UserTableProps) {
   return (
     <>
       {/* Desktop table */}
-      <div className="bg-[#0F1524] border border-[#1e2a3d] rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px]">
-            <thead>
-              <tr className="border-b border-[#1e2a3d]">
+          <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+            <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs font-semibold tracking-wider">
+              <tr>
                 {["User", "Emp. Code", "Email", "Phone", "Role", "Status", "Last Updated", ""].map((col) => (
                   <th
                     key={col}
-                    className="px-5 py-3.5 text-left text-xs font-semibold text-[#5a657a] uppercase tracking-wider whitespace-nowrap"
+                    className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider whitespace-nowrap"
                   >
                     {col}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1e2a3d]">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               {users.map((user) => (
                 <tr
                   key={user.id}
-                  className="hover:bg-[#161d2e] transition-colors group"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                 >
                   {/* User column */}
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <UserAvatar name={user.name} image={user.image} size="md" />
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#dce3ef] truncate">{user.name}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{user.name}</p>
                         {user.designation && (
-                          <p className="text-xs text-[#5a657a] truncate">{user.designation}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.designation}</p>
                         )}
                       </div>
                     </div>
                   </td>
 
                   {/* Employee code */}
-                  <td className="px-5 py-4">
-                    <span className="text-sm font-mono text-[#5a657a]">
-                      {user.employeeCode ?? <span className="text-[#2a3a52]">—</span>}
-                    </span>
+                  <td className="px-4 py-3.5 font-mono text-xs font-semibold text-gray-900 dark:text-gray-100">
+                    {user.employeeCode ?? <span className="text-gray-400 font-normal">—</span>}
                   </td>
 
                   {/* Email */}
-                  <td className="px-5 py-4">
-                    <span className="text-sm text-[#dce3ef]/80 truncate max-w-[180px] block">{user.email}</span>
+                  <td className="px-4 py-3.5">
+                    <span className="text-sm text-gray-800 dark:text-gray-200 truncate max-w-[180px] block">{user.email}</span>
                   </td>
 
                   {/* Phone */}
-                  <td className="px-5 py-4">
-                    <span className="text-sm text-[#5a657a]">
-                      {user.phone ?? <span className="text-[#2a3a52]">—</span>}
-                    </span>
+                  <td className="px-4 py-3.5 text-xs text-gray-600 dark:text-gray-300">
+                    {user.phone ?? <span className="text-gray-400">—</span>}
                   </td>
 
                   {/* Role */}
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-3.5">
                     <UserRoleBadge role={user.role} size="sm" />
                   </td>
 
                   {/* Status */}
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-3.5">
                     <UserStatusBadge isActive={user.isActive} size="sm" />
                   </td>
 
                   {/* Last Updated */}
-                  <td className="px-5 py-4">
-                    <span className="text-sm text-[#5a657a] whitespace-nowrap">
-                      {new Date(user.updatedAt).toLocaleDateString("en-US", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </span>
+                  <td className="px-4 py-3.5 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    {new Date(user.updatedAt).toLocaleDateString("en-US", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </td>
 
                   {/* Actions */}
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-3.5 text-right">
                     <ActionMenu
                       user={user}
                       actorRole={actorRole}
@@ -356,15 +362,15 @@ export default function UserTable({ users, actorRole }: UserTableProps) {
         {users.map((user) => (
           <div
             key={user.id}
-            className="bg-[#0F1524] border border-[#1e2a3d] rounded-2xl p-4"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <UserAvatar name={user.name} image={user.image} size="md" />
                 <div>
-                  <p className="font-semibold text-[#dce3ef] text-sm">{user.name}</p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{user.name}</p>
                   {user.designation && (
-                    <p className="text-xs text-[#5a657a]">{user.designation}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{user.designation}</p>
                   )}
                 </div>
               </div>
@@ -379,9 +385,19 @@ export default function UserTable({ users, actorRole }: UserTableProps) {
               <UserRoleBadge role={user.role} size="sm" />
               <UserStatusBadge isActive={user.isActive} size="sm" />
             </div>
-            <p className="text-xs text-[#5a657a] mt-2">{user.email}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{user.email}</p>
           </div>
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="mt-4">
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalRecords={total}
+          limit={limit}
+        />
       </div>
 
       {/* Confirm deactivate/activate dialog */}

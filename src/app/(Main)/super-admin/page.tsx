@@ -1,13 +1,15 @@
-// ============================================================
+﻿// ============================================================
 // src/app/(Main)/super-admin/page.tsx
-// Super Admin panel — SUPER_ADMIN only.
+// Super Admin panel â€” SUPER_ADMIN only.
 // ============================================================
 
 import { requireRole } from "@/lib/session";
 import { Crown, Database } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
-  title: "Super Admin — CDN Fire Engineering",
+  title: "Super Admin â€” CDN Fire Engineering",
 };
 
 export default async function SuperAdminPage() {

@@ -38,11 +38,16 @@ export interface GetUsersFilters {
   search?: string;
   role?: UserRole | "";
   isActive?: "true" | "false" | "";
+  page?: number;
+  limit?: number;
 }
 
 export interface GetUsersResult {
   users: UserProfile[];
   total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 // ── queryUsers ───────────────────────────────────────────────
@@ -76,16 +81,29 @@ export async function queryUsers(
     where.isActive = false;
   }
 
+  const page = Math.max(1, filters.page || 1);
+  const limit = filters.limit || 5;
+
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
       select: USER_SAFE_SELECT,
       orderBy: { createdAt: "desc" },
+      skip: Math.max(0, (page - 1) * limit),
+      take: limit,
     }),
     prisma.user.count({ where }),
   ]);
 
-  return { users: users as UserProfile[], total };
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  return {
+    users: users as UserProfile[],
+    total,
+    page: Math.min(page, totalPages),
+    limit,
+    totalPages,
+  };
 }
 
 // ── queryUserById ────────────────────────────────────────────

@@ -1,14 +1,16 @@
-// ============================================================
+﻿// ============================================================
 // src/app/(Main)/admin/page.tsx
-// Admin panel — ADMIN and SUPER_ADMIN access.
+// Admin panel â€” ADMIN and SUPER_ADMIN access.
 // ============================================================
 
 import { requireRole } from "@/lib/session";
 import Link from "next/link";
 import { Users, ShieldCheck, Tag, Layers, Building2, Package, Wrench, Clock } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
-  title: "Admin Panel — CDN Fire Engineering",
+  title: "Admin Panel â€” CDN Fire Engineering",
 };
 
 export default async function AdminPage() {

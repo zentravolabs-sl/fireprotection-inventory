@@ -15,6 +15,8 @@ import { SidebarOffsetWrapper } from "@/components/ui/SidebarOffsetWrapper";
 import { TopNavbar } from "@/components/ui/TopNavbar";
 import { AppFooter } from "@/components/ui/AppFooter";
 
+export const dynamic = "force-dynamic";
+
 export default async function MainLayout({
   children,
 }: {
