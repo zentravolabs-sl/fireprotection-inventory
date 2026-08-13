@@ -174,7 +174,15 @@ export async function cancelProjectTransferAction(transferId: number) {
 
 export async function getProjectTransfersAction(filters?: ProjectTransferFilterInput) {
   try {
-    const res = await getProjectTransfersService(filters);
+    const session = await auth.api.getSession({ headers: await headers() });
+    const user = session?.user as any;
+    const userRole = user?.role;
+    const userId = user?.id;
+
+    const res = await getProjectTransfersService({
+      ...filters,
+      ...(userRole === "ENGINEER" ? { engineerId: userId } : {}),
+    });
     return { success: true, data: res.transfers, counts: res.counts };
   } catch (err: any) {
     return { success: false, message: err.message || "Failed to fetch transfers." };

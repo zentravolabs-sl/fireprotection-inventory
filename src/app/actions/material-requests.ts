@@ -12,10 +12,12 @@ import { prisma } from "@/lib/prisma";
 import {
   createMaterialRequestSchema,
   approveMaterialRequestSchema,
+  resubmitMaterialRequestSchema,
 } from "@/lib/validations/project";
 import {
   createMaterialRequestService,
   approveMaterialRequestService,
+  resubmitMaterialRequestService,
 } from "@/lib/services/projectService";
 import { requirePermission, requireProjectPermission } from "@/lib/auth/permissions";
 
@@ -74,7 +76,8 @@ export async function createMaterialRequestAction(data: {
 
 export async function approveMaterialRequestAction(data: {
   requestId: number;
-  items: { itemId: number; qtyApproved: number }[];
+  decision?: "APPROVE" | "REJECT";
+  items?: { itemId: number; qtyApproved: number }[];
   remarks?: string;
 }) {
   try {
@@ -104,6 +107,42 @@ export async function approveMaterialRequestAction(data: {
     return {
       success: false,
       message: err.message || "Failed to process request approval",
+    };
+  }
+}
+
+export async function resubmitMaterialRequestAction(data: {
+  requestId: number;
+  remarks?: string;
+  items: { inventoryId: number; qtyRequested: number }[];
+}) {
+  try {
+    const user = await requirePermission("material_request.create");
+    const actorId = user.id;
+    const parsed = resubmitMaterialRequestSchema.safeParse(data);
+
+    if (!parsed.success) {
+      return {
+        success: false,
+        message: parsed.error.issues[0]?.message || "Invalid payload for resubmission",
+      };
+    }
+
+    const updated = await resubmitMaterialRequestService(parsed.data, actorId);
+
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${updated.projectId}`);
+    revalidatePath("/material-requests");
+
+    return {
+      success: true,
+      message: `Material Request ${updated.requestNo} resubmitted successfully!`,
+      data: updated,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.message || "Failed to resubmit material request",
     };
   }
 }

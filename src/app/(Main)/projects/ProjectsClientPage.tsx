@@ -35,6 +35,7 @@ interface ProjectsClientPageProps {
   users: { id: string; name: string; role: string }[];
   currentSearch: string;
   currentStatus?: string;
+  userRole?: string;
 }
 
 export function ProjectsClientPage({
@@ -47,6 +48,7 @@ export function ProjectsClientPage({
   users,
   currentSearch,
   currentStatus,
+  userRole,
 }: ProjectsClientPageProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -171,8 +173,26 @@ export function ProjectsClientPage({
           <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
             {projects.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-gray-500">
-                  No projects found.
+                <td colSpan={6} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2a4 4 0 014-4h0a4 4 0 014 4v2M7 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-2" />
+                    </svg>
+                    {userRole === "ENGINEER" || userRole === "PROJECT_MANAGER" ? (
+                      <>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          No assigned projects yet
+                        </span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                          You will see projects here once you are assigned to one.
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-500">
+                        No projects found.
+                      </span>
+                    )}
+                  </div>
                 </td>
               </tr>
             ) : (

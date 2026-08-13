@@ -14,6 +14,8 @@ export type ProjectStatus =
 
 export type MaterialRequestStatus =
   | "PENDING"
+  | "PENDING_GM"
+  | "PENDING_ADMIN"
   | "APPROVED"
   | "REJECTED"
   | "PARTIAL"

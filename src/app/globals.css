@@ -6,6 +6,7 @@
 
 body {
   font-family: var(--font-inter);
+  background-color: #090e1a;
 }
 
 /* Ensure placeholder text contrast in both light and dark mode */

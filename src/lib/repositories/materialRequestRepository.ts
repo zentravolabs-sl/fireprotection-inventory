@@ -61,24 +61,36 @@ export async function findMaterialRequests(params: {
   const skip = (page - 1) * limit;
 
   const where: any = {};
+  const conditions: any[] = [];
 
   if (params.status) {
-    where.status = params.status;
+    conditions.push({ status: params.status });
   }
   if (params.projectId) {
-    where.projectId = params.projectId;
+    conditions.push({ projectId: params.projectId });
   }
   if (params.engineerId) {
-    where.engineerId = params.engineerId;
+    conditions.push({
+      OR: [
+        { engineerId: params.engineerId },
+        { project: { engineers: { some: { engineerId: params.engineerId } } } },
+      ],
+    });
   }
   if (params.search && params.search.trim() !== "") {
     const s = params.search.trim();
-    where.OR = [
-      { requestNo: { contains: s, mode: "insensitive" } },
-      { project: { projectName: { contains: s, mode: "insensitive" } } },
-      { project: { projectCode: { contains: s, mode: "insensitive" } } },
-      { engineer: { name: { contains: s, mode: "insensitive" } } },
-    ];
+    conditions.push({
+      OR: [
+        { requestNo: { contains: s, mode: "insensitive" } },
+        { project: { projectName: { contains: s, mode: "insensitive" } } },
+        { project: { projectCode: { contains: s, mode: "insensitive" } } },
+        { engineer: { name: { contains: s, mode: "insensitive" } } },
+      ],
+    });
+  }
+
+  if (conditions.length > 0) {
+    where.AND = conditions;
   }
 
   const [total, requests] = await Promise.all([

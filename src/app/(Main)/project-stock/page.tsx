@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/project-stock/page.tsx
 // Central Project Stock & Materials Return Page
 // ============================================================
@@ -6,6 +6,8 @@
 import React from "react";
 import { prisma } from "@/lib/prisma";
 import { ProjectStockClientTable } from "./ProjectStockClientTable";
+
+import { getSession } from "@/lib/session";
 
 export const revalidate = 0;
 
@@ -24,16 +26,37 @@ export default async function ProjectStockPage(props: PageProps) {
   const page = Math.max(1, Number(searchParams.page) || 1);
   const limit = 5;
 
-  const whereCondition = search
-    ? {
-        OR: [
-          { project: { projectName: { contains: search, mode: "insensitive" as const } } },
-          { project: { projectCode: { contains: search, mode: "insensitive" as const } } },
-          { inventory: { name: { contains: search, mode: "insensitive" as const } } },
-          { inventory: { itemCode: { contains: search, mode: "insensitive" as const } } },
-        ],
-      }
-    : {};
+  const session = await getSession();
+  const user = session?.user as any;
+  const userRole = user?.role;
+  const userId = user?.id;
+
+  const conditions: any[] = [];
+
+  if (search) {
+    conditions.push({
+      OR: [
+        { project: { projectName: { contains: search, mode: "insensitive" as const } } },
+        { project: { projectCode: { contains: search, mode: "insensitive" as const } } },
+        { inventory: { name: { contains: search, mode: "insensitive" as const } } },
+        { inventory: { itemCode: { contains: search, mode: "insensitive" as const } } },
+      ],
+    });
+  }
+
+  if (userRole === "ENGINEER") {
+    conditions.push({
+      project: {
+        engineers: {
+          some: {
+            engineerId: userId,
+          },
+        },
+      },
+    });
+  }
+
+  const whereCondition = conditions.length > 0 ? { AND: conditions } : {};
 
   const total = await prisma.projectMaterial.count({
     where: whereCondition,

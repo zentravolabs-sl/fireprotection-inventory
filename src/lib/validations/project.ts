@@ -137,8 +137,15 @@ export const approveMaterialRequestItemSchema = z.object({
 
 export const approveMaterialRequestSchema = z.object({
   requestId: z.number().int().positive(),
+  decision: z.enum(["APPROVE", "REJECT"]).default("APPROVE"),
   items: z.array(approveMaterialRequestItemSchema).min(1, "At least one item required"),
   remarks: z.string().optional().nullable(),
+});
+
+export const resubmitMaterialRequestSchema = z.object({
+  requestId: z.number().int().positive(),
+  remarks: z.string().optional().nullable(),
+  items: z.array(createMaterialRequestItemSchema).min(1, "At least one item is required"),
 });
 
 export const issueMaterialsFIFOSchema = z.object({
@@ -170,5 +177,6 @@ export type CreateTransportInput = z.infer<typeof createTransportSchema>;
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
 export type CreateMaterialRequestInput = z.infer<typeof createMaterialRequestSchema>;
 export type ApproveMaterialRequestInput = z.infer<typeof approveMaterialRequestSchema>;
+export type ResubmitMaterialRequestInput = z.infer<typeof resubmitMaterialRequestSchema>;
 export type IssueMaterialsFIFOInput = z.infer<typeof issueMaterialsFIFOSchema>;
 export type ReturnMaterialsInput = z.infer<typeof returnMaterialsSchema>;

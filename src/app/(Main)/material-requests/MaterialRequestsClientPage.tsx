@@ -12,6 +12,7 @@ import { ProjectStatusBadge } from "@/components/projects/ProjectStatusBadge";
 import { ApproveRequestModal } from "@/components/projects/ApproveRequestModal";
 import { IssueMaterialModal } from "@/components/projects/IssueMaterialModal";
 import { formatDate } from "@/lib/dateUtils";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface MaterialRequestsClientPageProps {
   requests: any[];
@@ -33,6 +34,7 @@ export function MaterialRequestsClientPage({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { can, userRole, isSuperAdmin } = usePermissions();
 
   const [search, setSearch] = useState(currentSearch);
   const [selectedApproveRequest, setSelectedApproveRequest] = useState<any | null>(null);
@@ -138,16 +140,30 @@ export function MaterialRequestsClientPage({
                     <ProjectStatusBadge status={req.status} />
                   </td>
                   <td className="px-4 py-3.5 text-right space-x-2">
-                    {req.status === "PENDING" && (
-                      <button
-                        onClick={() => setSelectedApproveRequest(req)}
-                        className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 hover:bg-indigo-100 rounded-md"
-                      >
-                        PM Approve
-                      </button>
-                    )}
+                    {/* GM Review Step */}
+                    {(req.status === "PENDING" || req.status === "PENDING_GM") &&
+                      (userRole === "GENERAL_MANAGER" || isSuperAdmin) && (
+                        <button
+                          onClick={() => setSelectedApproveRequest(req)}
+                          className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 hover:bg-indigo-100 rounded-md"
+                        >
+                          GM Review
+                        </button>
+                      )}
 
-                    {(req.status === "APPROVED" || req.status === "PARTIAL") && (
+                    {/* Admin Review Step */}
+                    {req.status === "PENDING_ADMIN" &&
+                      (userRole === "ADMIN" || isSuperAdmin) && (
+                        <button
+                          onClick={() => setSelectedApproveRequest(req)}
+                          className="px-3 py-1.5 text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 hover:bg-purple-100 rounded-md"
+                        >
+                          Admin Review
+                        </button>
+                      )}
+
+                    {/* Super Admin Issue FIFO */}
+                    {(req.status === "APPROVED" || req.status === "PARTIAL") && isSuperAdmin && (
                       <button
                         onClick={() => setSelectedIssueRequest(req)}
                         className="px-3 py-1.5 text-xs font-semibold bg-teal-600 text-white hover:bg-teal-700 rounded-md shadow-sm"

@@ -225,6 +225,7 @@ export async function findProjects(params: {
   status?: ProjectStatus;
   customerId?: number;
   engineerId?: string;
+  projectManagerId?: string;
   page?: number;
   limit?: number;
 }) {
@@ -246,6 +247,10 @@ export async function findProjects(params: {
     where.engineers = {
       some: { engineerId: params.engineerId },
     };
+  }
+
+  if (params.projectManagerId) {
+    where.projectManagerId = params.projectManagerId;
   }
 
   if (params.search && params.search.trim() !== "") {

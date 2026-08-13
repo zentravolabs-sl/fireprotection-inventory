@@ -51,8 +51,7 @@ export function ApproveRequestModal({
     setApprovedQtys({ ...approvedQtys, [itemId]: qty });
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleAction(decision: "APPROVE" | "REJECT") {
     setLoading(true);
     setError(null);
 
@@ -63,6 +62,7 @@ export function ApproveRequestModal({
 
     const res = await approveMaterialRequestAction({
       requestId,
+      decision,
       items: payloadItems,
       remarks,
     });
@@ -77,8 +77,8 @@ export function ApproveRequestModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Approve Request #${requestNo}`}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} title={`Review Request #${requestNo}`}>
+      <div className="space-y-4">
         {error && (
           <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-md">
             {error}
@@ -126,14 +126,14 @@ export function ApproveRequestModal({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-            Approval Remarks / Notes
+            Decision Remarks / Rejection Reason
           </label>
           <textarea
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
             rows={2}
             className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900 resize-none placeholder-gray-400 dark:placeholder-gray-500"
-            placeholder="Approval comments or conditions..."
+            placeholder="Review comments or rejection reason..."
           />
         </div>
 
@@ -141,15 +141,28 @@ export function ApproveRequestModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-32 py-3 px-5 text-sm font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 text-center whitespace-nowrap"
+            className="px-4 py-2.5 text-xs font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
           >
             Cancel
           </button>
-          <FormButton loading={loading} fullWidth={false} className="w-40">
-            Save Approval
-          </FormButton>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => handleAction("REJECT")}
+            className="px-4 py-2.5 text-xs font-semibold rounded-xl text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            ❌ Reject Request
+          </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => handleAction("APPROVE")}
+            className="px-5 py-2.5 text-xs font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50"
+          >
+            ✓ Approve Request
+          </button>
         </div>
-      </form>
+      </div>
     </Modal>
   );
 }
