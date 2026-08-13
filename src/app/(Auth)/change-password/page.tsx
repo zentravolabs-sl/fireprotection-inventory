@@ -78,6 +78,7 @@ export default function ChangePasswordPage() {
                 alt="CDN Fire Logo"
                 fill
                 priority
+                sizes="48px"
                 style={{ objectFit: "contain", filter: "brightness(0) invert(1)" }}
               />
             </div>
