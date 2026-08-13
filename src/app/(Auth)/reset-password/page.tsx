@@ -153,6 +153,7 @@ export default function ResetPasswordPage() {
                 alt="CDN Fire Logo"
                 fill
                 priority
+                sizes="48px"
                 style={{ objectFit: "contain", filter: "brightness(0) invert(1)" }}
               />
             </div>

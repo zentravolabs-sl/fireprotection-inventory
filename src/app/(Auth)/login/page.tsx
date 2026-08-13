@@ -214,6 +214,7 @@ export default function LoginPage() {
             alt="CDN Fire Scene Background"
             fill
             priority
+            sizes="52vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
           />
         </div>
@@ -249,6 +250,7 @@ export default function LoginPage() {
             alt="CDN FIRE ENGINEERING PVT LTD"
             fill
             priority
+            sizes="125px"
             style={{
               objectFit: "contain",
               filter: "brightness(0) invert(1) drop-shadow(0 4px 14px rgba(0,0,0,0.6))",
@@ -279,6 +281,7 @@ export default function LoginPage() {
           alt="3D Fire Extinguisher"
           fill
           priority
+          sizes="335px"
           style={{
             objectFit: "contain",
             objectPosition: "bottom center",
@@ -318,6 +321,7 @@ export default function LoginPage() {
               alt="CDN Fire Logo"
               fill
               priority
+              sizes="48px"
               style={{ objectFit: "contain", filter: "brightness(0) invert(1)" }}
             />
           </div>
@@ -406,6 +410,7 @@ export default function LoginPage() {
                   alt="CDN FIRE Logo"
                   fill
                   priority
+                  sizes="56px"
                   style={{ objectFit: "contain" }}
                 />
               </div>
