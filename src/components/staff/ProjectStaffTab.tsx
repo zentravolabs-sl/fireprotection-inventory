@@ -104,11 +104,10 @@ function RoleBadge({ role }: { role: "PROJECT_MANAGER" | "ENGINEER" }) {
   const isPM = role === "PROJECT_MANAGER";
   return (
     <span
-      className={`px-2 py-0.5 text-[11px] font-bold rounded-md border inline-flex items-center gap-1 ${
-        isPM
+      className={`px-2 py-0.5 text-[11px] font-bold rounded-md border inline-flex items-center gap-1 ${isPM
           ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60"
           : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60"
-      }`}
+        }`}
     >
       {isPM ? <Crown size={11} /> : <Wrench size={11} />}
       {isPM ? "Project Manager" : "Engineer"}
@@ -438,11 +437,10 @@ export function ProjectStaffTab({
           <button
             type="button"
             onClick={() => setSubTab("staff")}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              subTab === "staff"
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${subTab === "staff"
                 ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
                 : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
-            }`}
+              }`}
           >
             <Users size={14} />
             <span>Staff Members Table ({cleanProjectStaff.length})</span>
@@ -451,11 +449,10 @@ export function ProjectStaffTab({
           <button
             type="button"
             onClick={() => setSubTab("summary")}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              subTab === "summary"
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${subTab === "summary"
                 ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
                 : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
-            }`}
+              }`}
           >
             <PieChart size={14} />
             <span>Cost Summary Breakdown</span>
@@ -502,9 +499,8 @@ export function ProjectStaffTab({
                       return (
                         <tr
                           key={s.id}
-                          className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
-                            s.status === "RELEASED" ? "opacity-70 bg-gray-50/40 dark:bg-gray-900/40" : ""
-                          }`}
+                          className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${s.status === "RELEASED" ? "opacity-70 bg-gray-50/40 dark:bg-gray-900/40" : ""
+                            }`}
                         >
                           <td className="px-4 py-3.5 font-medium text-gray-900 dark:text-gray-100">
                             <div className="flex items-center gap-2.5">

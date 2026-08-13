@@ -21,8 +21,10 @@ datasource db {
 enum Role {
   SUPER_ADMIN
   ADMIN
+  GENERAL_MANAGER
   PROJECT_MANAGER
   ENGINEER
+  ACCOUNTANT
   USER
 }
 
@@ -209,6 +211,41 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// ============================================================
+// Role & Permission Models (RBAC/PBAC)
+// ============================================================
+
+/// Granular system permission definition.
+model Permission {
+  id          Int     @id @default(autoincrement())
+  key         String  @unique
+  name        String
+  module      String
+  description String?
+
+  rolePermissions RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([module])
+  @@map("permission")
+}
+
+/// Junction mapping system roles to granted permissions.
+model RolePermission {
+  id           Int  @id @default(autoincrement())
+  role         Role
+  permissionId Int
+
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([role, permissionId])
+  @@index([role])
+  @@index([permissionId])
+  @@map("role_permission")
 }
 
 // ============================================================
@@ -1184,21 +1221,27 @@ enum NotificationType {
   STOCK_EXPIRED
   INFO
   WARNING
+  MATERIAL_REQUEST_SUBMITTED
+  MATERIAL_REQUEST_CREATED    // Admin/Super-Admin alert — new request pending
+  MATERIAL_REQUEST_APPROVED   // Requester alert — their request was approved
+  MATERIAL_REQUEST_REJECTED   // Requester alert — their request was rejected
 }
 
 model Notification {
-  id        Int              @id @default(autoincrement())
-  type      NotificationType
-  title     String
-  message   String
-  isRead    Boolean          @default(false)
-  batchId   Int?
-  userId    String?          // null = broadcast to all authorized roles
-  createdAt DateTime         @default(now())
+  id                Int              @id @default(autoincrement())
+  type              NotificationType
+  title             String
+  message           String
+  isRead            Boolean          @default(false)
+  batchId           Int?             // used by expiry notifications
+  materialRequestId Int?             // used by material request notifications
+  userId            String?          // null = broadcast; non-null = targeted user
+  createdAt         DateTime         @default(now())
 
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+  @@index([materialRequestId])
   @@map("notification")
 }
 

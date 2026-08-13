@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 // ============================================================
 // src/app/(Main)/expiry/reports/page.tsx
@@ -94,18 +94,18 @@ export default function ExpiryReportsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#0F1524] p-6 rounded-2xl border border-gray-200/80 dark:border-[#1e2a3d] shadow-sm">
         <div>
           <Link
             href="/expiry"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-red-600 mb-2 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-[#5a657a] hover:text-red-600 dark:hover:text-red-400 mb-2 transition-colors"
           >
             <ArrowLeft size={14} /> Back to Expiry Management
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-[#dce3ef] tracking-tight">
             Inventory Expiry Reports
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-[#5a657a] mt-1">
             Comprehensive audit reports for stock valuation, upcoming expirations & supplier analysis.
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function ExpiryReportsPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-[#dce3ef] bg-gray-50 dark:bg-[#161d2e] hover:bg-gray-100 dark:hover:bg-[#1e2a3d] border border-gray-200 dark:border-[#1e2a3d] rounded-xl transition-colors"
           >
             <Printer size={14} /> Print Report
           </button>
@@ -121,14 +121,14 @@ export default function ExpiryReportsPage() {
       </div>
 
       {/* Tabs & Controls Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+      <div className="bg-white dark:bg-[#0F1524] p-4 rounded-2xl border border-gray-200/80 dark:border-[#1e2a3d] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2 bg-gray-100 dark:bg-[#161d2e] p-1 rounded-xl">
           <button
             onClick={() => setActiveTab("STOCK")}
             className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
               activeTab === "STOCK"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white dark:bg-[#1e2a3d] text-gray-900 dark:text-[#dce3ef] shadow-sm"
+                : "text-gray-600 dark:text-[#5a657a] hover:text-gray-900 dark:hover:text-[#dce3ef]"
             }`}
           >
             <FileText size={15} /> Expiry Stock Report
@@ -137,8 +137,8 @@ export default function ExpiryReportsPage() {
             onClick={() => setActiveTab("SUPPLIER")}
             className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
               activeTab === "SUPPLIER"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white dark:bg-[#1e2a3d] text-gray-900 dark:text-[#dce3ef] shadow-sm"
+                : "text-gray-600 dark:text-[#5a657a] hover:text-gray-900 dark:hover:text-[#dce3ef]"
             }`}
           >
             <Building2 size={15} /> Supplier Expiry Report
@@ -150,7 +150,7 @@ export default function ExpiryReportsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-700 outline-none"
+              className="px-3.5 py-2 text-xs bg-gray-50 dark:bg-[#161d2e] border border-gray-200 dark:border-[#1e2a3d] rounded-xl font-semibold text-gray-700 dark:text-[#dce3ef] outline-none"
             >
               <option value="">All Statuses</option>
               <option value="EXPIRED">EXPIRED Only</option>
@@ -163,7 +163,7 @@ export default function ExpiryReportsPage() {
           <select
             value={rangeFilter}
             onChange={(e) => setRangeFilter(e.target.value)}
-            className="px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-700 outline-none"
+            className="px-3.5 py-2 text-xs bg-gray-50 dark:bg-[#161d2e] border border-gray-200 dark:border-[#1e2a3d] rounded-xl font-semibold text-gray-700 dark:text-[#dce3ef] outline-none"
           >
             <option value="7">Window: 7 Days</option>
             <option value="14">Window: 14 Days</option>
@@ -176,18 +176,18 @@ export default function ExpiryReportsPage() {
 
       {/* Tab 1: Expiry Stock Report */}
       {activeTab === "STOCK" && (
-        <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden space-y-4">
-          <div className="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-gray-700">
+        <div className="bg-white dark:bg-[#0F1524] border border-gray-200/80 dark:border-[#1e2a3d] rounded-2xl shadow-sm overflow-hidden space-y-4">
+          <div className="p-4 bg-gray-50 dark:bg-[#161d2e] border-b border-gray-200 dark:border-[#1e2a3d] flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-gray-700 dark:text-gray-300">
             <span>Total Batches: {stockReport.totalItemsCount}</span>
             <span>Total Stock Quantity: {stockReport.totalQty}</span>
-            <span className="text-sm font-black text-gray-900">
+            <span className="text-sm font-black text-gray-900 dark:text-[#dce3ef]">
               Total Stock Value: {formatCurrency(stockReport.totalValue)}
             </span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-extrabold">
+              <thead className="bg-gray-50 dark:bg-[#161d2e] border-b border-gray-200 dark:border-[#1e2a3d] text-gray-500 dark:text-[#5a657a] uppercase font-extrabold">
                 <tr>
                   <th className="py-3 px-4">Item</th>
                   <th className="py-3 px-4">Category</th>
@@ -203,70 +203,70 @@ export default function ExpiryReportsPage() {
                   <th className="py-3 px-4">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 font-medium">
+              <tbody className="divide-y divide-gray-100 dark:divide-[#1e2a3d] font-medium">
                 {loading ? (
                   <tr>
-                    <td colSpan={12} className="py-12 text-center text-gray-400">
+                    <td colSpan={12} className="py-12 text-center text-gray-400 dark:text-gray-500">
                       Loading expiry report...
                     </td>
                   </tr>
                 ) : stockReport.items.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="py-12 text-center text-gray-400">
+                    <td colSpan={12} className="py-12 text-center text-gray-400 dark:text-gray-500">
                       No batch records found for this report filter.
                     </td>
                   </tr>
                 ) : (
                   stockReport.items.map((row) => (
-                    <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
-                      <td className="py-3 px-4 font-bold text-gray-900">
+                    <tr key={row.id} className="hover:bg-gray-50/80 dark:hover:bg-[#161d2e]/50 transition-colors">
+                      <td className="py-3 px-4 font-bold text-gray-900 dark:text-[#dce3ef]">
                         {row.inventory.name}
-                        <span className="block text-[10px] font-mono text-gray-500 font-normal">
+                        <span className="block text-[10px] font-mono text-gray-500 dark:text-[#5a657a] font-normal">
                           {row.inventory.itemCode}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-600">
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
                         {row.inventory.category.categoryName}
                       </td>
-                      <td className="py-3 px-4 text-gray-700 truncate max-w-[130px]">
+                      <td className="py-3 px-4 text-gray-700 dark:text-gray-300 truncate max-w-[130px]">
                         {row.supplier?.company || "N/A"}
                       </td>
-                      <td className="py-3 px-4 font-mono font-bold text-gray-800">
+                      <td className="py-3 px-4 font-mono font-bold text-gray-800 dark:text-[#dce3ef]">
                         {row.batchNo}
                       </td>
-                      <td className="py-3 px-4 text-gray-600">{formatDate(row.receiveDate)}</td>
-                      <td className="py-3 px-4 text-gray-600">{formatDate(row.manufactureDate)}</td>
-                      <td className="py-3 px-4 font-bold text-gray-900">{formatDate(row.expiryDate)}</td>
-                      <td className="py-3 px-4 text-right font-black tabular-nums">
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{formatDate(row.receiveDate)}</td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{formatDate(row.manufactureDate)}</td>
+                      <td className="py-3 px-4 font-bold text-gray-900 dark:text-[#dce3ef]">{formatDate(row.expiryDate)}</td>
+                      <td className="py-3 px-4 text-right font-black tabular-nums text-gray-900 dark:text-[#dce3ef]">
                         {row.availableQty} {row.inventory.unit}
                       </td>
-                      <td className="py-3 px-4 text-right font-semibold text-gray-600 tabular-nums">
+                      <td className="py-3 px-4 text-right font-semibold text-gray-600 dark:text-gray-400 tabular-nums">
                         LKR {row.unitCost.toLocaleString()}
                       </td>
-                      <td className="py-3 px-4 text-right font-black text-gray-900 tabular-nums">
+                      <td className="py-3 px-4 text-right font-black text-gray-900 dark:text-[#dce3ef] tabular-nums">
                         {formatCurrency(row.stockValue)}
                       </td>
-                      <td className="py-3 px-4 text-center font-bold">
+                      <td className="py-3 px-4 text-center font-bold text-gray-900 dark:text-[#dce3ef]">
                         {row.daysRemaining !== null ? `${row.daysRemaining}d` : "--"}
                       </td>
                       <td className="py-3 px-4">
                         {row.status === "EXPIRED" && (
-                          <span className="px-2 py-0.5 text-[10px] font-extrabold text-red-700 bg-red-100 border border-red-200 rounded-full">
+                          <span className="px-2 py-0.5 text-[10px] font-extrabold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-950/50 border border-red-200 dark:border-red-800/40 rounded-full">
                             EXPIRED
                           </span>
                         )}
                         {row.status === "EXPIRING_SOON" && (
-                          <span className="px-2 py-0.5 text-[10px] font-extrabold text-amber-700 bg-amber-100 border border-amber-200 rounded-full">
+                          <span className="px-2 py-0.5 text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/40 rounded-full">
                             EXPIRING SOON
                           </span>
                         )}
                         {row.status === "VALID" && (
-                          <span className="px-2 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded-full">
+                          <span className="px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/40 rounded-full">
                             VALID
                           </span>
                         )}
                         {row.status === "NO_EXPIRY" && (
-                          <span className="px-2 py-0.5 text-[10px] font-bold text-gray-600 bg-gray-100 border border-gray-200 rounded-full">
+                          <span className="px-2 py-0.5 text-[10px] font-bold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#161d2e] border border-gray-200 dark:border-[#1e2a3d] rounded-full">
                             NO EXPIRY
                           </span>
                         )}
@@ -284,22 +284,22 @@ export default function ExpiryReportsPage() {
       {activeTab === "SUPPLIER" && (
         <div className="space-y-6">
           {loading ? (
-            <div className="bg-white p-12 text-center text-gray-400 rounded-2xl border border-gray-200">
+            <div className="bg-white dark:bg-[#0F1524] p-12 text-center text-gray-400 dark:text-gray-500 rounded-2xl border border-gray-200 dark:border-[#1e2a3d]">
               Loading supplier expiry analysis...
             </div>
           ) : supplierReport.length === 0 ? (
-            <div className="bg-white p-12 text-center text-gray-400 rounded-2xl border border-gray-200">
+            <div className="bg-white dark:bg-[#0F1524] p-12 text-center text-gray-400 dark:text-gray-500 rounded-2xl border border-gray-200 dark:border-[#1e2a3d]">
               No expiring or expired batches associated with suppliers under the current threshold.
             </div>
           ) : (
             supplierReport.map((sup) => (
-              <div key={sup.supplierId} className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden space-y-3">
-                <div className="p-4 bg-gray-900 text-white flex flex-wrap items-center justify-between gap-4">
+              <div key={sup.supplierId} className="bg-white dark:bg-[#0F1524] border border-gray-200/80 dark:border-[#1e2a3d] rounded-2xl shadow-sm overflow-hidden space-y-3">
+                <div className="p-4 bg-gray-900 dark:bg-[#161d2e] text-white flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h3 className="text-base font-bold flex items-center gap-2">
                       <Building2 size={18} className="text-red-400" /> {sup.company}
                     </h3>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-400 dark:text-[#5a657a] mt-0.5">
                       Contact: {sup.contactPerson || "N/A"} | Phone: {sup.phone || "N/A"} | Email: {sup.email || "N/A"}
                     </p>
                   </div>
@@ -317,7 +317,7 @@ export default function ExpiryReportsPage() {
 
                 <div className="p-4">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-extrabold uppercase">
+                    <thead className="bg-gray-50 dark:bg-[#161d2e] border-b border-gray-200 dark:border-[#1e2a3d] text-gray-500 dark:text-[#5a657a] font-extrabold uppercase">
                       <tr>
                         <th className="py-2.5 px-3">Item Name</th>
                         <th className="py-2.5 px-3">Item Code</th>
@@ -328,20 +328,20 @@ export default function ExpiryReportsPage() {
                         <th className="py-2.5 px-3">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-100 dark:divide-[#1e2a3d]">
                       {sup.items.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="py-2.5 px-3 font-bold text-gray-900">{item.inventory.name}</td>
-                          <td className="py-2.5 px-3 font-mono text-gray-600">{item.inventory.itemCode}</td>
-                          <td className="py-2.5 px-3 font-mono font-bold text-gray-800">{item.batchNo}</td>
-                          <td className="py-2.5 px-3 font-bold text-gray-900">{formatDate(item.expiryDate)}</td>
-                          <td className="py-2.5 px-3 text-right font-black tabular-nums">{item.availableQty} {item.inventory.unit}</td>
-                          <td className="py-2.5 px-3 text-right font-black tabular-nums">{formatCurrency(item.stockValue)}</td>
+                        <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-[#161d2e]/50">
+                          <td className="py-2.5 px-3 font-bold text-gray-900 dark:text-[#dce3ef]">{item.inventory.name}</td>
+                          <td className="py-2.5 px-3 font-mono text-gray-600 dark:text-gray-400">{item.inventory.itemCode}</td>
+                          <td className="py-2.5 px-3 font-mono font-bold text-gray-800 dark:text-[#dce3ef]">{item.batchNo}</td>
+                          <td className="py-2.5 px-3 font-bold text-gray-900 dark:text-[#dce3ef]">{formatDate(item.expiryDate)}</td>
+                          <td className="py-2.5 px-3 text-right font-black tabular-nums text-gray-900 dark:text-[#dce3ef]">{item.availableQty} {item.inventory.unit}</td>
+                          <td className="py-2.5 px-3 text-right font-black tabular-nums text-gray-900 dark:text-[#dce3ef]">{formatCurrency(item.stockValue)}</td>
                           <td className="py-2.5 px-3">
                             {item.status === "EXPIRED" ? (
-                              <span className="px-2 py-0.5 text-[10px] font-extrabold text-red-700 bg-red-100 rounded-full">EXPIRED</span>
+                              <span className="px-2 py-0.5 text-[10px] font-extrabold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-950/50 rounded-full">EXPIRED</span>
                             ) : (
-                              <span className="px-2 py-0.5 text-[10px] font-extrabold text-amber-700 bg-amber-100 rounded-full">{item.daysRemaining}d remaining</span>
+                              <span className="px-2 py-0.5 text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/50 rounded-full">{item.daysRemaining}d remaining</span>
                             )}
                           </td>
                         </tr>

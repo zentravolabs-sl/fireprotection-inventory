@@ -49,7 +49,8 @@ if (
   (
     !("projectLabour" in globalForPrisma.prisma) ||
     !("projectStaff" in globalForPrisma.prisma) ||
-    !("projectTransfer" in globalForPrisma.prisma)
+    !("projectTransfer" in globalForPrisma.prisma) ||
+    !("notification" in globalForPrisma.prisma)
   )
 ) {
   globalForPrisma.prisma = undefined;

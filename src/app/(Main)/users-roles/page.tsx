@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/users-roles/page.tsx
 // User Management â€” list page.
 // Route: /users-roles
@@ -80,14 +80,25 @@ export default async function UsersRolesPage({ searchParams }: PageProps) {
             </p>
           </div>
 
-          <Link
-            href="/users-roles/new"
-            id="add-user-btn"
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-all flex-shrink-0"
-          >
-            <UserPlus size={15} />
-            Add User
-          </Link>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              href="/users-roles/permissions"
+              id="manage-permissions-btn"
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm transition-all flex-shrink-0"
+            >
+              <Users size={15} className="text-purple-600" />
+              Role Permissions
+            </Link>
+
+            <Link
+              href="/users-roles/new"
+              id="add-user-btn"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-all flex-shrink-0"
+            >
+              <UserPlus size={15} />
+              Add User
+            </Link>
+          </div>
         </div>
 
         {/* Stats strip */}

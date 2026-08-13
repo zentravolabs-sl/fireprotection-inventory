@@ -11,6 +11,8 @@
 import React, { useState, createContext, useContext, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { usePendingMRCount } from "@/components/ui/NotificationBell";
+import { usePermissions } from "@/hooks/usePermissions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +21,7 @@ interface NavItem {
   href: string;
   icon: React.ReactNode;
   badge?: number;
+  permission?: string;
 }
 
 interface NavGroup {
@@ -196,51 +199,51 @@ const Icons = {
 
 // ─── Navigation Data ──────────────────────────────────────────────────────────
 
-const NAV_GROUPS: NavGroup[] = [
+const NAV_GROUPS_STATIC: NavGroup[] = [
   {
     title: "PROJECT MANAGEMENT",
     items: [
-      { label: "Projects",          href: "/projects",          icon: Icons.projects },
-      { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests },
-      { label: "Project Stock",     href: "/project-stock",    icon: Icons.projectStock },
-      { label: "Project Transfers", href: "/transfers",        icon: Icons.returns },
+      { label: "Projects",          href: "/projects",          icon: Icons.projects,         permission: "project.view" },
+      { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests, permission: "material_request.view" },
+      { label: "Project Stock",     href: "/project-stock",    icon: Icons.projectStock,      permission: "stock.view_history" },
+      { label: "Project Transfers", href: "/transfers",        icon: Icons.returns,           permission: "project_transfer.view" },
     ],
   },
   {
     title: "WAREHOUSE",
     items: [
-      { label: "Categories",        href: "/categories",       icon: Icons.categories },
-      { label: "Sub-Categories",    href: "/sub-categories",   icon: Icons.subCategories },
-      { label: "Inventory Master",  href: "/inventory",        icon: Icons.inventory },
-      { label: "Stock Receive",     href: "/stock-receive",    icon: Icons.suppliers },
-      { label: "Stock Batches",     href: "/stock-batch",      icon: Icons.projectStock },
-      { label: "Stock Movements",   href: "/stock-movement",   icon: Icons.reports },
-      { label: "Pipe & Cut Pieces", href: "/pipe-cut-pieces",  icon: Icons.pipe },
-      { label: "Expiry Management", href: "/expiry",           icon: Icons.expiry },
+      { label: "Categories",        href: "/categories",       icon: Icons.categories,        permission: "inventory.view" },
+      { label: "Sub-Categories",    href: "/sub-categories",   icon: Icons.subCategories,    permission: "inventory.view" },
+      { label: "Inventory Master",  href: "/inventory",        icon: Icons.inventory,        permission: "inventory.view" },
+      { label: "Stock Receive",     href: "/stock-receive",    icon: Icons.suppliers,        permission: "stock.receive" },
+      { label: "Stock Batches",     href: "/stock-batch",      icon: Icons.projectStock,      permission: "stock.view_history" },
+      { label: "Stock Movements",   href: "/stock-movement",   icon: Icons.reports,           permission: "stock.view_history" },
+      { label: "Pipe & Cut Pieces", href: "/pipe-cut-pieces",  icon: Icons.pipe,              permission: "stock.view_history" },
+      { label: "Expiry Management", href: "/expiry",           icon: Icons.expiry,            permission: "expiry.view" },
     ],
   },
   {
     title: "ASSETS & BUSINESS",
     items: [
-      { label: "Tools",             href: "/tools",            icon: Icons.tools },
-      { label: "Suppliers",         href: "/suppliers",        icon: Icons.suppliers },
-      { label: "Customers",         href: "/customers",        icon: Icons.customers },
-      { label: "Quotations",        href: "/quotations",       icon: Icons.quotations },
+      { label: "Tools",             href: "/tools",            icon: Icons.tools,            permission: "tool.view" },
+      { label: "Suppliers",         href: "/suppliers",        icon: Icons.suppliers,        permission: "supplier.view" },
+      { label: "Customers",         href: "/customers",        icon: Icons.customers,        permission: "customer.view" },
+      { label: "Quotations",        href: "/quotations",       icon: Icons.quotations,       permission: "project.view" },
     ],
   },
   {
     title: "LABOUR",
     items: [
-      { label: "Labour Types",      href: "/labour-types",     icon: Icons.labourTypes },
-      { label: "Labour Master",     href: "/labour",           icon: Icons.labour },
+      { label: "Labour Types",      href: "/labour-types",     icon: Icons.labourTypes,      permission: "labour.view" },
+      { label: "Labour Master",     href: "/labour",           icon: Icons.labour,           permission: "labour.view" },
     ],
   },
   {
     title: "MANAGEMENT",
     items: [
-      { label: "Reports",           href: "/reports",          icon: Icons.reports },
-      { label: "Users & Roles",     href: "/users-roles",      icon: Icons.users },
-      { label: "Audit Log",         href: "/audit-log",        icon: Icons.audit },
+      { label: "Reports",           href: "/reports",          icon: Icons.reports,          permission: "report.view" },
+      { label: "Users & Roles",     href: "/users-roles",      icon: Icons.users,            permission: "user.view" },
+      { label: "Audit Log",         href: "/audit-log",        icon: Icons.audit,            permission: "audit_log.view" },
     ],
   },
 ];
@@ -348,8 +351,26 @@ export function MobileTopBar() {
 
 export function Sidebar() {
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
+  const pendingMRCount = usePendingMRCount();
+  const { can } = usePermissions();
 
   const closeMobile = () => setMobileOpen(false);
+
+  // Filter nav groups & items based on current user permissions
+  const NAV_GROUPS: NavGroup[] = NAV_GROUPS_STATIC.map((group) => {
+    const authorizedItems = group.items
+      .filter((item) => !item.permission || can(item.permission))
+      .map((item) =>
+        item.href === "/material-requests" && pendingMRCount > 0
+          ? { ...item, badge: pendingMRCount }
+          : item,
+      );
+
+    return {
+      ...group,
+      items: authorizedItems,
+    };
+  }).filter((group) => group.items.length > 0);
 
   return (
     <>

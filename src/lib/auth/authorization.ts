@@ -16,9 +16,11 @@ import type { UserRole } from "@/types/auth";
 const ROLE_HIERARCHY: Record<UserRole, number> = {
   USER: 0,
   ENGINEER: 1,
+  ACCOUNTANT: 1,
   PROJECT_MANAGER: 2,
-  ADMIN: 3,
-  SUPER_ADMIN: 4,
+  GENERAL_MANAGER: 3,
+  ADMIN: 4,
+  SUPER_ADMIN: 5,
 };
 
 /**

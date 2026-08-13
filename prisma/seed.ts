@@ -8,6 +8,7 @@ import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { hashPassword } from "better-auth/crypto";
+import { seedPermissions } from "./seed-permissions";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -37,6 +38,8 @@ const allUsers: SeedUser[] = [...adminUsers, ...demoUsers];
 
 async function main() {
   console.log("\n🌱  Starting database seed...\n");
+
+  await seedPermissions(prisma);
 
   let createdUsers = 0;
   let superAdminId = "";

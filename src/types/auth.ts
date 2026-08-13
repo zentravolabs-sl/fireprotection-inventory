@@ -9,8 +9,10 @@
 export type UserRole =
   | "SUPER_ADMIN"
   | "ADMIN"
+  | "GENERAL_MANAGER"
   | "PROJECT_MANAGER"
   | "ENGINEER"
+  | "ACCOUNTANT"
   | "USER";
 
 /**

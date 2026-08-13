@@ -9,11 +9,14 @@
 // ============================================================
 
 import { requireSession } from "@/lib/session";
+import { getCurrentUserPermissionsList } from "@/lib/auth/permissions";
+import { PermissionProvider } from "@/components/providers/PermissionProvider";
 import { Sidebar, SidebarProvider, MobileTopBar } from "@/components/ui/Sidebar";
 import "../sidebar.css";
 import { SidebarOffsetWrapper } from "@/components/ui/SidebarOffsetWrapper";
 import { TopNavbar } from "@/components/ui/TopNavbar";
 import { AppFooter } from "@/components/ui/AppFooter";
+import type { UserRole } from "@/types/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -30,29 +33,34 @@ export default async function MainLayout({
     role?: string;
   };
 
+  const userRole = (user.role ?? "USER") as UserRole;
+  const permissionsList = await getCurrentUserPermissionsList();
+
   return (
-    <SidebarProvider>
-      <div className="app-shell">
-        {/* Mobile top bar — visible only on small screens via CSS */}
-        <MobileTopBar />
-        <Sidebar />
-        <SidebarOffsetWrapper>
-          {/* Sticky top navbar inside the content column */}
-          <TopNavbar
-            userName={user.name}
-            userEmail={user.email}
-            userRole={user.role}
-          />
+    <PermissionProvider permissions={permissionsList} userRole={userRole}>
+      <SidebarProvider>
+        <div className="app-shell">
+          {/* Mobile top bar — visible only on small screens via CSS */}
+          <MobileTopBar />
+          <Sidebar />
+          <SidebarOffsetWrapper>
+            {/* Sticky top navbar inside the content column */}
+            <TopNavbar
+              userName={user.name}
+              userEmail={user.email}
+              userRole={user.role}
+            />
 
-          {/* Page content */}
-          <div className="app-content">
-            {children}
-          </div>
+            {/* Page content */}
+            <div className="app-content">
+              {children}
+            </div>
 
-          {/* Footer at the bottom of the content column */}
-          <AppFooter />
-        </SidebarOffsetWrapper>
-      </div>
-    </SidebarProvider>
+            {/* Footer at the bottom of the content column */}
+            <AppFooter />
+          </SidebarOffsetWrapper>
+        </div>
+      </SidebarProvider>
+    </PermissionProvider>
   );
 }

@@ -240,11 +240,10 @@ export function AssignedToolsTab({
                       </td>
                       <td className="px-4 py-3">
                         {item.returnCondition ? (
-                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                            item.returnCondition === "Good"
+                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${item.returnCondition === "Good"
                               ? "bg-emerald-100 text-emerald-700"
                               : "bg-red-100 text-red-700"
-                          }`}>
+                            }`}>
                             {item.returnCondition}
                           </span>
                         ) : (

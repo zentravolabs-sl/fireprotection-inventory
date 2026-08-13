@@ -32,6 +32,10 @@ import {
   ReturnMaterialsInput,
 } from "../validations/project";
 import { ProjectTimelineEvent, ProjectStatus } from "@/types/project";
+import {
+  notifyMaterialRequestSubmitted,
+  notifyMaterialRequestDecision,
+} from "@/lib/notifications";
 
 // ─── Staff Validation Helper ──────────────────────────────────────────────────
 
@@ -214,9 +218,16 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
     }
   }
 
+  // ── Resolve requester name for the notification message ──────────────
+  const engineer = await prisma.user.findUnique({
+    where: { id: input.engineerId },
+    select: { name: true },
+  });
+  const engineerName = engineer?.name ?? "A team member";
+
   const requestNo = await generateRequestNo();
 
-  return prisma.$transaction(
+  const request = await prisma.$transaction(
     async (tx) => {
     const request = await tx.materialRequest.create({
       data: {
@@ -259,6 +270,18 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
 
     return request;
   }, { maxWait: 15000, timeout: 60000 });
+
+  // ── Fire notification AFTER transaction commits (non-fatal) ───────────
+  await notifyMaterialRequestSubmitted(
+    request.id,
+    request.requestNo,
+    input.projectId,
+    project.projectName,
+    engineerName,
+    input.engineerId,
+  );
+
+  return request;
 }
 
 // ─── 6. Approve Material Request (PM Approval) ───────────────────────────────
@@ -277,7 +300,7 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
     throw new Error(`Request cannot be approved because it is currently in '${request.status}' status.`);
   }
 
-  return prisma.$transaction(
+  const updatedRequest = await prisma.$transaction(
     async (tx) => {
     let hasApprovedItem = false;
 
@@ -327,6 +350,21 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
 
     return updatedRequest;
   }, { maxWait: 15000, timeout: 60000 });
+
+  // ── Fire decision notification AFTER transaction commits (non-fatal) ──
+  const decisionStatus = updatedRequest.status as "APPROVED" | "REJECTED";
+  if (decisionStatus === "APPROVED" || decisionStatus === "REJECTED") {
+    await notifyMaterialRequestDecision(
+      request.id,
+      request.requestNo,
+      decisionStatus,
+      request.engineerId,
+      request.project.projectName,
+      updatedRequest.remarks,
+    );
+  }
+
+  return updatedRequest;
 }
 
 // ─── 7. Issue Materials (FIFO Batch Selection + AUTOMATIC MATERIAL EXPENSE) ─

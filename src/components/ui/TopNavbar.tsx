@@ -4,13 +4,15 @@
 // src/components/ui/TopNavbar.tsx
 // Persistent top navbar rendered inside the main content area
 // (inside SidebarOffsetWrapper) on every protected page.
-// Shows the current page title, user role badge, and logout.
+// Shows the current page title, user role badge, logout,
+// and the live in-app NotificationBell.
 // ============================================================
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LogOut, Shield, Bell } from "lucide-react";
+import { LogOut, Shield } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
+import { NotificationBell } from "@/components/ui/NotificationBell";
 
 interface TopNavbarProps {
   userName: string;
@@ -60,6 +62,10 @@ const roleStyles: Record<string, string> = {
     "bg-purple-900/40 text-purple-300 border border-purple-700/40",
   ADMIN:
     "bg-blue-900/40 text-blue-300 border border-blue-700/40",
+  PROJECT_MANAGER:
+    "bg-green-900/40 text-green-300 border border-green-700/40",
+  ENGINEER:
+    "bg-cyan-900/40 text-cyan-300 border border-cyan-700/40",
   USER:
     "bg-[#1e2a3d] text-[#dce3ef] border border-[#1e2535]",
 };
@@ -79,14 +85,8 @@ export function TopNavbar({ userName, userEmail, userRole }: TopNavbarProps) {
 
       {/* Right — User info + actions */}
       <div className="app-topnav-actions">
-        {/* Notification bell (placeholder — no live data yet) */}
-        <button
-          className="app-topnav-icon-btn"
-          aria-label="Notifications"
-          title="Notifications"
-        >
-          <Bell size={18} />
-        </button>
+        {/* Live notification bell — replaces static placeholder */}
+        <NotificationBell />
 
         {/* Role badge */}
         <span
@@ -94,7 +94,7 @@ export function TopNavbar({ userName, userEmail, userRole }: TopNavbarProps) {
           title={userEmail}
         >
           <Shield size={11} />
-          {role.replace("_", " ")}
+          {role.replace(/_/g, " ")}
         </span>
 
         {/* User name */}

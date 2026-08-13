@@ -12,6 +12,7 @@ import Select from "react-select";
 import { getCustomSelectStyles } from "@/lib/selectStyles";
 import { ProjectStatusBadge } from "@/components/projects/ProjectStatusBadge";
 import { ProjectFormModal } from "@/components/projects/ProjectFormModal";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All Statuses" },
@@ -50,6 +51,7 @@ export function ProjectsClientPage({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { can } = usePermissions();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState(currentSearch);
@@ -141,13 +143,15 @@ export function ProjectsClientPage({
             />
           </div>
 
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap h-[46px]"
-          >
-            <span className="text-base leading-none font-bold">+</span>
-            <span>New Project</span>
-          </button>
+          {can("project.create") && (
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap h-[46px]"
+            >
+              <span className="text-base leading-none font-bold">+</span>
+              <span>New Project</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -254,11 +258,10 @@ export function ProjectsClientPage({
                 <button
                   key={`page-${pNum}`}
                   onClick={() => handlePageChange(pNum as number)}
-                  className={`px-3 py-1.5 border text-xs font-medium rounded-lg transition-colors ${
-                    page === pNum
+                  className={`px-3 py-1.5 border text-xs font-medium rounded-lg transition-colors ${page === pNum
                       ? "bg-red-600 text-white border-red-600 font-semibold"
                       : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                  }`}
+                    }`}
                 >
                   {pNum}
                 </button>

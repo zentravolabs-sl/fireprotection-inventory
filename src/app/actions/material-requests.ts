@@ -17,6 +17,7 @@ import {
   createMaterialRequestService,
   approveMaterialRequestService,
 } from "@/lib/services/projectService";
+import { requirePermission, requireProjectPermission } from "@/lib/auth/permissions";
 
 async function getActorId(): Promise<string> {
   try {
@@ -41,7 +42,8 @@ export async function createMaterialRequestAction(data: {
   items: { inventoryId: number; qtyRequested: number }[];
 }) {
   try {
-    const actorId = await getActorId();
+    const user = await requireProjectPermission("material_request.create", data.projectId);
+    const actorId = user.id;
     const parsed = createMaterialRequestSchema.safeParse(data);
 
     if (!parsed.success) {
@@ -76,7 +78,8 @@ export async function approveMaterialRequestAction(data: {
   remarks?: string;
 }) {
   try {
-    const actorId = await getActorId();
+    const user = await requirePermission("material_request.approve");
+    const actorId = user.id;
     const parsed = approveMaterialRequestSchema.safeParse(data);
 
     if (!parsed.success) {

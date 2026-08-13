@@ -363,11 +363,10 @@ export function ProjectLabourTab({
           <button
             type="button"
             onClick={() => setInnerTab("summary")}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              innerTab === "summary"
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${innerTab === "summary"
                 ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
                 : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
-            }`}
+              }`}
           >
             <Users size={14} />
             <span>Released Labour Summary ({releasedSummaryWorkers.length})</span>
@@ -376,11 +375,10 @@ export function ProjectLabourTab({
           <button
             type="button"
             onClick={() => setInnerTab("logs")}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              innerTab === "logs"
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${innerTab === "logs"
                 ? "bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-xs"
                 : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
-            }`}
+              }`}
           >
             <FileText size={14} />
             <span>Active & Assignment Logs ({projectLabours.length})</span>

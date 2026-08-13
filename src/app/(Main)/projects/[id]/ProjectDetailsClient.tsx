@@ -33,6 +33,7 @@ import {
 } from "@/app/actions/projects";
 import { formatDate, formatDateTime, formatCurrency } from "@/lib/dateUtils";
 import { ProjectWithDetails, ProjectTimelineEvent } from "@/types/project";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface ProjectDetailsClientProps {
   project: ProjectWithDetails;
@@ -63,35 +64,35 @@ interface ProjectDetailsClientProps {
 type TabType =
   | "overview"
   | "engineers"
-  | "requests"
-  | "issues"
-  | "transport"
-  | "expenses"
-  | "returns"
-  | "transfers"
-  | "timeline"
   | "tools"
   | "labour"
   | "staff"
-  | "notes";
+  | "requests"
+  | "issues"
+  | "notes"
+  | "returns"
+  | "transport"
+  | "transfers"
+  | "expenses"
+  | "timeline";
 
 export function ProjectDetailsClient({
   project,
   timeline,
   inventoryItems,
   users,
-  toolAssignments,
-  projectLabours,
-  availableLabours,
+  toolAssignments = [],
+  projectLabours = [],
+  availableLabours = [],
   projectStaff = [],
   projectTransfers = [],
   allProjects = [],
   currentUserRole = "USER",
 }: ProjectDetailsClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "engineers" | "requests" | "issues" | "transport" | "expenses" | "returns" | "transfers" | "timeline" | "tools" | "labour" | "staff" | "notes"
-  >("overview");
+  const { can } = usePermissions();
+
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
 
   // Modals state
   const [isRequestOpen, setIsRequestOpen] = useState(false);
@@ -224,37 +225,51 @@ export function ProjectDetailsClient({
 
             {project.status !== "COMPLETED" && project.status !== "CANCELLED" && (
               <>
-                <button
-                  onClick={() => setIsRequestOpen(true)}
-                  className="px-3.5 py-2 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
-                >
-                  + Material Request
-                </button>
-                <button
-                  onClick={() => setIsLogTransportOpen(true)}
-                  className="px-3.5 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors"
-                >
-                  🚚 Log Transport
-                </button>
-                <button
-                  onClick={() => setIsAddExpenseOpen(true)}
-                  className="px-3.5 py-2 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow-sm transition-colors"
-                >
-                  💵 Log Expense
-                </button>
-                <button
-                  onClick={() => setIsCreateTransferOpen(true)}
-                  className="px-3.5 py-2 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-sm transition-colors"
-                >
-                  🔄 Transfer Stock
-                </button>
-                <button
-                  disabled={actionLoading}
-                  onClick={handleCompleteProject}
-                  className="px-3.5 py-2 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-sm transition-colors"
-                >
-                  ✓ Complete Project
-                </button>
+                {can("material_request.create") && (
+                  <button
+                    onClick={() => setIsRequestOpen(true)}
+                    className="px-3.5 py-2 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
+                  >
+                    + Material Request
+                  </button>
+                )}
+
+                {can("stock.transfer") && (
+                  <button
+                    onClick={() => setIsLogTransportOpen(true)}
+                    className="px-3.5 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors"
+                  >
+                    🚚 Log Transport
+                  </button>
+                )}
+
+                {can("report.financial") && (
+                  <button
+                    onClick={() => setIsAddExpenseOpen(true)}
+                    className="px-3.5 py-2 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow-sm transition-colors"
+                  >
+                    💵 Log Expense
+                  </button>
+                )}
+
+                {can("project_transfer.create") && (
+                  <button
+                    onClick={() => setIsCreateTransferOpen(true)}
+                    className="px-3.5 py-2 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-sm transition-colors"
+                  >
+                    🔄 Transfer Stock
+                  </button>
+                )}
+
+                {can("project.complete") && (
+                  <button
+                    disabled={actionLoading}
+                    onClick={handleCompleteProject}
+                    className="px-3.5 py-2 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-sm transition-colors"
+                  >
+                    ✓ Complete Project
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -338,8 +353,8 @@ export function ProjectDetailsClient({
       </div>
 
       {/* ERP Module Tabs */}
-      <ScrollableTabs<TabType>
-        tabs={[
+      {(() => {
+        const allTabs: TabItem<TabType>[] = [
           { id: "overview", label: "Overview & Budget", icon: "📊", category: "general" },
           { id: "engineers", label: "Engineers", count: project.engineers?.length || 0, icon: "👥", category: "personnel" },
           { id: "tools", label: "Assigned Tools", count: (toolAssignments || []).flatMap((a: any) => a?.items || []).length, icon: "🔧", category: "personnel" },
@@ -353,17 +368,28 @@ export function ProjectDetailsClient({
           { id: "transfers", label: "Stock Transfers", count: (projectTransfers || []).length, icon: "🔄", category: "logistics" },
           { id: "expenses", label: "Expense Ledger", count: project.expenses?.length || 0, icon: "💵", category: "finance" },
           { id: "timeline", label: "Timeline", count: timeline.length, icon: "⏱", category: "general" },
-        ]}
-        categories={[
-          { id: "general", label: "Overview" },
-          { id: "materials", label: "Materials" },
-          { id: "personnel", label: "Personnel & Tools" },
-          { id: "logistics", label: "Logistics" },
-          { id: "finance", label: "Finance" },
-        ]}
-        activeTab={activeTab}
-        onTabChange={(tabId) => setActiveTab(tabId)}
-      />
+        ];
+        const visibleTabs = allTabs.filter((tab) => {
+          if (tab.id === "notes" && !can("stock.view_history")) return false;
+          if (tab.id === "expenses" && !can("report.financial")) return false;
+          return true;
+        });
+
+        return (
+          <ScrollableTabs<TabType>
+            tabs={visibleTabs}
+            categories={[
+              { id: "general", label: "Overview" },
+              { id: "materials", label: "Materials" },
+              { id: "personnel", label: "Personnel & Tools" },
+              { id: "logistics", label: "Logistics" },
+              { id: "finance", label: "Finance" },
+            ]}
+            activeTab={activeTab}
+            onTabChange={(tabId) => setActiveTab(tabId)}
+          />
+        );
+      })()}
 
       {/* TAB CONTENT AREAS */}
 
@@ -967,8 +993,8 @@ export function ProjectDetailsClient({
                         <td className="px-4 py-3">
                           <span
                             className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full ${isOutgoing
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                                : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                              : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                               }`}
                           >
                             {isOutgoing ? "OUTGOING (SENT)" : "INCOMING (RECEIVED)"}

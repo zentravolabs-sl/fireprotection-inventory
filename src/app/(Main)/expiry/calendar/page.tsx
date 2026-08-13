@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 // ============================================================
 // src/app/(Main)/expiry/calendar/page.tsx
@@ -81,37 +81,37 @@ export default function ExpiryCalendarPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#0F1524] p-6 rounded-2xl border border-gray-200/80 dark:border-[#1e2a3d] shadow-sm">
         <div>
           <Link
             href="/expiry"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-red-600 mb-2 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-[#5a657a] hover:text-red-600 dark:hover:text-red-400 mb-2 transition-colors"
           >
             <ArrowLeft size={14} /> Back to Expiry Management
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-[#dce3ef] tracking-tight">
             Inventory Expiry Calendar
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-[#5a657a] mt-1">
             Visual calendar schedule of stock batch expirations and upcoming alert windows.
           </p>
         </div>
 
         {/* Month Navigation */}
-        <div className="flex items-center gap-3 bg-gray-50 p-1.5 rounded-2xl border border-gray-200">
+        <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#161d2e] p-1.5 rounded-2xl border border-gray-200 dark:border-[#1e2a3d]">
           <button
             onClick={prevMonth}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded-xl transition-colors shadow-sm"
+            className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-[#1e2a3d] rounded-xl transition-colors shadow-sm"
             title="Previous Month"
           >
             <ChevronLeft size={18} />
           </button>
-          <span className="text-sm font-black text-gray-900 px-3 min-w-[140px] text-center">
+          <span className="text-sm font-black text-gray-900 dark:text-[#dce3ef] px-3 min-w-[140px] text-center">
             {monthName}
           </span>
           <button
             onClick={nextMonth}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded-xl transition-colors shadow-sm"
+            className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-[#1e2a3d] rounded-xl transition-colors shadow-sm"
             title="Next Month"
           >
             <ChevronRight size={18} />
@@ -120,23 +120,23 @@ export default function ExpiryCalendarPage() {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-gray-200/80 shadow-sm text-xs font-bold text-gray-700">
-        <span className="text-gray-500">Legend:</span>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 border border-red-200 rounded-lg">
+      <div className="flex flex-wrap items-center gap-4 bg-white dark:bg-[#0F1524] px-6 py-3 rounded-2xl border border-gray-200/80 dark:border-[#1e2a3d] shadow-sm text-xs font-bold text-gray-700 dark:text-[#dce3ef]">
+        <span className="text-gray-500 dark:text-[#5a657a]">Legend:</span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/40 rounded-lg">
           <ShieldAlert size={13} /> EXPIRED Batch
         </span>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-200 rounded-lg">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 rounded-lg">
           <Clock size={13} /> EXPIRING SOON
         </span>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 rounded-lg">
           <CheckCircle2 size={13} /> VALID / UPCOMING
         </span>
       </div>
 
       {/* Calendar Grid */}
-      <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#0F1524] border border-gray-200/80 dark:border-[#1e2a3d] rounded-2xl shadow-sm overflow-hidden">
         {/* Days of Week Header */}
-        <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200 text-center text-xs font-black text-gray-500 uppercase py-3">
+        <div className="grid grid-cols-7 bg-gray-50 dark:bg-[#161d2e] border-b border-gray-200 dark:border-[#1e2a3d] text-center text-xs font-black text-gray-500 dark:text-[#5a657a] uppercase py-3">
           <div>Sun</div>
           <div>Mon</div>
           <div>Tue</div>
@@ -147,10 +147,10 @@ export default function ExpiryCalendarPage() {
         </div>
 
         {/* Calendar Days */}
-        <div className="grid grid-cols-7 divide-x divide-y divide-gray-200 bg-gray-100">
+        <div className="grid grid-cols-7 divide-x divide-y divide-gray-200 dark:divide-[#1e2a3d] bg-gray-100 dark:bg-[#1e2a3d]">
           {/* Empty cells before month start */}
           {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-            <div key={`empty-${i}`} className="min-h-[120px] bg-gray-50/50 p-2" />
+            <div key={`empty-${i}`} className="min-h-[120px] bg-gray-50/50 dark:bg-[#0F1524]/60 p-2" />
           ))}
 
           {/* Actual Month Days */}
@@ -165,20 +165,20 @@ export default function ExpiryCalendarPage() {
             return (
               <div
                 key={`day-${dayNum}`}
-                className={`min-h-[120px] bg-white p-2.5 flex flex-col justify-start transition-colors ${
-                  isToday ? "bg-red-50/20 ring-2 ring-red-500/30 inset-0 z-10" : ""
+                className={`min-h-[120px] bg-white dark:bg-[#0F1524] p-2.5 flex flex-col justify-start transition-colors ${
+                  isToday ? "bg-red-50/20 dark:bg-red-950/20 ring-2 ring-red-500/30 inset-0 z-10" : ""
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <span
                     className={`text-xs font-black w-6 h-6 flex items-center justify-center rounded-full ${
-                      isToday ? "bg-red-600 text-white" : "text-gray-700"
+                      isToday ? "bg-red-600 text-white" : "text-gray-700 dark:text-gray-300"
                     }`}
                   >
                     {dayNum}
                   </span>
                   {dayEvents.length > 0 && (
-                    <span className="text-[10px] font-bold text-gray-500">
+                    <span className="text-[10px] font-bold text-gray-500 dark:text-[#5a657a]">
                       {dayEvents.length} batch(es)
                     </span>
                   )}
@@ -195,10 +195,10 @@ export default function ExpiryCalendarPage() {
                         onClick={() => setSelectedBatchId(ev.id)}
                         className={`p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${
                           isExpired
-                            ? "bg-red-100 text-red-800 border-red-300"
+                            ? "bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300 border-red-300 dark:border-red-800/60"
                             : isSoon
-                            ? "bg-amber-100 text-amber-900 border-amber-300"
-                            : "bg-emerald-100 text-emerald-900 border-emerald-300"
+                            ? "bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-800/60"
+                            : "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800/60"
                         }`}
                       >
                         <div className="truncate font-extrabold">{ev.itemName}</div>

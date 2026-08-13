@@ -626,3 +626,124 @@ export async function deactivateUser(userId: string): Promise<ActionState> {
     };
   });
 }
+
+// ── Role & Permission Management Actions ─────────────────
+
+export interface RolePermissionMatrixData {
+  permissions: {
+    id: number;
+    key: string;
+    name: string;
+    module: string;
+    description: string | null;
+  }[];
+  rolePermissions: Record<string, number[]>;
+}
+
+/**
+ * Fetches all system permissions and active role permission mappings.
+ * Guarded by role.view permission.
+ */
+export async function getRolePermissionsMatrix(): Promise<ActionState<RolePermissionMatrixData>> {
+  return withActionError(async () => {
+    const actor = await assertAnyRole(["SUPER_ADMIN", "ADMIN", "GENERAL_MANAGER"]);
+
+    const [allPermissions, allRolePermissions] = await Promise.all([
+      prisma.permission.findMany({
+        orderBy: [{ module: "asc" }, { name: "asc" }],
+      }),
+      prisma.rolePermission.findMany({
+        select: {
+          role: true,
+          permissionId: true,
+        },
+      }),
+    ]);
+
+    const roleMap: Record<string, number[]> = {
+      SUPER_ADMIN: allPermissions.map((p) => p.id),
+      ADMIN: [],
+      GENERAL_MANAGER: [],
+      PROJECT_MANAGER: [],
+      ENGINEER: [],
+      ACCOUNTANT: [],
+      USER: [],
+    };
+
+    for (const rp of allRolePermissions) {
+      if (!roleMap[rp.role]) {
+        roleMap[rp.role] = [];
+      }
+      roleMap[rp.role].push(rp.permissionId);
+    }
+
+    return {
+      success: true,
+      message: "Role permissions matrix loaded.",
+      data: {
+        permissions: allPermissions,
+        rolePermissions: roleMap,
+      },
+    };
+  });
+}
+
+/**
+ * Updates the granted permission IDs for a specific system role.
+ * Cannot modify SUPER_ADMIN permissions (which are dynamic & full bypass).
+ * Guarded by role.manage permission.
+ */
+export async function updateRolePermissionsAction(
+  targetRole: UserRole,
+  permissionIds: number[]
+): Promise<ActionState> {
+  return withActionError(async () => {
+    const actor = await assertAnyRole(["SUPER_ADMIN", "ADMIN"]);
+
+    if (targetRole === "SUPER_ADMIN") {
+      return {
+        success: false,
+        message: "SUPER_ADMIN permissions are system-locked and cannot be modified.",
+      };
+    }
+
+    // Verify actor can manage the target role
+    if (!canManageRole(actor.role, targetRole)) {
+      return {
+        success: false,
+        message: "You do not have permission to configure this role.",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Clear existing permissions for this role
+      await tx.rolePermission.deleteMany({
+        where: { role: targetRole },
+      });
+
+      // Insert new role permission mappings
+      if (permissionIds.length > 0) {
+        await tx.rolePermission.createMany({
+          data: permissionIds.map((permissionId) => ({
+            role: targetRole,
+            permissionId,
+          })),
+        });
+      }
+    });
+
+    await logAuditEvent("ROLE_PERMISSIONS_UPDATED", actor.id, {
+      targetRole,
+      permissionCount: permissionIds.length,
+      permissionIds,
+    });
+
+    revalidatePath("/users-roles");
+    revalidatePath("/users-roles/permissions");
+    return {
+      success: true,
+      message: `Permissions updated successfully for ${targetRole}.`,
+    };
+  });
+}
+

@@ -25,6 +25,7 @@ import {
 } from "@/lib/services/projectService";
 import { deleteProject } from "@/lib/repositories/projectRepository";
 import { ProjectStatus } from "@/types/project";
+import { requirePermission, requireProjectPermission } from "@/lib/auth/permissions";
 
 async function getActorId(): Promise<string> {
   try {
@@ -46,7 +47,8 @@ async function getActorId(): Promise<string> {
 
 export async function createProjectAction(formData: FormData) {
   try {
-    const actorId = await getActorId();
+    const user = await requirePermission("project.create");
+    const actorId = user.id;
 
     const raw = {
       projectName: formData.get("projectName"),
@@ -216,7 +218,8 @@ export async function updateProjectStatusAction(projectId: number, status: Proje
 
 export async function completeProjectAction(projectId: number) {
   try {
-    const actorId = await getActorId();
+    const user = await requireProjectPermission("project.complete", projectId);
+    const actorId = user.id;
     const updated = await completeProjectService(projectId, actorId);
 
     revalidatePath("/projects");
@@ -235,6 +238,7 @@ export async function completeProjectAction(projectId: number) {
 
 export async function deleteProjectAction(projectId: number) {
   try {
+    await requirePermission("project.delete");
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
