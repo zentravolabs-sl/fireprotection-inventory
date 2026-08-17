@@ -20,6 +20,10 @@ import {
   resubmitMaterialRequestService,
 } from "@/lib/services/projectService";
 import { requirePermission, requireProjectPermission } from "@/lib/auth/permissions";
+import {
+  COST_APPROVAL_THRESHOLD,
+  getGlobalCurrentMonthApprovedCost,
+} from "@/lib/repositories/expenseRepository";
 
 async function getActorId(): Promise<string> {
   try {
@@ -57,12 +61,25 @@ export async function createMaterialRequestAction(data: {
 
     const request = await createMaterialRequestService(parsed.data, actorId);
 
+    const currentMonthCost = await getGlobalCurrentMonthApprovedCost();
+    const requiresApproval = currentMonthCost >= COST_APPROVAL_THRESHOLD;
+
     revalidatePath("/projects");
     revalidatePath(`/projects/${data.projectId}`);
     revalidatePath("/material-requests");
 
+    if (requiresApproval) {
+      return {
+        success: true,
+        requiresApproval: true,
+        message: `Material Request ${request.requestNo} submitted! Since current month total project cost has reached LKR 5,000,000, material issues under this request will be held for Admin expense approval before actual cost is updated.`,
+        data: request,
+      };
+    }
+
     return {
       success: true,
+      requiresApproval: false,
       message: `Material Request ${request.requestNo} submitted successfully!`,
       data: request,
     };
