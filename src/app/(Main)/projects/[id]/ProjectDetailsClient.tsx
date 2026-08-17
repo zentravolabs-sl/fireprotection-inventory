@@ -858,14 +858,29 @@ export function ProjectDetailsClient({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                {!project.transports || project.transports.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-6 text-gray-500">
-                      No transport entries logged for this project yet.
-                    </td>
-                  </tr>
-                ) : (
-                  project.transports.map((trn) => (
+                {(() => {
+                  const validTransports = (project.transports || []).filter((trn) => {
+                    if (trn.status === "CANCELLED") return false;
+                    const matchingExpense = project.expenses?.find(
+                      (e: any) => e.expenseType === "TRANSPORT" && e.referenceNo === trn.transportNo
+                    );
+                    if (matchingExpense && matchingExpense.approvalStatus === "REJECTED") {
+                      return false;
+                    }
+                    return true;
+                  });
+
+                  if (validTransports.length === 0) {
+                    return (
+                      <tr>
+                        <td colSpan={7} className="text-center py-6 text-gray-500">
+                          No active transport entries logged for this project yet.
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  return validTransports.map((trn) => (
                     <tr key={trn.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <td className="px-4 py-3 font-mono font-bold text-gray-900 dark:text-gray-100">{trn.transportNo}</td>
                       <td className="px-4 py-3">{formatDate(trn.transportDate)}</td>
@@ -875,8 +890,8 @@ export function ProjectDetailsClient({
                       <td className="px-4 py-3 text-right font-bold text-blue-600 dark:text-blue-400">{formatCurrency(trn.totalCost)}</td>
                       <td className="px-4 py-3 text-gray-500">{trn.createdByUser?.name || "User"}</td>
                     </tr>
-                  ))
-                )}
+                  ));
+                })()}
               </tbody>
             </table>
           </div>

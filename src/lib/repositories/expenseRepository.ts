@@ -217,6 +217,13 @@ export async function rejectExpenseRecord(
       },
     });
 
+    if (expense.expenseType === "TRANSPORT" && expense.referenceNo) {
+      await tx.projectTransport.updateMany({
+        where: { transportNo: expense.referenceNo },
+        data: { status: "CANCELLED" },
+      });
+    }
+
     await tx.auditLog.create({
       data: {
         userId: approverId,
