@@ -35,16 +35,12 @@ function createPrismaClient() {
     // Keep pool small — Neon free tier has a connection limit.
     // Each serverless invocation creates a short-lived connection.
     max: parseInt(process.env.PG_MAX_POOL || "3", 10),
+    connectionTimeoutMillis: parseInt(process.env.PG_CONNECTION_TIMEOUT || "10000", 10),
   });
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   } as ConstructorParameters<typeof PrismaClient>[0]);
-}
-
-// Bust the cached singleton in development if new schema models/enums were added
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = undefined;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

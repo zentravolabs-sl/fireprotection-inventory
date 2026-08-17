@@ -90,12 +90,13 @@ export async function loginAction(
     }
 
     const { email, password } = parsed.data;
+    const requestHeaders = await headers();
 
     let response;
     try {
       response = await auth.api.signInEmail({
         body: { email, password },
-        headers: await headers(),
+        headers: requestHeaders,
       });
     } catch (err) {
       return { success: false, message: mapAuthError(err) };
@@ -107,7 +108,7 @@ export async function loginAction(
 
     await logAuditEvent("USER_LOGIN", response.user.id, {
       email,
-      ip: (await headers()).get("x-forwarded-for") ?? "unknown",
+      ip: requestHeaders.get("x-forwarded-for") ?? "unknown",
     });
 
     return { success: true, message: "Welcome back!" };
@@ -168,12 +169,13 @@ export async function registerAction(
  */
 export async function logoutAction(): Promise<void> {
   try {
+    const requestHeaders = await headers();
     const session = await auth.api.getSession({
-      headers: await headers(),
+      headers: requestHeaders,
     });
 
     await auth.api.signOut({
-      headers: await headers(),
+      headers: requestHeaders,
     });
 
     if (session?.user?.id) {
