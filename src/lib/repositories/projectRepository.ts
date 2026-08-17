@@ -125,7 +125,12 @@ export async function findProjectById(id: number) {
 
 export function calculateProjectCostBreakdown(project: any): ProjectCostBreakdown {
   const projectValue = project.projectValue || 0;
-  const expenses = project.expenses || [];
+
+  // Only APPROVED expenses count toward actual cost.
+  // PENDING_APPROVAL and REJECTED expenses are excluded.
+  const expenses = (project.expenses || []).filter(
+    (e: any) => !e.approvalStatus || e.approvalStatus === "APPROVED"
+  );
 
   const actualMaterialCost = expenses
     .filter((e: any) => e.expenseType === "MATERIAL")

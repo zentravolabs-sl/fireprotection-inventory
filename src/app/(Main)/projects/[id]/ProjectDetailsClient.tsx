@@ -32,6 +32,10 @@ import {
   removeEngineerAction,
   setLeadEngineerAction,
 } from "@/app/actions/projects";
+import {
+  approveExpenseAction,
+  rejectExpenseAction,
+} from "@/app/actions/expenses";
 import { formatDate, formatDateTime, formatCurrency } from "@/lib/dateUtils";
 import { ProjectWithDetails, ProjectTimelineEvent } from "@/types/project";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -96,6 +100,10 @@ export function ProjectDetailsClient({
   const isEngineerRole = currentUserRole === "ENGINEER";
   const isPMRole = currentUserRole === "PROJECT_MANAGER";
   const isRestrictedRole = currentUserRole === "ENGINEER" || currentUserRole === "PROJECT_MANAGER";
+
+  // ADMIN and SUPER_ADMIN can approve / reject cost-threshold expenses
+  const canApproveExpenses =
+    currentUserRole === "ADMIN" || currentUserRole === "SUPER_ADMIN";
 
   const [activeTab, setActiveTab] = useState<TabType>(
     isEngineerRole || isPMRole ? "requests" : "overview"
@@ -191,6 +199,33 @@ export function ProjectDetailsClient({
     const res = await setLeadEngineerAction(project.id, engineerId);
     setActionLoading(false);
     if (res.success) {
+      router.refresh();
+    } else {
+      setMessage({ type: "error", text: res.message });
+    }
+  }
+
+  async function handleApproveExpense(expenseId: number) {
+    if (!confirm("Approve this expense? It will be added to the project actual cost.")) return;
+    setActionLoading(true);
+    const res = await approveExpenseAction(expenseId);
+    setActionLoading(false);
+    if (res.success) {
+      setMessage({ type: "success", text: res.message });
+      router.refresh();
+    } else {
+      setMessage({ type: "error", text: res.message });
+    }
+  }
+
+  async function handleRejectExpense(expenseId: number) {
+    const note = prompt("Rejection reason (optional):");
+    if (note === null) return; // user cancelled
+    setActionLoading(true);
+    const res = await rejectExpenseAction(expenseId, note || undefined);
+    setActionLoading(false);
+    if (res.success) {
+      setMessage({ type: "success", text: res.message });
       router.refresh();
     } else {
       setMessage({ type: "error", text: res.message });
@@ -854,7 +889,7 @@ export function ProjectDetailsClient({
           <div className="flex justify-between items-center">
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Centralized Project Expense Ledger</h3>
-              <p className="text-xs text-gray-500">All Material, Transport, Labour, Equipment & Other expenses.</p>
+              <p className="text-xs text-gray-500">All Material, Transport, Labour, Equipment &amp; Other expenses.</p>
             </div>
             <button
               onClick={() => setIsAddExpenseOpen(true)}
@@ -863,6 +898,16 @@ export function ProjectDetailsClient({
               + Log Expense
             </button>
           </div>
+
+          {/* Pending approvals banner */}
+          {canApproveExpenses && project.expenses?.some((e: any) => e.approvalStatus === "PENDING_APPROVAL") && (
+            <div className="flex items-center gap-3 p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 rounded-xl text-xs text-amber-800 dark:text-amber-300">
+              <span className="text-lg">⚠</span>
+              <span>
+                <strong>Action Required:</strong> One or more expenses below are awaiting your approval. Project actual cost will not include them until approved.
+              </span>
+            </div>
+          )}
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-gray-600 dark:text-gray-300">
@@ -875,42 +920,97 @@ export function ProjectDetailsClient({
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3">Created By</th>
+                  <th className="px-4 py-3">Status</th>
+                  {canApproveExpenses && <th className="px-4 py-3 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                 {!project.expenses || project.expenses.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-6 text-gray-500">
-                      No project expenses recorded yet. Actual project cost is currently {formatCurrency(0)}.
+                    <td colSpan={canApproveExpenses ? 9 : 8} className="text-center py-6 text-gray-500">
+                      No project expenses recorded yet.
                     </td>
                   </tr>
                 ) : (
-                  project.expenses.map((exp) => (
-                    <tr key={exp.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="px-4 py-3 font-mono font-bold text-gray-900 dark:text-gray-100">{exp.expenseNo}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${exp.expenseType === "MATERIAL"
-                            ? "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300"
-                            : exp.expenseType === "TRANSPORT"
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
-                              : exp.expenseType === "LABOUR"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                                : exp.expenseType === "EQUIPMENT"
-                                  ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
-                                  : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                  project.expenses.map((exp: any) => {
+                    const status = exp.approvalStatus || "APPROVED";
+                    const isPending = status === "PENDING_APPROVAL";
+                    const isRejected = status === "REJECTED";
+                    return (
+                      <tr
+                        key={exp.id}
+                        className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
+                          isPending ? "bg-amber-50/60 dark:bg-amber-950/20" :
+                          isRejected ? "bg-red-50/60 dark:bg-red-950/20 opacity-70" : ""
+                        }`}
+                      >
+                        <td className="px-4 py-3 font-mono font-bold text-gray-900 dark:text-gray-100">{exp.expenseNo}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
+                              exp.expenseType === "MATERIAL"
+                                ? "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300"
+                                : exp.expenseType === "TRANSPORT"
+                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                                  : exp.expenseType === "LABOUR"
+                                    ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                    : exp.expenseType === "EQUIPMENT"
+                                      ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
+                                      : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
                             }`}
-                        >
-                          {exp.expenseType}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">{exp.description || "N/A"}</td>
-                      <td className="px-4 py-3 font-mono text-[11px] text-gray-500">{exp.referenceNo || "—"}</td>
-                      <td className="px-4 py-3">{formatDate(exp.expenseDate)}</td>
-                      <td className="px-4 py-3 text-right font-bold text-red-600 dark:text-red-400">{formatCurrency(exp.amount)}</td>
-                      <td className="px-4 py-3 text-gray-500">{exp.createdByUser?.name || "User"}</td>
-                    </tr>
-                  ))
+                          >
+                            {exp.expenseType}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">{exp.description || "N/A"}</td>
+                        <td className="px-4 py-3 font-mono text-[11px] text-gray-500">{exp.referenceNo || "—"}</td>
+                        <td className="px-4 py-3">{formatDate(exp.expenseDate)}</td>
+                        <td className={`px-4 py-3 text-right font-bold ${
+                          isPending ? "text-amber-600" :
+                          isRejected ? "text-gray-400 line-through" :
+                          "text-red-600 dark:text-red-400"
+                        }`}>{formatCurrency(exp.amount)}</td>
+                        <td className="px-4 py-3 text-gray-500">{exp.createdByUser?.name || "User"}</td>
+                        <td className="px-4 py-3">
+                          {isPending ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 rounded-full">
+                              ⏳ Pending Approval
+                            </span>
+                          ) : isRejected ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 rounded-full">
+                              ✕ Rejected
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300 rounded-full">
+                              ✓ Approved
+                            </span>
+                          )}
+                        </td>
+                        {canApproveExpenses && (
+                          <td className="px-4 py-3 text-right">
+                            {isPending && (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  disabled={actionLoading}
+                                  onClick={() => handleApproveExpense(exp.id)}
+                                  className="px-2.5 py-1 text-[11px] font-semibold bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950 dark:text-green-300 rounded-md transition-colors disabled:opacity-50"
+                                >
+                                  ✓ Approve
+                                </button>
+                                <button
+                                  disabled={actionLoading}
+                                  onClick={() => handleRejectExpense(exp.id)}
+                                  className="px-2.5 py-1 text-[11px] font-semibold bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 rounded-md transition-colors disabled:opacity-50"
+                                >
+                                  ✕ Reject
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -1227,6 +1327,7 @@ export function ProjectDetailsClient({
           }}
           projectId={project.id}
           projectCode={project.projectCode}
+          currentActualCost={costBreakdown.actualTotalCost}
         />
       )}
 

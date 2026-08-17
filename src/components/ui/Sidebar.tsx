@@ -241,6 +241,7 @@ const NAV_GROUPS_STATIC: NavGroup[] = [
   {
     title: "MANAGEMENT",
     items: [
+      { label: "Cost Approvals",     href: "/super-admin",      icon: Icons.quotations,       permission: "audit_log.view" },
       { label: "Reports",           href: "/reports",          icon: Icons.reports,          permission: "report.view" },
       { label: "Users & Roles",     href: "/users-roles",      icon: Icons.users,            permission: "user.view" },
       { label: "Audit Log",         href: "/audit-log",        icon: Icons.audit,            permission: "audit_log.view" },

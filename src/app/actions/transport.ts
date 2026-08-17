@@ -70,7 +70,7 @@ export async function createTransportAction(formData: FormData) {
 
     const transportNo = await generateTransportNo();
 
-    const transport = await createTransportRecord({
+    const { transport, needsApproval, createdExpense } = await createTransportRecord({
       transportNo,
       projectId: parsed.data.projectId,
       transportDate: parsed.data.transportDate ? new Date(parsed.data.transportDate) : new Date(),
@@ -89,10 +89,43 @@ export async function createTransportAction(formData: FormData) {
       createdBy: actorId,
     });
 
+    if (needsApproval && createdExpense) {
+      const actor = await prisma.user.findUnique({
+        where: { id: actorId },
+        select: { name: true },
+      });
+      const project = await prisma.project.findUnique({
+        where: { id: parsed.data.projectId },
+        select: { projectName: true },
+      });
+
+      const { notifyCostThresholdPendingApproval } = await import("@/lib/notifications");
+      await notifyCostThresholdPendingApproval(
+        createdExpense.id,
+        createdExpense.expenseNo,
+        parsed.data.projectId,
+        project?.projectName || `Project #${parsed.data.projectId}`,
+        totalCost,
+        actor?.name || "A team member",
+      );
+    }
+
     revalidatePath("/projects");
     revalidatePath(`/projects/${parsed.data.projectId}`);
+    revalidatePath("/super-admin");
+
+    if (needsApproval) {
+      return {
+        success: true,
+        requiresApproval: true,
+        message: `Transport record ${transport.transportNo} logged! Since current month project actual cost reached LKR 5,000,000, the TRANSPORT expense is held for Admin approval before updating actual cost.`,
+        data: transport,
+      };
+    }
+
     return {
       success: true,
+      requiresApproval: false,
       message: `Transport record ${transport.transportNo} created successfully! Automatic TRANSPORT expense logged.`,
       data: transport,
     };

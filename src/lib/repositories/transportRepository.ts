@@ -73,7 +73,23 @@ export async function createTransportRecord(data: {
     const expenseSeq = (expenseCount + 1).toString().padStart(4, "0");
     const expenseNo = `EXP-${year}-${expenseSeq}`;
 
-    await tx.projectExpense.create({
+    // ── Global current month cost threshold check for auto transport expense ──
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const approvedCostAgg = await tx.projectExpense.aggregate({
+      where: {
+        approvalStatus: "APPROVED",
+        expenseDate: { gte: startOfMonth, lte: endOfMonth },
+      },
+      _sum: { amount: true },
+    });
+    const currentApprovedMonthCost = approvedCostAgg._sum.amount || 0;
+    const projectedCost = currentApprovedMonthCost + data.totalCost;
+    const needsApproval = projectedCost >= 5_000_000;
+
+    const createdExpense = await tx.projectExpense.create({
       data: {
         expenseNo,
         projectId: data.projectId,
@@ -83,6 +99,7 @@ export async function createTransportRecord(data: {
         description: `Project Transport (${transport.transportNo}): ${data.fromLocation} to ${data.toLocation} via ${data.vehicleNumber}`,
         referenceNo: transport.transportNo,
         createdBy: data.createdBy,
+        approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
       },
     });
 
@@ -90,16 +107,17 @@ export async function createTransportRecord(data: {
     await tx.auditLog.create({
       data: {
         userId: data.createdBy,
-        action: "PROJECT_TRANSPORT_CREATED",
+        action: needsApproval ? "PROJECT_TRANSPORT_PENDING_APPROVAL" : "PROJECT_TRANSPORT_CREATED",
         metadata: {
           transportId: transport.id,
           transportNo: transport.transportNo,
           totalCost: data.totalCost,
           projectId: data.projectId,
+          approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
         },
       },
     });
 
-    return transport;
+    return { transport, needsApproval, createdExpense };
   }, { maxWait: 15000, timeout: 60000 });
 }

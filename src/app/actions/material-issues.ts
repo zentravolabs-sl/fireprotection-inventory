@@ -59,10 +59,11 @@ export async function issueMaterialsFIFOAction(data: {
     revalidatePath("/project-stock");
     revalidatePath("/stock-batch");
     revalidatePath("/stock-movement");
+    revalidatePath("/super-admin");
 
     return {
       success: true,
-      message: `Materials issued successfully under Issue #${issue.issueNo} (FIFO allocation applied).`,
+      message: `Materials issued successfully under Issue #${issue.issueNo}. (Automatic MATERIAL expense logged and evaluated against 5M threshold).`,
       data: issue,
     };
   } catch (err: any) {

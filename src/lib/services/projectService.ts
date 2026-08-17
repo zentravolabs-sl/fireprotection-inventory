@@ -35,7 +35,12 @@ import { ProjectTimelineEvent, ProjectStatus } from "@/types/project";
 import {
   notifyMaterialRequestSubmitted,
   notifyMaterialRequestDecision,
+  notifyCostThresholdPendingApproval,
 } from "@/lib/notifications";
+import {
+  COST_APPROVAL_THRESHOLD,
+  getProjectApprovedActualCost,
+} from "@/lib/repositories/expenseRepository";
 
 // ─── Staff Validation Helper ──────────────────────────────────────────────────
 
@@ -456,7 +461,7 @@ export async function issueMaterialsFIFOService(input: IssueMaterialsFIFOInput, 
 
   const issueNo = await generateIssueNo();
 
-  return prisma.$transaction(
+  const result = await prisma.$transaction(
     async (tx) => {
     const issueItemsToCreate: {
       stockBatchId: number;
@@ -604,7 +609,23 @@ export async function issueMaterialsFIFOService(input: IssueMaterialsFIFOInput, 
     const expenseSeq = (expenseCount + 1).toString().padStart(4, "0");
     const expenseNo = `EXP-${year}-${expenseSeq}`;
 
-    await tx.projectExpense.create({
+    // ── Global current month cost threshold check for auto material expense ────────────
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const approvedCostAgg = await tx.projectExpense.aggregate({
+      where: {
+        approvalStatus: "APPROVED",
+        expenseDate: { gte: startOfMonth, lte: endOfMonth },
+      },
+      _sum: { amount: true },
+    });
+    const currentApprovedMonthCost = approvedCostAgg._sum.amount || 0;
+    const projectedCost = currentApprovedMonthCost + totalMaterialExpenseAmount;
+    const needsApproval = projectedCost >= COST_APPROVAL_THRESHOLD;
+
+    const createdExpense = await tx.projectExpense.create({
       data: {
         expenseNo,
         projectId: request.projectId,
@@ -614,8 +635,18 @@ export async function issueMaterialsFIFOService(input: IssueMaterialsFIFOInput, 
         description: `Automatic Material Expense for FIFO Issue #${issueNo} (Request #${request.requestNo})`,
         referenceNo: issueNo,
         createdBy: userId,
+        approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
       },
     });
+
+    // Store for post-transaction notification (non-fatal)
+    const autoExpenseForNotification = needsApproval ? {
+      id: createdExpense.id,
+      expenseNo: createdExpense.expenseNo,
+      amount: totalMaterialExpenseAmount,
+      projectId: request.projectId,
+      projectName: request.project.projectName,
+    } : null;
 
     // Re-check overall request completion
     const updatedReqItems = await tx.materialRequestItem.findMany({
@@ -644,8 +675,27 @@ export async function issueMaterialsFIFOService(input: IssueMaterialsFIFOInput, 
       },
     });
 
-    return materialIssue;
+    return { materialIssue, autoExpenseForNotification };
   }, { maxWait: 15000, timeout: 60000 });
+
+  // ── Fire cost-threshold notification AFTER transaction (non-fatal) ──
+  if (result.autoExpenseForNotification) {
+    const exp = result.autoExpenseForNotification;
+    const issuer = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true },
+    });
+    await notifyCostThresholdPendingApproval(
+      exp.id,
+      exp.expenseNo,
+      exp.projectId,
+      exp.projectName,
+      exp.amount,
+      issuer?.name || "A team member",
+    );
+  }
+
+  return result.materialIssue;
 }
 
 // ─── 8. Return Materials (Engineer Return) ────────────────────────────────────

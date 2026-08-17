@@ -130,3 +130,100 @@ export async function notifyMaterialRequestDecision(
     console.error("[Notifications] Failed to create decision notification:", err);
   }
 }
+
+// ─── Notify on Cost Threshold — Pending Approval ───────────────────────────
+
+/**
+ * Called when a new expense would push the project's actual cost to/above LKR 5 M.
+ * Creates one Notification per active SUPER_ADMIN user.
+ * Non-fatal: logs errors but does NOT throw.
+ */
+export async function notifyCostThresholdPendingApproval(
+  expenseId: number,
+  expenseNo: string,
+  projectId: number,
+  projectName: string,
+  amount: number,
+  submittedByName: string,
+): Promise<void> {
+  try {
+    const approvers = await prisma.user.findMany({
+      where: { role: { in: ["ADMIN", "SUPER_ADMIN"] }, isActive: true },
+      select: { id: true },
+    });
+
+    if (approvers.length === 0) {
+      console.warn("[Notifications] No active ADMIN or SUPER_ADMIN users found to notify.");
+      return;
+    }
+
+    const formattedAmount = new Intl.NumberFormat("en-LK", {
+      style: "currency",
+      currency: "LKR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+
+    await prisma.notification.createMany({
+      data: approvers.map((user) => ({
+        type: "COST_THRESHOLD_PENDING_APPROVAL" as const,
+        title: "⚠ Expense Requires Approval — Monthly Threshold Exceeded",
+        message: `${submittedByName} logged expense ${expenseNo} (${formattedAmount}) for project "${projectName}". Total monthly project cost has reached or exceeded LKR 5,000,000. Admin approval required.`,
+        isRead: false,
+        userId: user.id,
+      })),
+      skipDuplicates: true,
+    });
+
+    console.log(
+      `[Notifications] Notified ${approvers.length} admin(s)/super admin(s) of pending cost threshold expense ${expenseNo}.`,
+    );
+  } catch (err) {
+    console.error("[Notifications] Failed to create cost threshold notification:", err);
+  }
+}
+
+// ─── Notify on Cost Threshold Decision ────────────────────────────────────────
+
+/**
+ * Called when a Super Admin approves or rejects a pending cost-threshold expense.
+ * Creates one Notification for the original requester.
+ * Non-fatal: logs errors but does NOT throw.
+ */
+export async function notifyCostThresholdDecision(
+  expenseNo: string,
+  projectName: string,
+  requesterId: string,
+  approved: boolean,
+  note?: string | null,
+): Promise<void> {
+  try {
+    let message: string;
+    if (approved) {
+      message = `Your expense ${expenseNo} for project "${projectName}" has been approved by a Super Admin and is now live in the cost ledger.`;
+    } else {
+      message = `Your expense ${expenseNo} for project "${projectName}" was rejected by a Super Admin.`;
+      if (note?.trim()) {
+        message += ` Reason: ${note.trim()}`;
+      }
+    }
+
+    await prisma.notification.create({
+      data: {
+        type: approved ? "COST_THRESHOLD_APPROVED" : "COST_THRESHOLD_REJECTED",
+        title: approved
+          ? `Expense Approved — ${expenseNo}`
+          : `Expense Rejected — ${expenseNo}`,
+        message,
+        isRead: false,
+        userId: requesterId,
+      },
+    });
+
+    console.log(
+      `[Notifications] Notified requester (${requesterId}) of ${approved ? "approval" : "rejection"} of ${expenseNo}.`,
+    );
+  } catch (err) {
+    console.error("[Notifications] Failed to create cost threshold decision notification:", err);
+  }
+}
+

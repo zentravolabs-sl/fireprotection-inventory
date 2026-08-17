@@ -49,6 +49,9 @@ export function LogTransportModal({
     setLoading(false);
 
     if (res.success) {
+      if ((res as any).requiresApproval) {
+        alert((res as any).message);
+      }
       onClose();
     } else {
       setError(res.message);

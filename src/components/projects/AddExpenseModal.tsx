@@ -3,6 +3,8 @@
 // ============================================================
 // src/components/projects/AddExpenseModal.tsx
 // Modal for recording Labour, Equipment, and Other Project Expenses
+// Shows a warning banner when the entered amount would push
+// actual cost to/above the LKR 5,000,000 Super Admin threshold.
 // ============================================================
 
 import React, { useState } from "react";
@@ -19,11 +21,23 @@ const EXPENSE_TYPE_OPTIONS = [
   { value: "OTHER", label: "OTHER (Permits, testing fees, site utilities)" },
 ];
 
+const COST_THRESHOLD = 5_000_000;
+
+function formatLKR(value: number) {
+  return new Intl.NumberFormat("en-LK", {
+    style: "currency",
+    currency: "LKR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 interface AddExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: number;
   projectCode: string;
+  /** Current approved actual cost of the project (for threshold check). */
+  currentActualCost?: number;
 }
 
 export function AddExpenseModal({
@@ -31,10 +45,16 @@ export function AddExpenseModal({
   onClose,
   projectId,
   projectCode,
+  currentActualCost = 0,
 }: AddExpenseModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expenseType, setExpenseType] = useState("LABOUR");
+  const [amountInput, setAmountInput] = useState("");
+
+  const parsedAmount = parseFloat(amountInput) || 0;
+  const projectedCost = currentActualCost + parsedAmount;
+  const willTriggerApproval = parsedAmount > 0 && projectedCost >= COST_THRESHOLD;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,6 +70,9 @@ export function AddExpenseModal({
     setLoading(false);
 
     if (res.success) {
+      if ((res as any).requiresApproval) {
+        alert((res as any).message);
+      }
       onClose();
     } else {
       setError(res.message);
@@ -66,8 +89,24 @@ export function AddExpenseModal({
         )}
 
         <div className="p-3.5 bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40 rounded-xl text-xs text-red-800 dark:text-red-300">
-          📌 <strong>Manual Expense Ledger:</strong> Use this modal to manually enter Labour, Equipment, or Other project expenses. Material & Transport expenses are created automatically.
+          📌 <strong>Manual Expense Ledger:</strong> Use this modal to manually enter Labour, Equipment, or Other project expenses. Material &amp; Transport expenses are created automatically.
         </div>
+
+        {/* ── Threshold Warning Banner ─────────────────────────────── */}
+        {willTriggerApproval && (
+          <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 rounded-xl">
+            <span className="text-amber-500 text-lg leading-none mt-0.5">⚠</span>
+            <div className="text-xs text-amber-800 dark:text-amber-300 space-y-1">
+              <p className="font-bold">Admin Approval Required</p>
+              <p>
+                This expense will push the total monthly project actual cost to{" "}
+                <strong>{formatLKR(projectedCost)}</strong>, reaching the
+                LKR 5,000,000 threshold for the current month. The expense will be held for Admin
+                review before actual cost is updated.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
@@ -85,15 +124,22 @@ export function AddExpenseModal({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <FormInput
-            label="Amount *"
-            name="amount"
-            type="number"
-            min="0.01"
-            step="any"
-            placeholder="e.g. 25000"
-            required
-          />
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              Amount *
+            </label>
+            <input
+              name="amount"
+              type="number"
+              min="0.01"
+              step="any"
+              placeholder="e.g. 25000"
+              required
+              value={amountInput}
+              onChange={(e) => setAmountInput(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900 placeholder-gray-400 dark:placeholder-gray-500"
+            />
+          </div>
           <FormInput
             label="Expense Date"
             name="expenseDate"
@@ -129,8 +175,8 @@ export function AddExpenseModal({
           >
             Cancel
           </button>
-          <FormButton loading={loading} fullWidth={false} className="w-40">
-            Log Expense
+          <FormButton loading={loading} fullWidth={false} className="w-48">
+            {willTriggerApproval ? "Submit for Approval" : "Log Expense"}
           </FormButton>
         </div>
       </form>

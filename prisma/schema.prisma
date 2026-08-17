@@ -649,6 +649,16 @@ enum TransportStatus {
   CANCELLED
 }
 
+/// Lifecycle state of a manually-entered project expense.
+/// APPROVED  — expense is live in the ledger and counts toward actual cost.
+/// PENDING_APPROVAL — actual cost would reach/exceed LKR 5 M; awaiting Super Admin.
+/// REJECTED  — Super Admin declined; expense is not counted.
+enum ExpenseApprovalStatus {
+  APPROVED
+  PENDING_APPROVAL
+  REJECTED
+}
+
 // ============================================================
 // Enums — Labour Management Module
 // ============================================================
@@ -763,17 +773,23 @@ model ProjectEngineer {
 }
 
 model ProjectExpense {
-  id          Int         @id @default(autoincrement())
-  expenseNo   String      @unique
-  projectId   Int
-  expenseType ExpenseType
-  amount      Float
-  expenseDate DateTime    @default(now())
-  description String?
-  referenceNo String?
-  createdBy   String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id             Int                  @id @default(autoincrement())
+  expenseNo      String               @unique
+  projectId      Int
+  expenseType    ExpenseType
+  amount         Float
+  expenseDate    DateTime             @default(now())
+  description    String?
+  referenceNo    String?
+  createdBy      String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  /// Approval gate: auto-approved unless actual cost reaches LKR 5 M threshold.
+  approvalStatus ExpenseApprovalStatus @default(APPROVED)
+  approvedBy     String?              // references User.id — set on APPROVED or REJECTED
+  approvedAt     DateTime?            // timestamp of the Super Admin decision
+  approvalNote   String?              // optional rejection reason
 
   project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdByUser User    @relation("ExpenseCreatedByUser", fields: [createdBy], references: [id])
@@ -782,6 +798,7 @@ model ProjectExpense {
   @@index([projectId])
   @@index([expenseType])
   @@index([expenseDate])
+  @@index([approvalStatus])
   @@map("project_expense")
 }
 
@@ -1224,9 +1241,12 @@ enum NotificationType {
   INFO
   WARNING
   MATERIAL_REQUEST_SUBMITTED
-  MATERIAL_REQUEST_CREATED    // Admin/Super-Admin alert — new request pending
-  MATERIAL_REQUEST_APPROVED   // Requester alert — their request was approved
-  MATERIAL_REQUEST_REJECTED   // Requester alert — their request was rejected
+  MATERIAL_REQUEST_CREATED         // Admin/Super-Admin alert — new request pending
+  MATERIAL_REQUEST_APPROVED        // Requester alert — their request was approved
+  MATERIAL_REQUEST_REJECTED        // Requester alert — their request was rejected
+  COST_THRESHOLD_PENDING_APPROVAL  // Super-Admin alert — expense needs approval (cost ≥ 5 M)
+  COST_THRESHOLD_APPROVED          // Requester alert — their high-cost expense was approved
+  COST_THRESHOLD_REJECTED          // Requester alert — their high-cost expense was rejected
 }
 
 model Notification {
