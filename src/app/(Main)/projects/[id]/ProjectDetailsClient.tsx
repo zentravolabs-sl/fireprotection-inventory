@@ -101,9 +101,8 @@ export function ProjectDetailsClient({
   const isPMRole = currentUserRole === "PROJECT_MANAGER";
   const isRestrictedRole = currentUserRole === "ENGINEER" || currentUserRole === "PROJECT_MANAGER";
 
-  // ADMIN and SUPER_ADMIN can approve / reject cost-threshold expenses
-  const canApproveExpenses =
-    currentUserRole === "ADMIN" || currentUserRole === "SUPER_ADMIN";
+  // Only ADMIN role can approve / reject cost-threshold expenses (not Super Admin)
+  const canApproveExpenses = currentUserRole === "ADMIN";
 
   const [activeTab, setActiveTab] = useState<TabType>(
     isEngineerRole || isPMRole ? "requests" : "overview"

@@ -148,12 +148,12 @@ export async function notifyCostThresholdPendingApproval(
 ): Promise<void> {
   try {
     const approvers = await prisma.user.findMany({
-      where: { role: { in: ["ADMIN", "SUPER_ADMIN"] }, isActive: true },
+      where: { role: "ADMIN", isActive: true },
       select: { id: true },
     });
 
     if (approvers.length === 0) {
-      console.warn("[Notifications] No active ADMIN or SUPER_ADMIN users found to notify.");
+      console.warn("[Notifications] No active ADMIN users found to notify.");
       return;
     }
 

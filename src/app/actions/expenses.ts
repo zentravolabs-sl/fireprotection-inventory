@@ -20,8 +20,8 @@ import {
 import { ExpenseType } from "@/types/project";
 import { getSession } from "@/lib/session";
 
-/** Roles that are allowed to approve / reject cost-threshold expenses. */
-const APPROVER_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
+/** Roles that are allowed to approve / reject cost-threshold expenses. Only ADMIN role is permitted. */
+const APPROVER_ROLES = new Set(["ADMIN"]);
 
 async function getActorId(): Promise<string> {
   try {
@@ -165,7 +165,7 @@ export async function approveExpenseAction(expenseId: number) {
 
     revalidatePath("/projects");
     revalidatePath(`/projects/${existing.projectId}`);
-    revalidatePath("/super-admin");
+    revalidatePath("/cost-approvals");
 
     return {
       success: true,
@@ -216,7 +216,7 @@ export async function rejectExpenseAction(expenseId: number, note?: string) {
 
     revalidatePath("/projects");
     revalidatePath(`/projects/${existing.projectId}`);
-    revalidatePath("/super-admin");
+    revalidatePath("/cost-approvals");
 
     return {
       success: true,

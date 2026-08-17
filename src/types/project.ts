@@ -65,6 +65,8 @@ export interface ProjectEngineerItem {
   assignedByUser?: UserSummary;
 }
 
+export type ExpenseApprovalStatus = "APPROVED" | "PENDING_APPROVAL" | "REJECTED";
+
 export interface ProjectExpenseItem {
   id: number;
   expenseNo: string;
@@ -76,6 +78,10 @@ export interface ProjectExpenseItem {
   referenceNo?: string | null;
   createdBy: string;
   createdAt: Date;
+  approvalStatus?: ExpenseApprovalStatus;
+  approvedBy?: string | null;
+  approvedAt?: Date | null;
+  approvalNote?: string | null;
   createdByUser?: UserSummary;
 }
 

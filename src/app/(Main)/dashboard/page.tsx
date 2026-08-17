@@ -67,22 +67,22 @@ export default async function DashboardPage() {
             Change Password
           </Link>
           {(user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
-            <>
-              <Link
-                href="/admin"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 text-sm font-semibold rounded-xl border border-blue-800/40 transition-colors"
-              >
-                <Shield size={16} />
-                Admin Panel
-              </Link>
-              <Link
-                href="/super-admin"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-900/30 hover:bg-amber-900/50 text-amber-300 text-sm font-semibold rounded-xl border border-amber-800/40 transition-colors"
-              >
-                <AlertTriangle size={16} className="text-amber-400" />
-                💰 Cost Approvals
-              </Link>
-            </>
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 text-sm font-semibold rounded-xl border border-blue-800/40 transition-colors"
+            >
+              <Shield size={16} />
+              Admin Panel
+            </Link>
+          )}
+          {user.role === "ADMIN" && (
+            <Link
+              href="/cost-approvals"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-900/30 hover:bg-amber-900/50 text-amber-300 text-sm font-semibold rounded-xl border border-amber-800/40 transition-colors"
+            >
+              <AlertTriangle size={16} className="text-amber-400" />
+              💰 Cost Approvals
+            </Link>
           )}
         </div>
       </div>

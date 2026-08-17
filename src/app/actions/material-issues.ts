@@ -59,7 +59,7 @@ export async function issueMaterialsFIFOAction(data: {
     revalidatePath("/project-stock");
     revalidatePath("/stock-batch");
     revalidatePath("/stock-movement");
-    revalidatePath("/super-admin");
+    revalidatePath("/cost-approvals");
 
     return {
       success: true,

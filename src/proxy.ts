@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-const PROTECTED_ROUTES = ["/dashboard", "/admin", "/super-admin"];
+const PROTECTED_ROUTES = ["/dashboard", "/admin", "/super-admin", "/cost-approvals"];
 const AUTH_PAGES = [
   "/login",
   "/register",

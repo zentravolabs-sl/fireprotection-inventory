@@ -112,7 +112,7 @@ export async function createTransportAction(formData: FormData) {
 
     revalidatePath("/projects");
     revalidatePath(`/projects/${parsed.data.projectId}`);
-    revalidatePath("/super-admin");
+    revalidatePath("/cost-approvals");
 
     if (needsApproval) {
       return {
