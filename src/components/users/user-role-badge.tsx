@@ -26,6 +26,13 @@ const ROLE_CONFIG: Record<string, { label: string; bg: string; text: string; bor
     border: "border-blue-500/20",
     dot: "bg-blue-400",
   },
+  GENERAL_MANAGER: {
+    label: "General Manager",
+    bg: "bg-orange-500/10",
+    text: "text-orange-400",
+    border: "border-orange-500/20",
+    dot: "bg-orange-400",
+  },
   PROJECT_MANAGER: {
     label: "Project Manager",
     bg: "bg-amber-500/10",
@@ -39,6 +46,13 @@ const ROLE_CONFIG: Record<string, { label: string; bg: string; text: string; bor
     text: "text-cyan-400",
     border: "border-cyan-500/20",
     dot: "bg-cyan-400",
+  },
+  ACCOUNTANT: {
+    label: "Accountant",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-400",
+    border: "border-emerald-500/20",
+    dot: "bg-emerald-400",
   },
   USER: {
     label: "User",

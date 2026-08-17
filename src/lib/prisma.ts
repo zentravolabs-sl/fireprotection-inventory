@@ -11,32 +11,23 @@
 //   to go stale.
 // ============================================================
 
-import { neonConfig } from "@neondatabase/serverless";
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
-
-// In Node.js (non-edge) environments we need ws for WebSocket support
-// (required for interactive transactions). In Edge runtimes the native
-// WebSocket is available globally.
-if (typeof WebSocket === "undefined") {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  neonConfig.webSocketConstructor = require("ws");
-}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 function createPrismaClient() {
-  // In Prisma v7, PrismaNeon accepts a PoolConfig (not a Pool instance)
-  // and manages the connection pool internally.
-  const adapter = new PrismaNeon({
+  const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    // Keep pool small — Neon free tier has a connection limit.
-    // Each serverless invocation creates a short-lived connection.
-    max: parseInt(process.env.PG_MAX_POOL || "3", 10),
-    connectionTimeoutMillis: parseInt(process.env.PG_CONNECTION_TIMEOUT || "10000", 10),
+    ssl: { rejectUnauthorized: false },
+    max: parseInt(process.env.PG_MAX_POOL || "5", 10),
+    connectionTimeoutMillis: parseInt(process.env.PG_CONNECTION_TIMEOUT || "15000", 10),
   });
+
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],

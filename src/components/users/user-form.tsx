@@ -42,8 +42,10 @@ interface UserFormProps {
 const ROLE_OPTIONS = [
   { value: "SUPER_ADMIN", label: "Super Admin", restricted: true },
   { value: "ADMIN", label: "Admin", restricted: false },
+  { value: "GENERAL_MANAGER", label: "General Manager", restricted: false },
   { value: "PROJECT_MANAGER", label: "Project Manager", restricted: false },
   { value: "ENGINEER", label: "Engineer", restricted: false },
+  { value: "ACCOUNTANT", label: "Accountant", restricted: false },
   { value: "USER", label: "User", restricted: false },
 ];
 

@@ -2,7 +2,7 @@
 
 // ============================================================
 // src/components/ui/Sidebar.tsx
-// Collapsible sidebar navigation for FireGuard ERP.
+// Enterprise sidebar navigation for FIREPRO Fire Protection Management.
 // Color theme: dark navy/charcoal bg (#0F1524 / #161d2e),
 // red accent (#e02424 / #ff2d2d), muted text (#5a657a).
 // Mobile: slide-in drawer with overlay backdrop.
@@ -22,6 +22,7 @@ interface NavItem {
   icon: React.ReactNode;
   badge?: number;
   permission?: string;
+  superAdminOnly?: boolean;
 }
 
 interface NavGroup {
@@ -81,12 +82,6 @@ const Icons = {
   pipe: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
-  ),
-  issueNotes: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
     </svg>
   ),
   returns: (
@@ -183,16 +178,10 @@ const Icons = {
       <path d="M14 17.5h7" /><path d="M17.5 14v7" />
     </svg>
   ),
-  subCategories: (
+  settings: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="4" rx="1" />
-      <rect x="3" y="10" width="5" height="4" rx="1" />
-      <rect x="3" y="17" width="5" height="4" rx="1" />
-      <line x1="8" y1="12" x2="14" y2="12" />
-      <line x1="8" y1="19" x2="14" y2="19" />
-      <line x1="14" y1="12" x2="14" y2="19" />
-      <rect x="14" y="9" width="7" height="5" rx="1" />
-      <rect x="14" y="16" width="7" height="5" rx="1" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   ),
 };
@@ -201,50 +190,41 @@ const Icons = {
 
 const NAV_GROUPS_STATIC: NavGroup[] = [
   {
-    title: "PROJECT MANAGEMENT",
+    title: "WORKSPACE",
     items: [
       { label: "Projects",          href: "/projects",          icon: Icons.projects,         permission: "project.view" },
       { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests, permission: "material_request.view" },
+      { label: "Inventory Master",  href: "/inventory",        icon: Icons.inventory,        permission: "inventory.view" },
+      { label: "Clients",           href: "/customers",        icon: Icons.customers,        permission: "customer.view" },
+      { label: "Employees",         href: "/users-roles",      icon: Icons.users,            permission: "user.view" },
+      { label: "Suppliers",         href: "/suppliers",        icon: Icons.suppliers,        permission: "supplier.view" },
+      { label: "Tools",             href: "/tools",            icon: Icons.tools,            permission: "tool.view" },
       { label: "Project Stock",     href: "/project-stock",    icon: Icons.projectStock,      permission: "stock.view_history" },
       { label: "Project Transfers", href: "/transfers",        icon: Icons.returns,           permission: "project_transfer.view" },
     ],
   },
   {
-    title: "WAREHOUSE",
+    title: "FINANCE",
     items: [
-      { label: "Categories",        href: "/categories",       icon: Icons.categories,        permission: "inventory.view" },
-      { label: "Sub-Categories",    href: "/sub-categories",   icon: Icons.subCategories,    permission: "inventory.view" },
-      { label: "Inventory Master",  href: "/inventory",        icon: Icons.inventory,        permission: "inventory.view" },
-      { label: "Stock Receive",     href: "/stock-receive",    icon: Icons.suppliers,        permission: "stock.receive" },
-      { label: "Stock Batches",     href: "/stock-batch",      icon: Icons.projectStock,      permission: "stock.view_history" },
-      { label: "Stock Movements",   href: "/stock-movement",   icon: Icons.reports,           permission: "stock.view_history" },
-      { label: "Pipe & Cut Pieces", href: "/pipe-cut-pieces",  icon: Icons.pipe,              permission: "stock.view_history" },
-      { label: "Expiry Management", href: "/expiry",           icon: Icons.expiry,            permission: "expiry.view" },
-    ],
-  },
-  {
-    title: "ASSETS & BUSINESS",
-    items: [
-      { label: "Tools",             href: "/tools",            icon: Icons.tools,            permission: "tool.view" },
-      { label: "Suppliers",         href: "/suppliers",        icon: Icons.suppliers,        permission: "supplier.view" },
-      { label: "Customers",         href: "/customers",        icon: Icons.customers,        permission: "customer.view" },
+      { label: "Cost Approvals",    href: "/cost-approvals",   icon: Icons.quotations,       permission: "audit_log.view" },
       { label: "Quotations",        href: "/quotations",       icon: Icons.quotations,       permission: "project.view" },
-    ],
-  },
-  {
-    title: "LABOUR",
-    items: [
-      { label: "Labour Types",      href: "/labour-types",     icon: Icons.labourTypes,      permission: "labour.view" },
       { label: "Labour Master",     href: "/labour",           icon: Icons.labour,           permission: "labour.view" },
     ],
   },
   {
-    title: "MANAGEMENT",
+    title: "REPORTS",
     items: [
-      { label: "Cost Approvals",     href: "/cost-approvals",   icon: Icons.quotations,       permission: "audit_log.view" },
       { label: "Reports",           href: "/reports",          icon: Icons.reports,          permission: "report.view" },
-      { label: "Users & Roles",     href: "/users-roles",      icon: Icons.users,            permission: "user.view" },
+      { label: "Expiry Management", href: "/expiry",           icon: Icons.expiry,            permission: "expiry.view" },
       { label: "Audit Log",         href: "/audit-log",        icon: Icons.audit,            permission: "audit_log.view" },
+    ],
+  },
+  {
+    title: "SYSTEM",
+    items: [
+      { label: "User Management",   href: "/users-roles",      icon: Icons.users,            permission: "user.view", superAdminOnly: true },
+      { label: "Roles & Permissions", href: "/users-roles",    icon: Icons.audit,            permission: "user.view", superAdminOnly: true },
+      { label: "System Settings",   href: "/super-admin",      icon: Icons.settings,         superAdminOnly: true },
     ],
   },
 ];
@@ -261,7 +241,7 @@ function SidebarNavItem({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+  const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
 
   return (
     <Link
@@ -310,7 +290,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Mobile Hamburger Button (exported for use in layouts) ────────────────────
+// ─── Mobile Hamburger Button ──────────────────────────────────────────────────
 
 export function MobileMenuButton() {
   const { mobileOpen, setMobileOpen } = useSidebar();
@@ -342,7 +322,7 @@ export function MobileTopBar() {
         <div className="mobile-topbar-brand-icon">
           <span style={{ color: "#fff", display: "flex" }}>{Icons.fire}</span>
         </div>
-        <span className="mobile-topbar-brand-name">FireGuard ERP</span>
+        <span className="mobile-topbar-brand-name">FIREPRO</span>
       </div>
     </div>
   );
@@ -358,36 +338,169 @@ export function Sidebar() {
   const closeMobile = () => setMobileOpen(false);
 
   // Filter nav groups & items based on current user permissions and role
-  const NAV_GROUPS: NavGroup[] = NAV_GROUPS_STATIC
-    .filter((group) => {
-      if (userRole === "ENGINEER") {
-        const title = group.title.toUpperCase();
-        if (title === "WAREHOUSE" || title === "ASSETS & BUSINESS" || title === "LABOUR") {
-          return false;
-        }
-      }
-      return true;
-    })
-    .map((group) => {
-      const authorizedItems = group.items
-        .filter((item) => {
-          if (item.href === "/cost-approvals" && userRole !== "ADMIN") {
-            return false;
-          }
-          return !item.permission || can(item.permission);
-        })
-        .map((item) =>
-          item.href === "/material-requests" && pendingMRCount > 0
-            ? { ...item, badge: pendingMRCount }
-            : item,
-        );
+  let NAV_GROUPS: NavGroup[] = [];
 
-      return {
-        ...group,
-        items: authorizedItems,
-      };
-    })
-    .filter((group) => group.items.length > 0);
+  if (userRole === "ENGINEER") {
+    NAV_GROUPS = [
+      {
+        title: "MY WORK",
+        items: [
+          { label: "My Projects", href: "/projects", icon: Icons.projects },
+          { label: "My Tasks", href: "/projects", icon: Icons.materialRequests },
+          { label: "Today's Tasks", href: "/projects", icon: Icons.materialRequests },
+          { label: "Upcoming Tasks", href: "/projects", icon: Icons.expiry },
+        ],
+      },
+      {
+        title: "SITE WORK",
+        items: [
+          { label: "Inspections", href: "/projects", icon: Icons.audit },
+          { label: "Site Issues", href: "/projects", icon: Icons.audit },
+          { label: "Site Activities", href: "/audit-log", icon: Icons.audit },
+        ],
+      },
+      {
+        title: "MATERIALS",
+        items: [
+          { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests, badge: pendingMRCount > 0 ? pendingMRCount : undefined },
+        ],
+      },
+      {
+        title: "REPORTS",
+        items: [
+          { label: "My Reports", href: "/reports", icon: Icons.reports },
+        ],
+      },
+      {
+        title: "OTHER",
+        items: [
+          { label: "Notifications", href: "/dashboard", icon: Icons.expiry },
+          { label: "Profile", href: "/dashboard", icon: Icons.users },
+        ],
+      },
+    ];
+  } else if (userRole === "PROJECT_MANAGER") {
+    NAV_GROUPS = [
+      {
+        title: "PROJECT MANAGEMENT",
+        items: [
+          { label: "My Projects", href: "/projects", icon: Icons.projects },
+          { label: "Tasks", href: "/projects", icon: Icons.materialRequests },
+          { label: "Team", href: "/users-roles", icon: Icons.users },
+          { label: "Deadlines", href: "/projects", icon: Icons.expiry },
+          { label: "Issues", href: "/projects", icon: Icons.audit },
+        ],
+      },
+      {
+        title: "MATERIALS",
+        items: [
+          { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests, badge: pendingMRCount > 0 ? pendingMRCount : undefined },
+          { label: "Inventory", href: "/inventory", icon: Icons.inventory },
+        ],
+      },
+      {
+        title: "REPORTS",
+        items: [
+          { label: "Project Reports", href: "/reports", icon: Icons.reports },
+          { label: "Progress Reports", href: "/reports", icon: Icons.reports },
+        ],
+      },
+      {
+        title: "OTHER",
+        items: [
+          { label: "Notifications", href: "/dashboard", icon: Icons.expiry },
+          { label: "Profile", href: "/dashboard", icon: Icons.users },
+        ],
+      },
+    ];
+  } else if (userRole === "GENERAL_MANAGER") {
+    NAV_GROUPS = [
+      {
+        title: "MANAGEMENT",
+        items: [
+          { label: "Projects", href: "/projects", icon: Icons.projects },
+          { label: "Team", href: "/users-roles", icon: Icons.users },
+          { label: "Clients", href: "/customers", icon: Icons.customers },
+          { label: "Approvals", href: "/cost-approvals", icon: Icons.quotations },
+        ],
+      },
+      {
+        title: "FINANCE",
+        items: [
+          { label: "Project Budgets", href: "/projects", icon: Icons.quotations },
+          { label: "Project Costs", href: "/reports", icon: Icons.reports },
+          { label: "Financial Overview", href: "/reports", icon: Icons.reports },
+        ],
+      },
+      {
+        title: "REPORTS",
+        items: [
+          { label: "Management Reports", href: "/reports", icon: Icons.reports },
+          { label: "Project Reports", href: "/reports", icon: Icons.reports },
+        ],
+      },
+      {
+        title: "OTHER",
+        items: [
+          { label: "Notifications", href: "/dashboard", icon: Icons.expiry },
+          { label: "Profile", href: "/dashboard", icon: Icons.users },
+        ],
+      },
+    ];
+  } else if (userRole === "ACCOUNTANT") {
+    NAV_GROUPS = [
+      {
+        title: "FINANCE",
+        items: [
+          { label: "Invoices", href: "/cost-approvals", icon: Icons.quotations },
+          { label: "Payments", href: "/cost-approvals", icon: Icons.quotations },
+          { label: "Expenses", href: "/reports", icon: Icons.reports },
+          { label: "Project Costs", href: "/reports", icon: Icons.reports },
+          { label: "Accounts Receivable", href: "/reports", icon: Icons.reports },
+          { label: "Accounts Payable", href: "/reports", icon: Icons.reports },
+        ],
+      },
+      {
+        title: "REPORTS",
+        items: [
+          { label: "Financial Reports", href: "/reports", icon: Icons.reports },
+          { label: "Project Financial Reports", href: "/reports", icon: Icons.reports },
+        ],
+      },
+      {
+        title: "OTHER",
+        items: [
+          { label: "Notifications", href: "/dashboard", icon: Icons.expiry },
+          { label: "Profile", href: "/dashboard", icon: Icons.users },
+        ],
+      },
+    ];
+  } else {
+    NAV_GROUPS = NAV_GROUPS_STATIC
+      .map((group) => {
+        const authorizedItems = group.items
+          .filter((item) => {
+            if (item.href === "/cost-approvals" && userRole !== "ADMIN") {
+              return false;
+            }
+            if (item.superAdminOnly && userRole !== "SUPER_ADMIN") {
+              return false;
+            }
+            return !item.permission || can(item.permission);
+          })
+          .map((item) =>
+            item.href === "/material-requests" && pendingMRCount > 0
+              ? { ...item, badge: pendingMRCount }
+              : item,
+          );
+
+        return {
+          ...group,
+          items: authorizedItems,
+        };
+      })
+      .filter((group) => group.items.length > 0);
+  }
 
   return (
     <>
@@ -406,8 +519,8 @@ export function Sidebar() {
           </div>
           {!collapsed && (
             <div className="sidebar-logo-text">
-              <span className="sidebar-logo-brand">FireGuard</span>
-              <span className="sidebar-logo-sub">ERP SYSTEM</span>
+              <span className="sidebar-logo-brand">FIREPRO</span>
+              <span className="sidebar-logo-sub">Fire Protection Management</span>
             </div>
           )}
           <button
@@ -438,7 +551,7 @@ export function Sidebar() {
               {collapsed && <div className="sidebar-group-divider" />}
               {group.items.map((item) => (
                 <SidebarNavItem
-                  key={item.href}
+                  key={item.href + item.label}
                   item={item}
                   collapsed={collapsed}
                   onNavigate={closeMobile}

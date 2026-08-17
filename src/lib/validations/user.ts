@@ -29,7 +29,15 @@ const passwordField = z
   .regex(/[0-9]/, "Password must contain at least one number.");
 
 const roleField = z.enum(
-  ["SUPER_ADMIN", "ADMIN", "PROJECT_MANAGER", "ENGINEER", "USER"],
+  [
+    "SUPER_ADMIN",
+    "ADMIN",
+    "GENERAL_MANAGER",
+    "PROJECT_MANAGER",
+    "ENGINEER",
+    "ACCOUNTANT",
+    "USER",
+  ],
   { error: "Please select a valid role." },
 );
 
