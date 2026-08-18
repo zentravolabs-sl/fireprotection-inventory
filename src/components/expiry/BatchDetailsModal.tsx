@@ -226,39 +226,39 @@ export default function BatchDetailsModal({ batchId, onClose }: BatchDetailsModa
                 </h3>
 
                 {data.movements && data.movements.length > 0 ? (
-                  <div className="overflow-x-auto border border-gray-200 dark:border-[#1e2a3d] rounded-xl">
-                    <table className="w-full text-xs text-left">
-                      <thead className="bg-gray-50 dark:bg-[#161d2e] border-b border-gray-200 dark:border-[#1e2a3d] text-gray-500 dark:text-[#5a657a] uppercase font-semibold">
+                  <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+                    <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+                      <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs font-semibold tracking-wider">
                         <tr>
-                          <th className="py-2.5 px-3">Date</th>
-                          <th className="py-2.5 px-3">Type</th>
-                          <th className="py-2.5 px-3">Ref Source</th>
-                          <th className="py-2.5 px-3 text-right">Quantity</th>
-                          <th className="py-2.5 px-3">Performed By</th>
-                          <th className="py-2.5 px-3">Remarks</th>
+                          <th className="px-4 py-3">Date</th>
+                          <th className="px-4 py-3">Type</th>
+                          <th className="px-4 py-3">Ref Source</th>
+                          <th className="px-4 py-3 text-right">Quantity</th>
+                          <th className="px-4 py-3">Performed By</th>
+                          <th className="px-4 py-3">Remarks</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-[#1e2a3d]">
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                         {data.movements.map((m: any) => (
-                          <tr key={m.id} className="hover:bg-gray-50/80 dark:hover:bg-[#161d2e]/50 transition-colors">
-                            <td className="py-2.5 px-3 text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                          <tr key={m.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                            <td className="px-4 py-3.5 text-xs text-gray-600 dark:text-gray-300 whitespace-nowrap">
                               {formatDate(m.createdAt)}
                             </td>
-                            <td className="py-2.5 px-3 font-bold text-gray-900 dark:text-[#dce3ef]">
+                            <td className="px-4 py-3.5 font-medium text-gray-900 dark:text-gray-100">
                               <span className="inline-flex items-center gap-1">
                                 {getMovementIcon(m.movementType)} {m.movementType}
                               </span>
                             </td>
-                            <td className="py-2.5 px-3 font-mono text-[11px] text-gray-700 dark:text-gray-300">
+                            <td className="px-4 py-3.5 font-mono text-xs text-gray-700 dark:text-gray-300">
                               {m.referenceType} #{m.referenceId || "--"}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-black tabular-nums text-gray-900 dark:text-[#dce3ef]">
+                            <td className="px-4 py-3.5 text-right font-medium tabular-nums text-gray-900 dark:text-gray-100">
                               {m.movementType === "OUT" ? `-${m.qty}` : `+${m.qty}`} {data.inventory.unit}
                             </td>
-                            <td className="py-2.5 px-3 text-gray-700 dark:text-gray-300 font-medium">
+                            <td className="px-4 py-3.5 text-gray-800 dark:text-gray-200 font-medium">
                               {m.createdBy}
                             </td>
-                            <td className="py-2.5 px-3 text-gray-500 dark:text-[#5a657a] max-w-[200px] truncate">
+                            <td className="px-4 py-3.5 text-xs text-gray-500 dark:text-gray-400 max-w-[200px] truncate">
                               {m.remarks || "--"}
                             </td>
                           </tr>
@@ -267,7 +267,7 @@ export default function BatchDetailsModal({ batchId, onClose }: BatchDetailsModa
                     </table>
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500 dark:text-[#5a657a] italic py-3 text-center">No movement history recorded yet.</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 italic py-3 text-center">No movement history recorded yet.</p>
                 )}
               </div>
             </>

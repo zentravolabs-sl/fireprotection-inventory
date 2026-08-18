@@ -208,7 +208,7 @@ export function ToolDetailsClient({ tool }: ToolDetailsClientProps) {
 
       {/* History Tabs */}
       <div>
-        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
+        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-800 overflow-x-auto overflow-y-hidden">
           {([
             { id: "assignments", label: `📋 Assignment History (${tool.assignmentItems.length})` },
             { id: "repairs", label: `🔧 Repair / Lost (${repairHistory.length + lostHistory.length})` },

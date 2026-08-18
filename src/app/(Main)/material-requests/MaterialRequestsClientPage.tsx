@@ -8,11 +8,22 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import Select from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
 import { ProjectStatusBadge } from "@/components/projects/ProjectStatusBadge";
 import { ApproveRequestModal } from "@/components/projects/ApproveRequestModal";
 import { IssueMaterialModal } from "@/components/projects/IssueMaterialModal";
 import { formatDate } from "@/lib/dateUtils";
 import { usePermissions } from "@/hooks/usePermissions";
+
+const STATUS_OPTIONS = [
+  { value: "", label: "All Statuses" },
+  { value: "PENDING", label: "PENDING" },
+  { value: "APPROVED", label: "APPROVED" },
+  { value: "PARTIAL", label: "PARTIAL" },
+  { value: "ISSUED", label: "ISSUED" },
+  { value: "REJECTED", label: "REJECTED" },
+];
 
 interface MaterialRequestsClientPageProps {
   requests: any[];
@@ -39,6 +50,9 @@ export function MaterialRequestsClientPage({
   const [search, setSearch] = useState(currentSearch);
   const [selectedApproveRequest, setSelectedApproveRequest] = useState<any | null>(null);
   const [selectedIssueRequest, setSelectedIssueRequest] = useState<any | null>(null);
+
+  const selectedStatusOption =
+    STATUS_OPTIONS.find((opt) => opt.value === (currentStatus || "")) || STATUS_OPTIONS[0];
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -73,28 +87,27 @@ export function MaterialRequestsClientPage({
             placeholder="Search request #, project name, engineer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-2 text-sm border rounded-lg dark:bg-gray-800 focus:ring-2 focus:ring-red-500"
+            className="flex-1 px-4 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 h-[40px]"
           />
           <button
             type="submit"
-            className="px-4 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg"
+            className="px-4 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg transition-colors h-[40px] inline-flex items-center justify-center"
           >
             Search
           </button>
         </form>
 
-        <select
-          value={currentStatus || ""}
-          onChange={(e) => handleStatusFilter(e.target.value)}
-          className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-800 focus:ring-2 focus:ring-red-500"
-        >
-          <option value="">All Statuses</option>
-          <option value="PENDING">PENDING</option>
-          <option value="APPROVED">APPROVED</option>
-          <option value="PARTIAL">PARTIAL</option>
-          <option value="ISSUED">ISSUED</option>
-          <option value="REJECTED">REJECTED</option>
-        </select>
+        <div className="w-56 sm:w-64">
+          <Select
+            instanceId="material-request-status-filter"
+            classNamePrefix="react-select"
+            options={STATUS_OPTIONS}
+            value={selectedStatusOption}
+            onChange={(val) => handleStatusFilter(val ? val.value : "")}
+            isSearchable={false}
+            styles={getCustomSelectStyles(false, "40px")}
+          />
+        </div>
       </div>
 
       {/* Requests Table */}

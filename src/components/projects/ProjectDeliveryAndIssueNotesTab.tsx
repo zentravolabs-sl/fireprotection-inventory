@@ -7,9 +7,30 @@
 // ============================================================
 
 import React, { useState, useMemo, useRef } from "react";
-import { formatDate, formatCurrency } from "@/lib/dateUtils";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { formatDate } from "@/lib/dateUtils";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
+const formatDateToString = (date: Date | null): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseStringToDate = (dateStr: string | undefined | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return new Date(year, month - 1, day);
+};
 
 interface InventoryItem {
   id: number;
@@ -595,13 +616,25 @@ export function ProjectDeliveryAndIssueNotesTab({
             <>
               <div>
                 <label className="block text-gray-500 font-medium mb-1">From</label>
-                <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100" />
+                <DatePicker
+                  selected={parseStringToDate(fromDate)}
+                  onChange={(date: Date | null) => setFromDate(formatDateToString(date))}
+                  dateFormat="yyyy-MM-dd"
+                  showPopperArrow={false}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100 text-xs outline-none focus:border-red-500"
+                  wrapperClassName="w-full"
+                />
               </div>
               <div>
                 <label className="block text-gray-500 font-medium mb-1">To</label>
-                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100" />
+                <DatePicker
+                  selected={parseStringToDate(toDate)}
+                  onChange={(date: Date | null) => setToDate(formatDateToString(date))}
+                  dateFormat="yyyy-MM-dd"
+                  showPopperArrow={false}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100 text-xs outline-none focus:border-red-500"
+                  wrapperClassName="w-full"
+                />
               </div>
             </>
           )}
@@ -613,8 +646,14 @@ export function ProjectDeliveryAndIssueNotesTab({
           </div>
           <div>
             <label className="block text-gray-500 font-medium mb-1">Date</label>
-            <input type="date" value={docDate} onChange={(e) => setDocDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100" />
+            <DatePicker
+              selected={parseStringToDate(docDate)}
+              onChange={(date: Date | null) => setDocDate(formatDateToString(date))}
+              dateFormat="yyyy-MM-dd"
+              showPopperArrow={false}
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100 text-xs outline-none focus:border-red-500"
+              wrapperClassName="w-full"
+            />
           </div>
           <div>
             <label className="block text-gray-500 font-medium mb-1">Vehicle No.</label>

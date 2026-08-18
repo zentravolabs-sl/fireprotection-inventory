@@ -7,12 +7,33 @@
 
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { getCustomSelectStyles } from "@/lib/selectStyles";
 import {
   createProjectTransferAction,
   getAvailableStockAction,
 } from "@/app/actions/transfers";
 import { formatCurrency } from "@/lib/dateUtils";
+
+const formatDateToString = (date: Date | null): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseStringToDate = (dateStr: string | undefined | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return new Date(year, month - 1, day);
+};
 
 interface ProjectOption {
   id: number;
@@ -373,11 +394,13 @@ export function CreateTransferModal({
 
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-1.5">Transfer Date</label>
-              <input
-                type="date"
-                value={transferDate}
-                onChange={(e) => setTransferDate(e.target.value)}
+              <DatePicker
+                selected={parseStringToDate(transferDate)}
+                onChange={(date: Date | null) => setTransferDate(formatDateToString(date))}
+                dateFormat="yyyy-MM-dd"
+                showPopperArrow={false}
                 className="w-full px-4 py-3 border border-gray-700 rounded-xl bg-gray-900 text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-900"
+                wrapperClassName="w-full"
               />
             </div>
           </div>

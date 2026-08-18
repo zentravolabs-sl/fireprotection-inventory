@@ -6,7 +6,28 @@
 // ============================================================
 
 import React, { useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import Modal from "@/components/ui/Modal";
+
+const formatDateToString = (date: Date | null): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseStringToDate = (dateStr: string | undefined | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return new Date(year, month - 1, day);
+};
 
 interface Props {
   isOpen: boolean;
@@ -64,11 +85,13 @@ export function ReleaseStaffModal({ isOpen, onClose, onConfirm, staff, isSubmitt
 
         <div>
           <label className={labelCls}>Released Date *</label>
-          <input
-            type="date"
-            value={releasedDate}
-            onChange={(e) => setReleasedDate(e.target.value)}
+          <DatePicker
+            selected={parseStringToDate(releasedDate)}
+            onChange={(date: Date | null) => setReleasedDate(formatDateToString(date))}
+            dateFormat="yyyy-MM-dd"
+            showPopperArrow={false}
             className={inputCls}
+            wrapperClassName="w-full"
           />
         </div>
 

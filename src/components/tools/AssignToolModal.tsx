@@ -7,11 +7,32 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Select from "react-select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { getCustomSelectStyles } from "@/lib/selectStyles";
 import { Modal } from "@/components/ui/Modal";
 import { FormButton } from "@/components/ui/FormButton";
 import { assignToolsAction, getAvailableToolsAction } from "@/app/actions/tool-assignments";
 import { Search, Wrench, Image as ImageIcon } from "lucide-react";
+
+const formatDateToString = (date: Date | null): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseStringToDate = (dateStr: string | undefined | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return new Date(year, month - 1, day);
+};
 
 interface Engineer {
   id: string;
@@ -176,23 +197,28 @@ export function AssignToolModal({
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
               Assign Date *
             </label>
-            <input
-              type="date"
-              value={assignDate}
-              onChange={(e) => setAssignDate(e.target.value)}
-              required
+            <DatePicker
+              selected={parseStringToDate(assignDate)}
+              onChange={(date: Date | null) => setAssignDate(formatDateToString(date))}
+              dateFormat="yyyy-MM-dd"
+              showPopperArrow={false}
               className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
+              wrapperClassName="w-full"
             />
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
               Expected Return Date
             </label>
-            <input
-              type="date"
-              value={expectedReturn}
-              onChange={(e) => setExpectedReturn(e.target.value)}
+            <DatePicker
+              selected={parseStringToDate(expectedReturn)}
+              onChange={(date: Date | null) => setExpectedReturn(formatDateToString(date))}
+              dateFormat="yyyy-MM-dd"
+              placeholderText="Select expected return date..."
+              isClearable
+              showPopperArrow={false}
               className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none transition-all duration-200 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
+              wrapperClassName="w-full"
             />
           </div>
         </div>

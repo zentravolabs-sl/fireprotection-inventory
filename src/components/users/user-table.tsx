@@ -70,7 +70,7 @@ function ActionMenu({ user, actorRole, onStatusToggle, onRoleChange }: ActionMen
         type="button"
         onClick={() => setOpen((v) => !v)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        className="p-1.5 rounded-lg text-[#5a657a] hover:text-[#dce3ef] hover:bg-[#1e2a3d] transition-colors"
+        className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         aria-label={`Actions for ${user.name}`}
         aria-haspopup="true"
         aria-expanded={open}
@@ -79,44 +79,44 @@ function ActionMenu({ user, actorRole, onStatusToggle, onRoleChange }: ActionMen
       </button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-30 w-44 bg-[#161d2e] border border-[#1e2a3d] rounded-xl shadow-2xl overflow-hidden">
-          <div className="py-1">
+        <div className="absolute right-0 top-8 z-30 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
+          <div className="py-1 text-left">
             <Link
               href={`/users-roles/${user.id}`}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#dce3ef] hover:bg-[#1e2a3d] transition-colors"
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               onClick={() => setOpen(false)}
             >
-              <Eye size={14} className="text-[#5a657a]" />
+              <Eye size={14} className="text-gray-400 dark:text-gray-500" />
               View Details
             </Link>
 
             <Link
               href={`/users-roles/${user.id}/edit`}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#dce3ef] hover:bg-[#1e2a3d] transition-colors"
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               onClick={() => setOpen(false)}
             >
-              <Pencil size={14} className="text-[#5a657a]" />
+              <Pencil size={14} className="text-gray-400 dark:text-gray-500" />
               Edit User
             </Link>
 
             <button
               type="button"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#dce3ef] hover:bg-[#1e2a3d] transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               onClick={() => {
                 setOpen(false);
                 onRoleChange(user);
               }}
             >
-              <ShieldCheck size={14} className="text-[#5a657a]" />
+              <ShieldCheck size={14} className="text-gray-400 dark:text-gray-500" />
               Change Role
             </button>
 
-            <div className="my-1 border-t border-[#1e2a3d]" />
+            <div className="my-1 border-t border-gray-100 dark:border-gray-700" />
 
             {user.isActive ? (
               <button
                 type="button"
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                 onClick={() => {
                   setOpen(false);
                   onStatusToggle(user, "deactivate");
@@ -128,7 +128,7 @@ function ActionMenu({ user, actorRole, onStatusToggle, onRoleChange }: ActionMen
             ) : (
               <button
                 type="button"
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
                 onClick={() => {
                   setOpen(false);
                   onStatusToggle(user, "activate");
@@ -258,109 +258,134 @@ export default function UserTable({
     setStatusTarget(null);
   };
 
-  if (users.length === 0) {
-    return (
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-12 text-center shadow-sm">
-        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </div>
-        <p className="text-gray-900 dark:text-gray-100 font-semibold">No users found</p>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Try adjusting your search or filters.</p>
-      </div>
-    );
-  }
-
   return (
     <>
-      {/* Desktop table */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+      {/* Table Container Card */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-6 space-y-4">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
             <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs font-semibold tracking-wider">
               <tr>
-                {["User", "Emp. Code", "Email", "Phone", "Role", "Status", "Last Updated", ""].map((col) => (
-                  <th
-                    key={col}
-                    className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider whitespace-nowrap"
-                  >
-                    {col}
-                  </th>
-                ))}
+                <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">Emp. Code</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Phone</th>
+                <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Last Updated</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-              {users.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
-                >
-                  {/* User column */}
-                  <td className="px-4 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <UserAvatar name={user.name} image={user.image} size="md" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{user.name}</p>
-                        {user.designation && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.designation}</p>
-                        )}
-                      </div>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-12">
+                    <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-10 w-10 opacity-40"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        No users found.
+                      </span>
                     </div>
                   </td>
-
-                  {/* Employee code */}
-                  <td className="px-4 py-3.5 font-mono text-xs font-semibold text-gray-900 dark:text-gray-100">
-                    {user.employeeCode ?? <span className="text-gray-400 font-normal">—</span>}
-                  </td>
-
-                  {/* Email */}
-                  <td className="px-4 py-3.5">
-                    <span className="text-sm text-gray-800 dark:text-gray-200 truncate max-w-[180px] block">{user.email}</span>
-                  </td>
-
-                  {/* Phone */}
-                  <td className="px-4 py-3.5 text-xs text-gray-600 dark:text-gray-300">
-                    {user.phone ?? <span className="text-gray-400">—</span>}
-                  </td>
-
-                  {/* Role */}
-                  <td className="px-4 py-3.5">
-                    <UserRoleBadge role={user.role} size="sm" />
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-4 py-3.5">
-                    <UserStatusBadge isActive={user.isActive} size="sm" />
-                  </td>
-
-                  {/* Last Updated */}
-                  <td className="px-4 py-3.5 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                    {new Date(user.updatedAt).toLocaleDateString("en-US", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-4 py-3.5 text-right">
-                    <ActionMenu
-                      user={user}
-                      actorRole={actorRole}
-                      onStatusToggle={(u, action) => setStatusTarget({ user: u, action })}
-                      onRoleChange={(u) => setRoleTarget(u)}
-                    />
-                  </td>
                 </tr>
-              ))}
+              ) : (
+                users.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+                  >
+                    {/* User column */}
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <UserAvatar name={user.name} image={user.image} size="md" />
+                        <div className="min-w-0">
+                          <Link
+                            href={`/users-roles/${user.id}`}
+                            className="font-medium text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400 transition-colors block truncate"
+                          >
+                            {user.name}
+                          </Link>
+                          {user.designation && (
+                            <div className="text-xs text-gray-400 truncate">{user.designation}</div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Employee code */}
+                    <td className="px-4 py-3.5 font-mono text-xs font-semibold text-gray-900 dark:text-gray-100">
+                      {user.employeeCode ?? <span className="text-gray-400 font-normal">—</span>}
+                    </td>
+
+                    {/* Email */}
+                    <td className="px-4 py-3.5 font-medium text-gray-800 dark:text-gray-200">
+                      <span className="truncate max-w-[200px] block">{user.email}</span>
+                    </td>
+
+                    {/* Phone */}
+                    <td className="px-4 py-3.5 text-xs text-gray-600 dark:text-gray-300">
+                      {user.phone ?? <span className="text-gray-400">—</span>}
+                    </td>
+
+                    {/* Role */}
+                    <td className="px-4 py-3.5">
+                      <UserRoleBadge role={user.role} size="sm" />
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-4 py-3.5">
+                      <UserStatusBadge isActive={user.isActive} size="sm" />
+                    </td>
+
+                    {/* Last Updated */}
+                    <td className="px-4 py-3.5 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      {new Date(user.updatedAt).toLocaleDateString("en-US", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3.5 text-right">
+                      <ActionMenu
+                        user={user}
+                        actorRole={actorRole}
+                        onStatusToggle={(u, action) => setStatusTarget({ user: u, action })}
+                        onRoleChange={(u) => setRoleTarget(u)}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalRecords={total}
+          limit={limit}
+        />
       </div>
 
       {/* Mobile cards */}
-      <div className="sm:hidden space-y-3">
+      <div className="sm:hidden space-y-3 mt-4">
         {users.map((user) => (
           <div
             key={user.id}
@@ -370,7 +395,12 @@ export default function UserTable({
               <div className="flex items-center gap-3">
                 <UserAvatar name={user.name} image={user.image} size="md" />
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{user.name}</p>
+                  <Link
+                    href={`/users-roles/${user.id}`}
+                    className="font-semibold text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400 transition-colors text-sm"
+                  >
+                    {user.name}
+                  </Link>
                   {user.designation && (
                     <p className="text-xs text-gray-500 dark:text-gray-400">{user.designation}</p>
                   )}
@@ -392,15 +422,6 @@ export default function UserTable({
         ))}
       </div>
 
-      {/* Pagination Controls */}
-      <div className="mt-4">
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          totalRecords={total}
-          limit={limit}
-        />
-      </div>
 
       {/* Confirm deactivate/activate dialog */}
       <ConfirmDialog

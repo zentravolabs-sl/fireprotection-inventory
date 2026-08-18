@@ -7,9 +7,10 @@
 // Server-side validation is also enforced in server actions.
 // ============================================================
 
-import React, { useActionState, useEffect } from "react";
+import React, { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import Select, { components, StylesConfig } from "react-select";
 import {
   User,
   Mail,
@@ -37,7 +38,7 @@ interface UserFormProps {
   actorRole: string;
 }
 
-// ── Role options ────────────────────────────────────────────
+// ── Role & Status options ───────────────────────────────────
 
 const ROLE_OPTIONS = [
   { value: "SUPER_ADMIN", label: "Super Admin", restricted: true },
@@ -48,6 +49,108 @@ const ROLE_OPTIONS = [
   { value: "ACCOUNTANT", label: "Accountant", restricted: false },
   { value: "USER", label: "User", restricted: false },
 ];
+
+const STATUS_OPTIONS = [
+  { value: "true", label: "Active" },
+  { value: "false", label: "Inactive" },
+];
+
+// ── React Select custom styles ─────────────────────────────
+
+const getUserFormSelectStyles = (hasError?: boolean): StylesConfig<any, false> => ({
+  control: (base, state) => ({
+    ...base,
+    minHeight: "44px",
+    height: "44px",
+    borderRadius: "0.75rem",
+    backgroundColor: "#161d2e",
+    borderColor: hasError
+      ? "rgba(244, 63, 94, 0.5)"
+      : state.isFocused
+      ? "rgba(224, 36, 36, 0.5)"
+      : "#1e2a3d",
+    boxShadow: hasError
+      ? "0 0 0 1px rgba(244, 63, 94, 0.2)"
+      : state.isFocused
+      ? "0 0 0 1px rgba(224, 36, 36, 0.2)"
+      : "none",
+    "&:hover": {
+      borderColor: hasError
+        ? "rgba(244, 63, 94, 0.6)"
+        : state.isFocused
+        ? "rgba(224, 36, 36, 0.5)"
+        : "#2a3a52",
+    },
+    color: "#dce3ef",
+    fontSize: "0.875rem",
+    cursor: "pointer",
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    height: "44px",
+    padding: "0 8px",
+  }),
+  indicatorsContainer: (base) => ({
+    ...base,
+    height: "44px",
+  }),
+  indicatorSeparator: () => ({
+    display: "none",
+  }),
+  dropdownIndicator: (base, state) => ({
+    ...base,
+    color: state.isFocused ? "#e02424" : "#5a657a",
+    "&:hover": {
+      color: "#e02424",
+    },
+  }),
+  menuPortal: (base) => ({
+    ...base,
+    zIndex: 9999,
+  }),
+  menu: (base) => ({
+    ...base,
+    borderRadius: "0.75rem",
+    overflow: "hidden",
+    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
+    fontSize: "0.875rem",
+    backgroundColor: "#161d2e",
+    border: "1px solid #1e2a3d",
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? "#e02424"
+      : state.isFocused
+      ? "rgba(224, 36, 36, 0.15)"
+      : "#161d2e",
+    color: state.isDisabled ? "#5a657a" : state.isSelected ? "#ffffff" : "#dce3ef",
+    cursor: state.isDisabled ? "not-allowed" : "pointer",
+    fontSize: "0.875rem",
+    "&:active": {
+      backgroundColor: state.isDisabled ? "transparent" : "#c51c1c",
+    },
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: "#dce3ef",
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: "#5a657a",
+  }),
+});
+
+const ControlWithShieldIcon = (props: any) => {
+  return (
+    <components.Control {...props}>
+      <span className="pl-3.5 text-[#5a657a] flex items-center pointer-events-none">
+        <Shield size={15} />
+      </span>
+      {props.children}
+    </components.Control>
+  );
+};
 
 // ── Input component ─────────────────────────────────────────
 
@@ -149,6 +252,13 @@ export default function UserForm({ mode, defaultValues, actorRole }: UserFormPro
     { success: false, message: "" },
   );
 
+  const canAssignSuperAdmin = actorRole === "SUPER_ADMIN";
+
+  const [selectedRole, setSelectedRole] = useState<string>(defaultValues?.role ?? "USER");
+  const [selectedStatus, setSelectedStatus] = useState<string>(
+    defaultValues?.isActive === false ? "false" : "true"
+  );
+
   // Handle success/error feedback
   useEffect(() => {
     if (!state?.message) return;
@@ -162,7 +272,21 @@ export default function UserForm({ mode, defaultValues, actorRole }: UserFormPro
 
   const errors = state?.success === false ? (state.errors ?? {}) : {};
 
-  const canAssignSuperAdmin = actorRole === "SUPER_ADMIN";
+  const roleSelectOptions = ROLE_OPTIONS.map((r) => {
+    const isDisabled = r.restricted && !canAssignSuperAdmin;
+    return {
+      value: r.value,
+      label: `${r.label}${isDisabled ? " (restricted)" : ""}`,
+      isDisabled,
+    };
+  });
+
+  const currentRoleOption =
+    roleSelectOptions.find((opt) => opt.value === selectedRole) ||
+    roleSelectOptions[roleSelectOptions.length - 1];
+
+  const currentStatusOption =
+    STATUS_OPTIONS.find((opt) => opt.value === selectedStatus) || STATUS_OPTIONS[0];
 
   return (
     <form action={formAction} className="space-y-8" noValidate>
@@ -396,37 +520,19 @@ export default function UserForm({ mode, defaultValues, actorRole }: UserFormPro
             <label htmlFor="role" className="block text-sm font-semibold text-[#dce3ef] mb-1.5">
               Role <span className="text-[#e02424]">*</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5a657a] pointer-events-none flex items-center">
-                <Shield size={15} />
-              </span>
-              <select
-                id="role"
-                name="role"
-                defaultValue={defaultValues?.role ?? "USER"}
-                required
-                className={[
-                  "w-full h-11 pl-10 pr-4 bg-[#161d2e] border text-sm text-[#dce3ef] rounded-xl appearance-none cursor-pointer",
-                  "focus:outline-none focus:ring-1",
-                  errors.role
-                    ? "border-rose-500/50 focus:border-rose-500/60 focus:ring-rose-500/20"
-                    : "border-[#1e2a3d] focus:border-[#e02424]/50 focus:ring-[#e02424]/20",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                {ROLE_OPTIONS.map((r) => (
-                  <option
-                    key={r.value}
-                    value={r.value}
-                    disabled={r.restricted && !canAssignSuperAdmin}
-                  >
-                    {r.label}
-                    {r.restricted && !canAssignSuperAdmin ? " (restricted)" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <input type="hidden" name="role" value={selectedRole} />
+            <Select
+              instanceId="user-role-select"
+              options={roleSelectOptions}
+              value={currentRoleOption}
+              onChange={(opt) => {
+                if (opt) setSelectedRole(opt.value);
+              }}
+              isSearchable={false}
+              menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+              components={{ Control: ControlWithShieldIcon }}
+              styles={getUserFormSelectStyles(!!errors.role)}
+            />
             {errors.role && (
               <p role="alert" className="mt-1 text-xs text-rose-400 font-medium">
                 {errors.role[0]}
@@ -439,17 +545,18 @@ export default function UserForm({ mode, defaultValues, actorRole }: UserFormPro
             <label htmlFor="isActive" className="block text-sm font-semibold text-[#dce3ef] mb-1.5">
               Account Status
             </label>
-            <div className="relative">
-              <select
-                id="isActive"
-                name="isActive"
-                defaultValue={defaultValues?.isActive === false ? "false" : "true"}
-                className="w-full h-11 pl-4 pr-4 bg-[#161d2e] border border-[#1e2a3d] text-sm text-[#dce3ef] rounded-xl appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:border-[#e02424]/50 focus:ring-[#e02424]/20"
-              >
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
-              </select>
-            </div>
+            <input type="hidden" name="isActive" value={selectedStatus} />
+            <Select
+              instanceId="user-status-select"
+              options={STATUS_OPTIONS}
+              value={currentStatusOption}
+              onChange={(opt) => {
+                if (opt) setSelectedStatus(opt.value);
+              }}
+              isSearchable={false}
+              menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+              styles={getUserFormSelectStyles(false)}
+            />
           </div>
         </div>
       </div>
