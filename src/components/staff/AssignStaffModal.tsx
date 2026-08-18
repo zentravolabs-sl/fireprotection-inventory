@@ -197,6 +197,11 @@ export function AssignStaffModal({ isOpen, onClose, onSubmit, users, isSubmittin
             showPopperArrow={false}
             className={inputCls}
             wrapperClassName="w-full"
+            popperClassName="z-[9999]"
+            popperPlacement="bottom-start"
+            popperProps={{
+              strategy: "fixed",
+            }}
           />
         </div>
 
