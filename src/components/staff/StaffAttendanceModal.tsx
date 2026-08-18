@@ -8,7 +8,28 @@
 // ============================================================
 
 import React, { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import Modal from "@/components/ui/Modal";
+
+const formatDateToString = (date: Date | null): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseStringToDate = (dateStr: string | undefined | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return new Date(year, month - 1, day);
+};
 
 interface Props {
   isOpen: boolean;
@@ -116,7 +137,7 @@ export function StaffAttendanceModal({
       isOpen={isOpen}
       onClose={handleClose}
       title={initialAttendance ? `Edit Attendance — ${staff.user.name}` : `Log Attendance — ${staff.user.name}`}
-      maxWidth="max-w-md"
+      maxWidth="max-w-lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -134,12 +155,14 @@ export function StaffAttendanceModal({
 
         <div>
           <label className={labelCls}>Work Date *</label>
-          <input
-            type="date"
-            value={workDate}
-            onChange={(e) => setWorkDate(e.target.value)}
+          <DatePicker
+            selected={parseStringToDate(workDate)}
+            onChange={(date: Date | null) => setWorkDate(formatDateToString(date))}
+            dateFormat="yyyy-MM-dd"
             disabled={Boolean(initialAttendance)}
+            showPopperArrow={false}
             className={inputCls}
+            wrapperClassName="w-full"
           />
         </div>
 

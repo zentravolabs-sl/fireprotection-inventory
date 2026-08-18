@@ -48,47 +48,6 @@ export function DashboardHeader({
           Overview of your fire protection operations & system metrics
         </p>
       </div>
-
-      {/* Right Side: Global Search + Notifications + User Profile */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {/* Global Search Bar */}
-        <div className="relative flex-1 sm:w-64 md:w-72">
-          <Search
-            size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search projects, clients, inventory..."
-            className="w-full pl-9 pr-8 py-2 text-xs border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none transition-all focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
-          />
-          <kbd className="hidden sm:inline-block absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-gray-400 bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-            ⌘K
-          </kbd>
-        </div>
-
-        {/* Live Notification Bell */}
-        <div className="p-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-          <NotificationBell />
-        </div>
-
-        {/* Profile Card */}
-        <div className="flex items-center gap-2.5 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
-          <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-bold text-xs text-gray-700 dark:text-gray-300">
-            {userName.charAt(0).toUpperCase()}
-          </div>
-          <div className="hidden sm:block text-left">
-            <p className="text-xs font-bold text-gray-900 dark:text-gray-100 leading-tight">
-              {userName}
-            </p>
-            <p className="text-[10px] text-gray-400 leading-tight truncate max-w-[110px]">
-              {userEmail}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

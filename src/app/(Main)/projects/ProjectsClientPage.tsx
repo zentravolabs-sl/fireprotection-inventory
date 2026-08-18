@@ -122,11 +122,11 @@ export function ProjectsClientPage({
             placeholder="Search by code, project name, customer, location..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="flex-1 px-4 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 h-[40px]"
           />
           <button
             type="submit"
-            className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg transition-colors"
+            className="px-4 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg transition-colors h-[40px] inline-flex items-center justify-center"
           >
             Search
           </button>
@@ -141,14 +141,14 @@ export function ProjectsClientPage({
               value={selectedStatusOption}
               onChange={(val) => handleStatusFilter(val ? val.value : "")}
               isSearchable={false}
-              styles={getCustomSelectStyles()}
+              styles={getCustomSelectStyles(false, "40px")}
             />
           </div>
 
           {can("project.create") && (
             <button
               onClick={() => setIsCreateOpen(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap h-[46px]"
+              className="px-4 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap h-[40px]"
             >
               <span className="text-base leading-none font-bold">+</span>
               <span>New Project</span>

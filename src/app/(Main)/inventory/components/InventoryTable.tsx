@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { Pencil, Trash2, Package, Download, Printer, Plus, AlertCircle, Image as ImageIcon } from "lucide-react";
+import { Pencil, Trash2, Package, Plus, AlertCircle, Image as ImageIcon } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -94,56 +94,6 @@ export default function InventoryTable({
     }
   };
 
-  const handleExportCSV = () => {
-    if (inventories.length === 0) {
-      toast.info("No data to export.");
-      return;
-    }
-    const headers = [
-      "Item Code",
-      "Item Name",
-      "Category",
-      "Sub Category",
-      "Brand",
-      "Unit",
-      "Current Stock",
-      "Min Stock",
-      "Rack",
-      "Warehouse",
-      "Default Sell Price",
-      "Barcode",
-    ];
-    const rows = inventories.map((i) => [
-      `"${i.itemCode}"`,
-      `"${i.name}"`,
-      `"${i.category.categoryName}"`,
-      `"${i.subCategory.name}"`,
-      `"${i.brand || ""}"`,
-      `"${i.unit}"`,
-      i.currentStock,
-      i.minStock,
-      `"${i.rackLocation || ""}"`,
-      `"${i.warehouse || ""}"`,
-      i.defaultSellPrice,
-      `"${i.barcode || ""}"`,
-    ]);
-
-    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `inventory_export_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("Inventory exported to CSV successfully.");
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <>
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-6 space-y-4">
@@ -152,23 +102,7 @@ export default function InventoryTable({
           <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
             Inventory Directory
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={handleExportCSV}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-lg transition-colors"
-            >
-              <Download size={14} className="text-red-600 dark:text-red-400" />
-              Export CSV
-            </button>
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-lg transition-colors"
-            >
-              <Printer size={14} className="text-red-600 dark:text-red-400" />
-              Print List
-            </button>
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={openCreate}
@@ -245,25 +179,27 @@ export default function InventoryTable({
                       <td className="px-4 py-3.5 text-center">
                         <StatusBadge status={stockStatus} size="sm" />
                       </td>
-                      <td className="px-4 py-3.5 text-right space-x-2">
-                        <button
-                          type="button"
-                          onClick={() => openEdit(item)}
-                          title="Edit Item"
-                          className="px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md transition-colors inline-flex items-center gap-1.5"
-                        >
-                          <Pencil size={13} />
-                          <span>Edit</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(item)}
-                          title="Delete Item"
-                          className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 rounded-md transition-colors inline-flex items-center gap-1.5"
-                        >
-                          <Trash2 size={13} />
-                          <span>Delete</span>
-                        </button>
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(item)}
+                            title="Edit Item"
+                            className="px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
+                          >
+                            <Pencil size={13} />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(item)}
+                            title="Delete Item"
+                            className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 rounded-md transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
+                          >
+                            <Trash2 size={13} />
+                            <span>Delete</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -5,13 +5,24 @@
 // Project Transfers Module Main Client View
 // ============================================================
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Select from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
 import { getProjectTransfersAction } from "@/app/actions/transfers";
 import Pagination from "@/components/ui/Pagination";
 import { CreateTransferModal } from "@/components/transfers/CreateTransferModal";
 import { TransferDetailModal } from "@/components/transfers/TransferDetailModal";
 import { formatDate } from "@/lib/dateUtils";
+
+const STATUS_OPTIONS = [
+  { value: "ALL", label: "All Statuses" },
+  { value: "DRAFT", label: "DRAFT" },
+  { value: "PENDING", label: "PENDING" },
+  { value: "APPROVED", label: "APPROVED" },
+  { value: "COMPLETED", label: "COMPLETED" },
+  { value: "CANCELLED", label: "CANCELLED" },
+];
 
 interface TransfersClientPageProps {
   initialTransfers: any[];
@@ -59,6 +70,37 @@ export function TransfersClientPage({
   // Modals
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<any | null>(null);
+
+  const fromProjectOptions = useMemo(
+    () => [
+      { value: 0, label: "All Source Projects" },
+      ...projects.map((p) => ({
+        value: p.id,
+        label: `${p.projectCode} — ${p.projectName}`,
+      })),
+    ],
+    [projects]
+  );
+
+  const toProjectOptions = useMemo(
+    () => [
+      { value: 0, label: "All Destination Projects" },
+      ...projects.map((p) => ({
+        value: p.id,
+        label: `${p.projectCode} — ${p.projectName}`,
+      })),
+    ],
+    [projects]
+  );
+
+  const selectedStatusOption =
+    STATUS_OPTIONS.find((opt) => opt.value === statusFilter) || STATUS_OPTIONS[0];
+
+  const selectedFromProjectOption =
+    fromProjectOptions.find((opt) => opt.value === fromProjectFilter) || fromProjectOptions[0];
+
+  const selectedToProjectOption =
+    toProjectOptions.find((opt) => opt.value === toProjectFilter) || toProjectOptions[0];
 
   async function fetchTransfers() {
     setLoading(true);
@@ -196,59 +238,50 @@ export function TransfersClientPage({
               placeholder="Search Transfer No, Project, User..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 h-[38px]"
             />
           </div>
 
           {/* Status Filter */}
           <div>
             <label className="block text-gray-700 dark:text-gray-300 mb-1 font-semibold">Filter Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="DRAFT">DRAFT</option>
-              <option value="PENDING">PENDING</option>
-              <option value="APPROVED">APPROVED</option>
-              <option value="COMPLETED">COMPLETED</option>
-              <option value="CANCELLED">CANCELLED</option>
-            </select>
+            <Select
+              instanceId="transfer-status-filter"
+              classNamePrefix="react-select"
+              options={STATUS_OPTIONS}
+              value={selectedStatusOption}
+              onChange={(val) => setStatusFilter(val ? val.value : "ALL")}
+              isSearchable={false}
+              styles={getCustomSelectStyles(false, "38px")}
+            />
           </div>
 
           {/* Source Project Filter */}
           <div>
             <label className="block text-gray-700 dark:text-gray-300 mb-1 font-semibold">From Project</label>
-            <select
-              value={fromProjectFilter}
-              onChange={(e) => setFromProjectFilter(Number(e.target.value))}
-              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-            >
-              <option value={0}>All Source Projects</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.projectCode} — {p.projectName}
-                </option>
-              ))}
-            </select>
+            <Select
+              instanceId="transfer-from-project-filter"
+              classNamePrefix="react-select"
+              options={fromProjectOptions}
+              value={selectedFromProjectOption}
+              onChange={(val) => setFromProjectFilter(val ? val.value : 0)}
+              isSearchable
+              styles={getCustomSelectStyles(false, "38px")}
+            />
           </div>
 
           {/* Destination Project Filter */}
           <div>
             <label className="block text-gray-700 dark:text-gray-300 mb-1 font-semibold">To Project</label>
-            <select
-              value={toProjectFilter}
-              onChange={(e) => setToProjectFilter(Number(e.target.value))}
-              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-            >
-              <option value={0}>All Destination Projects</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.projectCode} — {p.projectName}
-                </option>
-              ))}
-            </select>
+            <Select
+              instanceId="transfer-to-project-filter"
+              classNamePrefix="react-select"
+              options={toProjectOptions}
+              value={selectedToProjectOption}
+              onChange={(val) => setToProjectFilter(val ? val.value : 0)}
+              isSearchable
+              styles={getCustomSelectStyles(false, "38px")}
+            />
           </div>
         </div>
       </div>

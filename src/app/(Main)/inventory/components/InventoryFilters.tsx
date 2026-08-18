@@ -8,6 +8,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filter, X } from "lucide-react";
+import Select from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
 import { getSubCategoriesByCategoryId } from "../actions";
 
 interface CategoryOption {
@@ -18,6 +20,13 @@ interface CategoryOption {
 interface InventoryFiltersProps {
   categories: CategoryOption[];
 }
+
+const STOCK_STATUS_OPTIONS = [
+  { value: "all", label: "All Stock" },
+  { value: "in_stock", label: "In Stock" },
+  { value: "low_stock", label: "Low Stock" },
+  { value: "out_of_stock", label: "Out Of Stock" },
+];
 
 export default function InventoryFilters({ categories }: InventoryFiltersProps) {
   const router = useRouter();
@@ -77,6 +86,23 @@ export default function InventoryFilters({ categories }: InventoryFiltersProps) 
       (currentStockStatus && currentStockStatus !== "all")
   );
 
+  const categoryOptions = [
+    { value: "", label: "All Categories" },
+    ...categories.map((c) => ({ value: String(c.id), label: c.categoryName })),
+  ];
+  const selectedCategoryOption =
+    categoryOptions.find((opt) => opt.value === currentCategory) || categoryOptions[0];
+
+  const subCategoryOptions = [
+    { value: "", label: "All Sub-Categories" },
+    ...subCategories.map((s) => ({ value: String(s.id), label: s.name })),
+  ];
+  const selectedSubCategoryOption =
+    subCategoryOptions.find((opt) => opt.value === currentSubCategory) || subCategoryOptions[0];
+
+  const selectedStockStatusOption =
+    STOCK_STATUS_OPTIONS.find((opt) => opt.value === currentStockStatus) || STOCK_STATUS_OPTIONS[0];
+
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-6 space-y-3 shadow-sm">
       <div className="flex items-center justify-between">
@@ -101,36 +127,30 @@ export default function InventoryFilters({ categories }: InventoryFiltersProps) 
         {/* Category Filter */}
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
-          <select
-            value={currentCategory}
-            onChange={(e) => updateParam("categoryId", e.target.value)}
-            className="w-full px-3 py-2 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-red-500"
-          >
-            <option value="">All Categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.categoryName}
-              </option>
-            ))}
-          </select>
+          <Select
+            instanceId="inventory-category-filter"
+            classNamePrefix="react-select"
+            options={categoryOptions}
+            value={selectedCategoryOption}
+            onChange={(val) => updateParam("categoryId", val ? val.value : "")}
+            isSearchable
+            styles={getCustomSelectStyles(false, "38px")}
+          />
         </div>
 
         {/* SubCategory Filter */}
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Sub-Category</label>
-          <select
-            value={currentSubCategory}
-            onChange={(e) => updateParam("subCategoryId", e.target.value)}
-            disabled={!currentCategory}
-            className="w-full px-3 py-2 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
-          >
-            <option value="">All Sub-Categories</option>
-            {subCategories.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+          <Select
+            instanceId="inventory-subcategory-filter"
+            classNamePrefix="react-select"
+            options={subCategoryOptions}
+            value={selectedSubCategoryOption}
+            onChange={(val) => updateParam("subCategoryId", val ? val.value : "")}
+            isDisabled={!currentCategory}
+            isSearchable
+            styles={getCustomSelectStyles(false, "38px")}
+          />
         </div>
 
         {/* Warehouse Filter */}
@@ -141,23 +161,22 @@ export default function InventoryFilters({ categories }: InventoryFiltersProps) 
             placeholder="Filter by warehouse..."
             value={currentWarehouse}
             onChange={(e) => updateParam("warehouse", e.target.value)}
-            className="w-full px-3 py-2 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full px-3 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-red-500 h-[38px]"
           />
         </div>
 
         {/* Stock Status Filter */}
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Stock Status</label>
-          <select
-            value={currentStockStatus}
-            onChange={(e) => updateParam("stockStatus", e.target.value)}
-            className="w-full px-3 py-2 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-red-500"
-          >
-            <option value="all">All Stock</option>
-            <option value="in_stock">In Stock</option>
-            <option value="low_stock">Low Stock</option>
-            <option value="out_of_stock">Out Of Stock</option>
-          </select>
+          <Select
+            instanceId="inventory-stock-status-filter"
+            classNamePrefix="react-select"
+            options={STOCK_STATUS_OPTIONS}
+            value={selectedStockStatusOption}
+            onChange={(val) => updateParam("stockStatus", val ? val.value : "all")}
+            isSearchable={false}
+            styles={getCustomSelectStyles(false, "38px")}
+          />
         </div>
       </div>
     </div>

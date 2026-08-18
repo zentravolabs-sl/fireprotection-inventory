@@ -7,8 +7,29 @@
 
 import React, { useState } from "react";
 import Select from "react-select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { getCustomSelectStyles } from "@/lib/selectStyles";
 import Modal from "@/components/ui/Modal";
+
+const formatDateToString = (date: Date | null): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseStringToDate = (dateStr: string | undefined | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return new Date(year, month - 1, day);
+};
 
 interface UserOption {
   id: string;
@@ -91,7 +112,7 @@ export function AssignStaffModal({ isOpen, onClose, onSubmit, users, isSubmittin
   const labelCls = "block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5";
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Assign Staff Member to Project" maxWidth="max-w-md">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Assign Staff Member to Project" maxWidth="max-w-xl">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-xl">{error}</div>
@@ -169,11 +190,13 @@ export function AssignStaffModal({ isOpen, onClose, onSubmit, users, isSubmittin
 
         <div>
           <label className={labelCls}>Assigned Date *</label>
-          <input
-            type="date"
-            value={assignedDate}
-            onChange={(e) => setAssignedDate(e.target.value)}
+          <DatePicker
+            selected={parseStringToDate(assignedDate)}
+            onChange={(date: Date | null) => setAssignedDate(formatDateToString(date))}
+            dateFormat="yyyy-MM-dd"
+            showPopperArrow={false}
             className={inputCls}
+            wrapperClassName="w-full"
           />
         </div>
 

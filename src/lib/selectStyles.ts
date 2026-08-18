@@ -5,10 +5,14 @@ export interface SelectOption<T = string | number> {
   label: string;
 }
 
-export const getCustomSelectStyles = (hasError?: boolean): StylesConfig<SelectOption<any>, false> => ({
+export const getCustomSelectStyles = (
+  hasError?: boolean,
+  minHeight: string = "46px"
+): StylesConfig<SelectOption<any>, false> => ({
   control: (base, state) => ({
     ...base,
-    minHeight: "46px",
+    minHeight: minHeight,
+    height: minHeight,
     borderRadius: "0.75rem",
     borderColor: hasError
       ? "#f87171"
@@ -30,6 +34,15 @@ export const getCustomSelectStyles = (hasError?: boolean): StylesConfig<SelectOp
     backgroundColor: "#1f2937",
     color: "#f9fafb",
     fontSize: "0.875rem",
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    height: minHeight,
+    padding: "0 8px",
+  }),
+  indicatorsContainer: (base) => ({
+    ...base,
+    height: minHeight,
   }),
   indicatorSeparator: () => ({
     display: "none",

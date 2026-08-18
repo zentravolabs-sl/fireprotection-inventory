@@ -75,7 +75,7 @@ export default function SearchInput({
     <div className="relative">
       <Search
         size={16}
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
       />
       <input
         id={`search-input-${paramKey}`}
@@ -83,16 +83,16 @@ export default function SearchInput({
         value={inputValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-gray-200 rounded-xl shadow-sm
-          placeholder:text-gray-400 text-gray-900 outline-none
-          focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-all"
+        className="w-full pl-9 pr-9 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm
+          placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-gray-100 outline-none
+          focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
       />
       {/* Clear button — shown when there is text */}
       {inputValue && !isPending && (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
           aria-label="Clear search"
         >
           <X size={14} />

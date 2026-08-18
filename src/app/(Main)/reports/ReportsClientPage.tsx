@@ -8,6 +8,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
+import { ScrollableTabs, TabItem } from "@/components/ui/ScrollableTabs";
 
 interface ReportsClientPageProps {
   costSummaryReport: any[];
@@ -18,6 +19,18 @@ interface ReportsClientPageProps {
   transferReport?: any[];
 }
 
+type ReportTabType =
+  | "cost-summary"
+  | "material"
+  | "transport"
+  | "labour"
+  | "expense-analysis"
+  | "budget-vs-actual"
+  | "profit-loss"
+  | "engineers"
+  | "customers"
+  | "transfers";
+
 export function ReportsClientPage({
   costSummaryReport,
   categoryExpenseReport,
@@ -26,18 +39,7 @@ export function ReportsClientPage({
   customerReport,
   transferReport = [],
 }: ReportsClientPageProps) {
-  const [activeReport, setActiveReport] = useState<
-    | "cost-summary"
-    | "material"
-    | "transport"
-    | "labour"
-    | "expense-analysis"
-    | "budget-vs-actual"
-    | "profit-loss"
-    | "engineers"
-    | "customers"
-    | "transfers"
-  >("cost-summary");
+  const [activeReport, setActiveReport] = useState<ReportTabType>("cost-summary");
 
   const totalEstimatedOverall = costSummaryReport.reduce((sum, r) => sum + r.estimatedTotalCost, 0);
   const totalActualOverall = costSummaryReport.reduce((sum, r) => sum + r.actualTotalCost, 0);
@@ -80,34 +82,33 @@ export function ReportsClientPage({
       </div>
 
       {/* Report Selection Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-800 flex overflow-x-auto gap-1">
-        {(
-          [
-            { id: "cost-summary", label: "📊 1. Project Cost Summary" },
-            { id: "material", label: "📦 2. Material Cost Report" },
-            { id: "transport", label: "🚚 3. Transport Cost Report" },
-            { id: "labour", label: "👷 4. Labour Cost Report" },
-            { id: "expense-analysis", label: "💵 5. Expense Analysis" },
-            { id: "budget-vs-actual", label: "📉 6. Budget vs Actual" },
-            { id: "profit-loss", label: "🏆 7. Profit / Loss Ranking" },
-            { id: "engineers", label: "👥 8. Engineer-wise Projects" },
-            { id: "customers", label: "🏢 9. Customer-wise Projects" },
-            { id: "transfers", label: "🔄 10. Project Transfer History" },
-          ] as const
-        ).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveReport(tab.id as any)}
-            className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px ${
-              activeReport === tab.id
-                ? "border-red-600 text-red-600 dark:text-red-400 bg-red-50/30 dark:bg-red-950/20"
-                : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {(() => {
+        const reportTabs: TabItem<ReportTabType>[] = [
+          { id: "cost-summary", label: "Project Cost Summary", icon: "📊", count: costSummaryReport.length, category: "financial" },
+          { id: "material", label: "Material Cost Report", icon: "📦", count: costSummaryReport.length, category: "costs" },
+          { id: "transport", label: "Transport Cost Report", icon: "🚚", count: transportReport.length, category: "costs" },
+          { id: "labour", label: "Labour Cost Report", icon: "👷", count: costSummaryReport.length, category: "costs" },
+          { id: "expense-analysis", label: "Expense Analysis", icon: "💵", count: categoryExpenseReport.length, category: "financial" },
+          { id: "budget-vs-actual", label: "Budget vs Actual", icon: "📉", count: costSummaryReport.length, category: "financial" },
+          { id: "profit-loss", label: "Profit / Loss Ranking", icon: "🏆", count: costSummaryReport.length, category: "financial" },
+          { id: "engineers", label: "Engineer-wise Projects", icon: "👥", count: engineerReport.length, category: "breakdown" },
+          { id: "customers", label: "Customer-wise Projects", icon: "🏢", count: customerReport.length, category: "breakdown" },
+          { id: "transfers", label: "Project Transfer History", icon: "🔄", count: transferReport.length, category: "breakdown" },
+        ];
+
+        return (
+          <ScrollableTabs<ReportTabType>
+            tabs={reportTabs}
+            categories={[
+              { id: "financial", label: "Financial & Audit" },
+              { id: "costs", label: "Cost Reports" },
+              { id: "breakdown", label: "Entities & History" },
+            ]}
+            activeTab={activeReport}
+            onTabChange={(tabId) => setActiveReport(tabId)}
+          />
+        );
+      })()}
 
       {/* REPORT CONTENT AREA */}
 

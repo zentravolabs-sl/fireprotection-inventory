@@ -9,6 +9,8 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useTransition } from "react";
 import { Search, X } from "lucide-react";
+import Select from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
 
 const ROLES = [
   { value: "", label: "All Roles" },
@@ -19,13 +21,13 @@ const ROLES = [
   { value: "ENGINEER", label: "Engineer" },
   { value: "ACCOUNTANT", label: "Accountant" },
   { value: "USER", label: "User" },
-] as const;
+];
 
 const STATUSES = [
   { value: "", label: "All Statuses" },
   { value: "true", label: "Active" },
   { value: "false", label: "Inactive" },
-] as const;
+];
 
 export default function UserFilters() {
   const router = useRouter();
@@ -62,13 +64,16 @@ export default function UserFilters() {
 
   const hasFilters = search || role || isActive;
 
+  const selectedRoleOption = ROLES.find((r) => r.value === role) || ROLES[0];
+  const selectedStatusOption = STATUSES.find((s) => s.value === isActive) || STATUSES[0];
+
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
       {/* Search */}
       <div className="relative flex-1 min-w-0">
         <Search
           size={15}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5a657a] pointer-events-none"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
         />
         <input
           id="user-search"
@@ -76,40 +81,36 @@ export default function UserFilters() {
           placeholder="Search by name, email, employee code…"
           defaultValue={search}
           onChange={(e) => updateParams("search", e.target.value)}
-          className="w-full h-10 pl-10 pr-4 bg-[#0F1524] border border-[#1e2a3d] rounded-xl text-sm text-[#dce3ef] placeholder-[#5a657a] focus:outline-none focus:border-[#e02424]/60 focus:ring-1 focus:ring-[#e02424]/20 transition-all"
+          className="w-full h-[40px] pl-10 pr-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
           aria-label="Search users"
         />
       </div>
 
       {/* Role filter */}
-      <select
-        id="user-role-filter"
-        value={role}
-        onChange={(e) => updateParams("role", e.target.value)}
-        className="h-10 px-3 bg-[#0F1524] border border-[#1e2a3d] rounded-xl text-sm text-[#dce3ef] focus:outline-none focus:border-[#e02424]/60 focus:ring-1 focus:ring-[#e02424]/20 transition-all cursor-pointer"
-        aria-label="Filter by role"
-      >
-        {ROLES.map((r) => (
-          <option key={r.value} value={r.value}>
-            {r.label}
-          </option>
-        ))}
-      </select>
+      <div className="w-full sm:w-52">
+        <Select
+          instanceId="user-role-filter"
+          classNamePrefix="react-select"
+          options={ROLES}
+          value={selectedRoleOption}
+          onChange={(val) => updateParams("role", val ? val.value : "")}
+          isSearchable={false}
+          styles={getCustomSelectStyles(false, "40px")}
+        />
+      </div>
 
       {/* Status filter */}
-      <select
-        id="user-status-filter"
-        value={isActive}
-        onChange={(e) => updateParams("isActive", e.target.value)}
-        className="h-10 px-3 bg-[#0F1524] border border-[#1e2a3d] rounded-xl text-sm text-[#dce3ef] focus:outline-none focus:border-[#e02424]/60 focus:ring-1 focus:ring-[#e02424]/20 transition-all cursor-pointer"
-        aria-label="Filter by status"
-      >
-        {STATUSES.map((s) => (
-          <option key={s.value} value={s.value}>
-            {s.label}
-          </option>
-        ))}
-      </select>
+      <div className="w-full sm:w-44">
+        <Select
+          instanceId="user-status-filter"
+          classNamePrefix="react-select"
+          options={STATUSES}
+          value={selectedStatusOption}
+          onChange={(val) => updateParams("isActive", val ? val.value : "")}
+          isSearchable={false}
+          styles={getCustomSelectStyles(false, "40px")}
+        />
+      </div>
 
       {/* Clear filters */}
       {hasFilters && (
@@ -117,7 +118,7 @@ export default function UserFilters() {
           type="button"
           onClick={clearAll}
           disabled={isPending}
-          className="inline-flex items-center gap-1.5 h-10 px-3 text-sm font-medium text-[#5a657a] hover:text-[#dce3ef] border border-[#1e2a3d] rounded-xl transition-colors hover:border-[#2a3a52] disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-1.5 h-[40px] px-3.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap"
           aria-label="Clear all filters"
         >
           <X size={14} />
@@ -127,3 +128,4 @@ export default function UserFilters() {
     </div>
   );
 }
+

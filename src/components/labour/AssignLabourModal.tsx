@@ -8,8 +8,29 @@
 
 import React, { useState } from "react";
 import Select from "react-select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { getCustomSelectStyles } from "@/lib/selectStyles";
 import Modal from "@/components/ui/Modal";
+
+const formatDateToString = (date: Date | null): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseStringToDate = (dateStr: string | undefined | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return new Date(year, month - 1, day);
+};
 
 interface LabourOption {
   id: number;
@@ -66,52 +87,70 @@ export function AssignLabourModal({ isOpen, onClose, onSubmit, availableLabours,
   const labelCls = "block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5";
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Assign Worker to Project" maxWidth="max-w-md">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-xl">{error}</div>
-        )}
-
-        <div>
-          <label className={labelCls}>Select Worker *</label>
-          <Select
-            instanceId="assign-worker-select"
-            options={availableLabours.map((l) => ({ value: l.id, label: `${l.labourCode} — ${l.name} (${l.labourType.name})` }))}
-            value={availableLabours.filter((l) => l.id === labourId).map((l) => ({ value: l.id, label: `${l.labourCode} — ${l.name} (${l.labourType.name})` }))[0] || null}
-            onChange={(val) => setLabourId(val ? val.value : 0)}
-            placeholder="— Select a worker —"
-            isSearchable
-            isClearable
-            menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
-            styles={getCustomSelectStyles()}
-          />
-          {availableLabours.length === 0 && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-              No unassigned workers available. Release a worker or register a new one.
-            </p>
+    <Modal isOpen={isOpen} onClose={handleClose} title="Assign Worker to Project" maxWidth="max-w-xl">
+      <form onSubmit={handleSubmit} className="space-y-6 min-h-[460px] flex flex-col justify-between">
+        <div className="space-y-5">
+          {error && (
+            <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-xl">{error}</div>
           )}
-        </div>
 
-        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelCls}>Start Date *</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={inputCls} />
+            <label className={labelCls}>Select Worker *</label>
+            <Select
+              instanceId="assign-worker-select"
+              options={availableLabours.map((l) => ({ value: l.id, label: `${l.labourCode} — ${l.name} (${l.labourType.name})` }))}
+              value={availableLabours.filter((l) => l.id === labourId).map((l) => ({ value: l.id, label: `${l.labourCode} — ${l.name} (${l.labourType.name})` }))[0] || null}
+              onChange={(val) => setLabourId(val ? val.value : 0)}
+              placeholder="— Select a worker —"
+              isSearchable
+              isClearable
+              menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+              styles={getCustomSelectStyles()}
+            />
+            {availableLabours.length === 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                No unassigned workers available. Release a worker or register a new one.
+              </p>
+            )}
           </div>
-          <div>
-            <label className={labelCls}>Expected End Date</label>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={inputCls} />
-          </div>
-        </div>
 
-        <div>
-          <label className={labelCls}>Remarks / Site Notes</label>
-          <textarea
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-            rows={2}
-            placeholder="Optional site notes about this assignment"
-            className={`${inputCls} resize-none`}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className={labelCls}>Start Date *</label>
+              <DatePicker
+                selected={parseStringToDate(startDate)}
+                onChange={(date: Date | null) => setStartDate(formatDateToString(date))}
+                dateFormat="yyyy-MM-dd"
+                showPopperArrow={false}
+                className={inputCls}
+                wrapperClassName="w-full"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Expected End Date</label>
+              <DatePicker
+                selected={parseStringToDate(endDate)}
+                onChange={(date: Date | null) => setEndDate(formatDateToString(date))}
+                dateFormat="yyyy-MM-dd"
+                placeholderText="Select end date..."
+                isClearable
+                showPopperArrow={false}
+                className={inputCls}
+                wrapperClassName="w-full"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Remarks / Site Notes</label>
+            <textarea
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              rows={3}
+              placeholder="Optional site notes about this assignment..."
+              className={`${inputCls} resize-none`}
+            />
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
