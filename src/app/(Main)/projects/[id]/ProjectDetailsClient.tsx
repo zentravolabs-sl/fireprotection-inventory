@@ -150,7 +150,7 @@ export function ProjectDetailsClient({
   };
 
   const engineersList = users.filter(
-    (u) => u.role === "ENGINEER" || u.role === "PROJECT_MANAGER" || u.role === "ADMIN" || u.role === "SUPER_ADMIN"
+    (u) => u.role === "ENGINEER"
   );
 
   const leadEngineer = project.engineers?.find((e) => e.isLead)?.engineer;
