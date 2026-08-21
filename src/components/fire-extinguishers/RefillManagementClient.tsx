@@ -23,8 +23,10 @@ import {
 } from "lucide-react";
 import {
   startRefillAction,
+  bulkStartRefillAction,
   completeRefillAction,
 } from "@/app/actions/fire-extinguishers";
+
 import type { RefillStatus } from "@/generated/prisma/client";
 
 interface ExtinguisherRefillItem {
@@ -63,10 +65,11 @@ interface ActiveAssignmentItem {
     inventoryId: number;
     inventory: { name: string; itemCode: string; unit: string };
   };
-  project: { projectName: string; projectCode: string } | null;
-  customer: { companyName: string } | null;
+  project: { id?: number; projectName: string; projectCode: string } | null;
+  customer: { id?: number; companyName: string } | null;
   location: string | null;
 }
+
 
 interface AvailableReplacementUnit {
   id: number;
@@ -100,7 +103,11 @@ export function RefillManagementClient({
   const [selectedRefillToComplete, setSelectedRefillToComplete] = useState<ExtinguisherRefillItem | null>(null);
 
   // Start Refill Form State
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | "">(activeAssignments[0]?.id || "");
+  const [refillTargetType, setRefillTargetType] = useState<"ALL" | "PROJECT" | "CLIENT">("PROJECT");
+  const [selectedFilterProjectId, setSelectedFilterProjectId] = useState<number | "">("");
+  const [selectedFilterCustomerId, setSelectedFilterCustomerId] = useState<number | "">("");
+  const [unitModalSearch, setUnitModalSearch] = useState("");
+  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<number[]>([]);
   const [receivedDate, setReceivedDate] = useState(new Date().toISOString().slice(0, 10));
   const [replacementRequired, setReplacementRequired] = useState(false);
   const [selectedReplacementUnitId, setSelectedReplacementUnitId] = useState<number | "">("");
@@ -110,12 +117,71 @@ export function RefillManagementClient({
   const [completedDate, setCompletedDate] = useState(new Date().toISOString().slice(0, 10));
   const [completeNotes, setCompleteNotes] = useState("");
 
-  const selectedAssignment = activeAssignments.find((a) => a.id === Number(selectedAssignmentId));
+  // Unique projects & customers from active assignments
+  const uniqueProjects = React.useMemo(() => {
+    const map = new Map<number, { id: number; projectName: string; projectCode: string }>();
+    activeAssignments.forEach((a) => {
+      if (a.project && a.project.id) {
+        map.set(a.project.id, { id: a.project.id, projectName: a.project.projectName, projectCode: a.project.projectCode });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.projectName.localeCompare(b.projectName));
+  }, [activeAssignments]);
 
-  // Compatible replacements (same inventory item)
+  const uniqueCustomers = React.useMemo(() => {
+    const map = new Map<number, { id: number; companyName: string }>();
+    activeAssignments.forEach((a) => {
+      if (a.customer && a.customer.id) {
+        map.set(a.customer.id, { id: a.customer.id, companyName: a.customer.companyName });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.companyName.localeCompare(b.companyName));
+  }, [activeAssignments]);
+
+  // Filtered active assignments for the refill modal
+  const modalActiveAssignments = React.useMemo(() => {
+    return activeAssignments.filter((a) => {
+      if (refillTargetType === "PROJECT" && selectedFilterProjectId) {
+        if (a.project?.id !== Number(selectedFilterProjectId)) return false;
+      }
+      if (refillTargetType === "CLIENT" && selectedFilterCustomerId) {
+        if (a.customer?.id !== Number(selectedFilterCustomerId)) return false;
+      }
+
+      if (unitModalSearch.trim()) {
+        const query = unitModalSearch.toLowerCase();
+        const matchCode = a.fireExtinguisherUnit.unitCode.toLowerCase().includes(query);
+        const matchName = a.fireExtinguisherUnit.inventory.name.toLowerCase().includes(query);
+        const matchItemCode = a.fireExtinguisherUnit.inventory.itemCode.toLowerCase().includes(query);
+        const matchLoc = (a.location || "").toLowerCase().includes(query);
+        return matchCode || matchName || matchItemCode || matchLoc;
+      }
+
+      return true;
+    });
+  }, [activeAssignments, refillTargetType, selectedFilterProjectId, selectedFilterCustomerId, unitModalSearch]);
+
+  const toggleAssignmentSelection = (id: number) => {
+    setSelectedAssignmentIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const selectAllModalAssignments = () => {
+    if (selectedAssignmentIds.length === modalActiveAssignments.length) {
+      setSelectedAssignmentIds([]);
+    } else {
+      setSelectedAssignmentIds(modalActiveAssignments.map((a) => a.id));
+    }
+  };
+
+  const selectedFirstAssignment = activeAssignments.find((a) => a.id === selectedAssignmentIds[0]);
+
+  // Compatible replacements (same inventory item as first selected unit)
   const compatibleReplacements = availableReplacements.filter((r) =>
-    selectedAssignment ? r.inventoryId === selectedAssignment.fireExtinguisherUnit.inventoryId : true
+    selectedFirstAssignment ? r.inventoryId === selectedFirstAssignment.fireExtinguisherUnit.inventoryId : true
   );
+
 
   const filteredRefills = refills.filter((r) => {
     const unitCode = r.fireExtinguisherUnit.unitCode.toLowerCase();
@@ -135,32 +201,44 @@ export function RefillManagementClient({
 
   const handleStartRefill = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAssignmentId) {
-      setErrorMsg("Please select an active unit assignment.");
+    if (selectedAssignmentIds.length === 0) {
+      setErrorMsg("Please select at least one active unit to send for refill.");
       return;
     }
 
     setErrorMsg(null);
     startTransition(async () => {
-      const res = await startRefillAction({
-        assignmentId: Number(selectedAssignmentId),
-        receivedDate,
-        replacementUnitId: replacementRequired && selectedReplacementUnitId ? Number(selectedReplacementUnitId) : undefined,
-        notes: startNotes.trim() || undefined,
-      });
+      let res;
+      if (selectedAssignmentIds.length === 1) {
+        // Single unit refill (can include temporary replacement)
+        res = await startRefillAction({
+          assignmentId: selectedAssignmentIds[0],
+          receivedDate,
+          replacementUnitId: replacementRequired && selectedReplacementUnitId ? Number(selectedReplacementUnitId) : undefined,
+          notes: startNotes.trim() || undefined,
+        });
+      } else {
+        // Bulk unit refill
+        res = await bulkStartRefillAction({
+          assignmentIds: selectedAssignmentIds,
+          receivedDate,
+          notes: startNotes.trim() || undefined,
+        });
+      }
 
-      if (res.success && res.data) {
+      if (res.success) {
         setIsStartModalOpen(false);
+        setSelectedAssignmentIds([]);
         setStartNotes("");
         setReplacementRequired(false);
         setSelectedReplacementUnitId("");
-        // Refresh page or update list
         window.location.reload();
       } else {
         setErrorMsg(res.message || "Failed to start refill process.");
       }
     });
   };
+
 
   const handleCompleteRefill = (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,10 +415,10 @@ export function RefillManagementClient({
         </div>
       </div>
 
-      {/* Start Refill Modal */}
+      {/* Start Refill Modal — Project & Client Wise Multi-Select */}
       {isStartModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 max-w-lg w-full p-6 shadow-2xl space-y-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
               <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <RefreshCw className="text-red-600" size={18} /> Start Extinguisher Refill Flow
@@ -361,84 +439,258 @@ export function RefillManagementClient({
             )}
 
             <form onSubmit={handleStartRefill} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-                  Select Active Unit to Refill *
+              {/* Radio Target Type Selection */}
+              <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 space-y-1.5">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300">
+                  Filter Active Units By *
                 </label>
-                <select
-                  value={selectedAssignmentId}
-                  onChange={(e) => setSelectedAssignmentId(Number(e.target.value))}
-                  required
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  {activeAssignments.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.fireExtinguisherUnit.unitCode} — {a.fireExtinguisherUnit.inventory.name} ({a.project?.projectName || a.customer?.companyName || "Site"})
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div className="flex flex-wrap items-center gap-6 text-xs">
+                  <label className="flex items-center gap-2 font-bold cursor-pointer text-gray-800 dark:text-gray-200">
+                    <input
+                      type="radio"
+                      name="refillTargetType"
+                      checked={refillTargetType === "PROJECT"}
+                      onChange={() => {
+                        setRefillTargetType("PROJECT");
+                        setSelectedFilterCustomerId("");
+                        setSelectedAssignmentIds([]);
+                      }}
+                      className="text-red-600 focus:ring-red-500 accent-red-600"
+                    />
+                    🏢 Project Wise
+                  </label>
 
-              {selectedAssignment && (
-                <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-xs space-y-1">
-                  <div><strong>Original Unit:</strong> {selectedAssignment.fireExtinguisherUnit.unitCode} ({selectedAssignment.fireExtinguisherUnit.inventory.name})</div>
-                  <div><strong>Location:</strong> {selectedAssignment.project?.projectName || selectedAssignment.customer?.companyName || "Site"}</div>
+                  <label className="flex items-center gap-2 font-bold cursor-pointer text-gray-800 dark:text-gray-200">
+                    <input
+                      type="radio"
+                      name="refillTargetType"
+                      checked={refillTargetType === "CLIENT"}
+                      onChange={() => {
+                        setRefillTargetType("CLIENT");
+                        setSelectedFilterProjectId("");
+                        setSelectedAssignmentIds([]);
+                      }}
+                      className="text-red-600 focus:ring-red-500 accent-red-600"
+                    />
+                    👤 Client / Customer Wise
+                  </label>
+
+                  <label className="flex items-center gap-2 font-bold cursor-pointer text-gray-800 dark:text-gray-200">
+                    <input
+                      type="radio"
+                      name="refillTargetType"
+                      checked={refillTargetType === "ALL"}
+                      onChange={() => {
+                        setRefillTargetType("ALL");
+                        setSelectedFilterProjectId("");
+                        setSelectedFilterCustomerId("");
+                        setSelectedAssignmentIds([]);
+                      }}
+                      className="text-red-600 focus:ring-red-500 accent-red-600"
+                    />
+                    🌐 All Active Units
+                  </label>
                 </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-                  Received / Return Date *
-                </label>
-                <input
-                  type="date"
-                  value={receivedDate}
-                  onChange={(e) => setReceivedDate(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
               </div>
 
-              {/* Temporary Replacement Toggle */}
-              <div className="p-3 rounded-xl border border-purple-200 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-950/20 space-y-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={replacementRequired}
-                    onChange={(e) => setReplacementRequired(e.target.checked)}
-                    className="rounded text-purple-600 focus:ring-purple-500 accent-purple-600"
-                  />
-                  <span className="text-xs font-bold text-purple-900 dark:text-purple-300">
-                    Temporary Replacement Required?
-                  </span>
-                </label>
-
-                {replacementRequired && (
+              {/* Filter Dropdowns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {refillTargetType === "PROJECT" && (
                   <div>
-                    <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 mb-1">
-                      Select Available Replacement Unit from Warehouse *
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                      Select Project Site *
                     </label>
                     <select
-                      value={selectedReplacementUnitId}
-                      onChange={(e) => setSelectedReplacementUnitId(Number(e.target.value))}
-                      required={replacementRequired}
-                      className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      value={selectedFilterProjectId}
+                      onChange={(e) => {
+                        setSelectedFilterProjectId(e.target.value ? Number(e.target.value) : "");
+                        setSelectedAssignmentIds([]);
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 font-semibold"
                     >
-                      <option value="">-- Select Replacement Unit --</option>
-                      {compatibleReplacements.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.unitCode} ({r.inventory.name})
+                      <option value="">-- All Projects --</option>
+                      {uniqueProjects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.projectName} ({p.projectCode})
                         </option>
                       ))}
                     </select>
-                    {compatibleReplacements.length === 0 && (
-                      <div className="text-[10px] text-rose-600 mt-1 font-semibold">
-                        No AVAILABLE replacement units found for this extinguisher type.
-                      </div>
-                    )}
                   </div>
                 )}
+
+                {refillTargetType === "CLIENT" && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                      Select Client / Customer *
+                    </label>
+                    <select
+                      value={selectedFilterCustomerId}
+                      onChange={(e) => {
+                        setSelectedFilterCustomerId(e.target.value ? Number(e.target.value) : "");
+                        setSelectedAssignmentIds([]);
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 font-semibold"
+                    >
+                      <option value="">-- All Clients --</option>
+                      {uniqueCustomers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.companyName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                    Received / Return Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={receivedDate}
+                    onChange={(e) => setReceivedDate(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 font-semibold"
+                  />
+                </div>
               </div>
+
+              {/* Multi-Select Checkbox Table for Active Extinguishers */}
+              <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-3 bg-gray-50 dark:bg-gray-800/40 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider flex items-center gap-1.5">
+                    <Flame className="text-amber-500" size={14} />
+                    <span>Select Units to Refill ({selectedAssignmentIds.length} Selected)</span>
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={13} />
+                      <input
+                        type="text"
+                        placeholder="Search units..."
+                        value={unitModalSearch}
+                        onChange={(e) => setUnitModalSearch(e.target.value)}
+                        className="pl-7 pr-3 py-1 text-xs rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-red-500"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={selectAllModalAssignments}
+                      className="text-[11px] font-bold text-red-600 hover:underline shrink-0"
+                    >
+                      {selectedAssignmentIds.length === modalActiveAssignments.length ? "Deselect All" : "Select All"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-56 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-gray-100 dark:bg-gray-800 text-[10px] font-bold text-gray-500 uppercase sticky top-0">
+                      <tr>
+                        <th className="py-2 px-3 w-8"></th>
+                        <th className="py-2 px-3">Unit Code</th>
+                        <th className="py-2 px-3">Item Description</th>
+                        <th className="py-2 px-3">Origin / Site</th>
+                        <th className="py-2 px-3">Location</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {modalActiveAssignments.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-6 text-center text-gray-400 text-xs">
+                            No active fire extinguisher units found for the selected filter.
+                          </td>
+                        </tr>
+                      ) : (
+                        modalActiveAssignments.map((a) => {
+                          const isSelected = selectedAssignmentIds.includes(a.id);
+                          const siteName = a.project
+                            ? `🏢 Project: ${a.project.projectName}`
+                            : a.customer
+                            ? `👤 Client: ${a.customer.companyName}`
+                            : "Site";
+                          return (
+                            <tr
+                              key={a.id}
+                              onClick={() => toggleAssignmentSelection(a.id)}
+                              className={`cursor-pointer transition-colors ${
+                                isSelected
+                                  ? "bg-amber-50/70 dark:bg-amber-950/30"
+                                  : "hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                              }`}
+                            >
+                              <td className="py-2 px-3">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {}}
+                                  className="rounded text-red-600 focus:ring-red-500 accent-red-600"
+                                />
+                              </td>
+                              <td className="py-2 px-3 font-bold text-gray-900 dark:text-gray-100 font-mono">
+                                🔥 {a.fireExtinguisherUnit.unitCode}
+                              </td>
+                              <td className="py-2 px-3 text-gray-700 dark:text-gray-300 font-semibold">
+                                {a.fireExtinguisherUnit.inventory.name}
+                              </td>
+                              <td className="py-2 px-3 text-gray-700 dark:text-gray-300 text-[11px]">
+                                {siteName}
+                              </td>
+                              <td className="py-2 px-3 text-gray-500 text-[11px]">
+                                {a.location || "—"}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Optional Temporary Replacement (if 1 unit selected) */}
+              {selectedAssignmentIds.length === 1 && (
+                <div className="p-3 rounded-xl border border-purple-200 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-950/20 space-y-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={replacementRequired}
+                      onChange={(e) => setReplacementRequired(e.target.checked)}
+                      className="rounded text-purple-600 focus:ring-purple-500 accent-purple-600"
+                    />
+                    <span className="text-xs font-bold text-purple-900 dark:text-purple-300">
+                      Issue Temporary Replacement Unit for #{selectedFirstAssignment?.fireExtinguisherUnit.unitCode}?
+                    </span>
+                  </label>
+
+                  {replacementRequired && (
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 mb-1">
+                        Select Available Replacement Unit from Warehouse *
+                      </label>
+                      <select
+                        value={selectedReplacementUnitId}
+                        onChange={(e) => setSelectedReplacementUnitId(Number(e.target.value))}
+                        required={replacementRequired}
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold"
+                      >
+                        <option value="">-- Select Replacement Unit --</option>
+                        {compatibleReplacements.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.unitCode} ({r.inventory.name})
+                          </option>
+                        ))}
+                      </select>
+                      {compatibleReplacements.length === 0 && (
+                        <div className="text-[10px] text-rose-600 mt-1 font-semibold">
+                          No AVAILABLE replacement units found for this extinguisher type.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
@@ -449,7 +701,7 @@ export function RefillManagementClient({
                   placeholder="External refill supplier, pressure gauge reading..."
                   value={startNotes}
                   onChange={(e) => setStartNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 font-semibold"
                 />
               </div>
 
@@ -463,16 +715,18 @@ export function RefillManagementClient({
                 </button>
                 <button
                   type="submit"
-                  disabled={isPending}
-                  className="px-5 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors disabled:opacity-50"
+                  disabled={isPending || selectedAssignmentIds.length === 0}
+                  className="px-5 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  {isPending ? "Processing..." : "Start Refill"}
+                  <RefreshCw size={14} />
+                  {isPending ? "Processing..." : `Start Refill (${selectedAssignmentIds.length} Units)`}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
 
       {/* Complete Refill Modal */}
       {isCompleteModalOpen && selectedRefillToComplete && (

@@ -413,7 +413,8 @@ export async function createDeliveryNoteService(input: CreateDeliveryNoteInput, 
     throw new Error(`Customer #${input.customerId} not found.`);
   }
 
-  // Check selected units are available
+  // Accept AVAILABLE units (from warehouse) OR ASSIGNED units (already deployed to
+  // a customer/project — this allows formalising existing assignments as a delivery note).
   const units = await prisma.fireExtinguisherUnit.findMany({
     where: { id: { in: input.unitIds } },
   });
@@ -423,8 +424,10 @@ export async function createDeliveryNoteService(input: CreateDeliveryNoteInput, 
   }
 
   for (const u of units) {
-    if (u.status !== "AVAILABLE") {
-      throw new Error(`Unit '${u.unitCode}' is not available (Status: ${u.status}).`);
+    if (u.status !== "AVAILABLE" && u.status !== "ASSIGNED") {
+      throw new Error(
+        `Unit '${u.unitCode}' cannot be included in a Delivery Note (Status: ${u.status}). Only AVAILABLE or ASSIGNED units are permitted.`
+      );
     }
   }
 
@@ -565,45 +568,80 @@ export async function confirmDeliveryNoteService(deliveryNoteId: number, userId:
         where: { id: item.fireExtinguisherUnitId },
       });
 
-      if (!unit || unit.status !== "AVAILABLE") {
-        throw new Error(`Unit '${unit?.unitCode || item.fireExtinguisherUnitId}' is not AVAILABLE (Current status: ${unit?.status || "UNKNOWN"}). Delivery aborted.`);
+      if (!unit) {
+        throw new Error(`Unit #${item.fireExtinguisherUnitId} not found. Delivery aborted.`);
       }
 
-      // 1. Update Unit Status -> ASSIGNED
-      await tx.fireExtinguisherUnit.update({
-        where: { id: unit.id },
-        data: { status: "ASSIGNED" },
-      });
+      if (unit.status !== "AVAILABLE" && unit.status !== "ASSIGNED") {
+        throw new Error(
+          `Unit '${unit.unitCode}' has status '${unit.status}' and cannot be confirmed for delivery. Delivery aborted.`
+        );
+      }
 
-      // 2. Create FireExtinguisherAssignment with CustomerId & ACTIVE status
-      await tx.fireExtinguisherAssignment.create({
-        data: {
-          fireExtinguisherUnitId: unit.id,
-          customerId: deliveryNote.customerId,
-          assignedDate: new Date(),
-          location: deliveryNote.deliveryAddress || deliveryNote.customer.address || "Client Premises",
-          status: "ACTIVE",
-          notes: `Direct Client Delivery #${deliveryNote.deliveryNo}`,
-        },
-      });
+      if (unit.status === "AVAILABLE") {
+        // ── Path A: Warehouse unit being delivered for the first time ──────────
+        // 1. Update Unit Status -> ASSIGNED
+        await tx.fireExtinguisherUnit.update({
+          where: { id: unit.id },
+          data: { status: "ASSIGNED" },
+        });
 
-      // 3. Create StockMovement OUT
-      const batchId = await getStockBatchForInventory(tx, unit.inventoryId);
-      await tx.stockMovement.create({
-        data: {
-          inventoryId: unit.inventoryId,
-          stockBatchId: batchId,
-          qty: 1,
-          movementType: "OUT",
-          referenceType: "DELIVERY_NOTE",
-          referenceId: deliveryNote.id,
-          remarks: `Direct Client Delivery #${deliveryNote.deliveryNo} (${unit.unitCode}) to ${deliveryNote.customer.companyName}`,
-          createdBy: userId,
-        },
-      });
+        // 2. Create FireExtinguisherAssignment
+        await tx.fireExtinguisherAssignment.create({
+          data: {
+            fireExtinguisherUnitId: unit.id,
+            customerId: deliveryNote.customerId,
+            assignedDate: new Date(),
+            location: deliveryNote.deliveryAddress || deliveryNote.customer.address || "Client Premises",
+            status: "ACTIVE",
+            notes: `Direct Client Delivery #${deliveryNote.deliveryNo}`,
+          },
+        });
+
+        // 3. Create StockMovement OUT
+        const batchId = await getStockBatchForInventory(tx, unit.inventoryId);
+        await tx.stockMovement.create({
+          data: {
+            inventoryId: unit.inventoryId,
+            stockBatchId: batchId,
+            qty: 1,
+            movementType: "OUT",
+            referenceType: "DELIVERY_NOTE",
+            referenceId: deliveryNote.id,
+            remarks: `Direct Client Delivery #${deliveryNote.deliveryNo} (${unit.unitCode}) to ${deliveryNote.customer.companyName}`,
+            createdBy: userId,
+          },
+        });
+      } else {
+        // ── Path B: Already-ASSIGNED unit — formalise with delivery note ──────
+        // Stock movement already happened when the unit was originally assigned.
+        // Just attach the delivery note reference to the active assignment note.
+        const existingAssignment = await tx.fireExtinguisherAssignment.findFirst({
+          where: {
+            fireExtinguisherUnitId: unit.id,
+            status: { in: ["ACTIVE", "UNDER_REFILL"] },
+          },
+          orderBy: { assignedDate: "desc" },
+        });
+
+        if (existingAssignment) {
+          // Update the assignment's location and add a delivery note reference
+          await tx.fireExtinguisherAssignment.update({
+            where: { id: existingAssignment.id },
+            data: {
+              location: deliveryNote.deliveryAddress || deliveryNote.customer.address || existingAssignment.location || "Client Premises",
+              notes: [
+                existingAssignment.notes,
+                `Formalised via Delivery Note #${deliveryNote.deliveryNo}`,
+              ].filter(Boolean).join(" | "),
+            },
+          });
+        }
+        // No additional StockMovement — stock was already moved OUT when assigned.
+      }
     }
 
-    // 4. Update DeliveryNote Status -> DELIVERED
+    // Update DeliveryNote Status -> DELIVERED
     const updated = await tx.deliveryNote.update({
       where: { id: deliveryNote.id },
       data: { status: "DELIVERED" },

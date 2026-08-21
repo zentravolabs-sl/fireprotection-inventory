@@ -291,6 +291,73 @@ export async function startRefillAction(data: any): Promise<ActionState> {
   });
 }
 
+/**
+ * Bulk start refill process for multiple active assignments at once.
+ */
+export async function bulkStartRefillAction(data: {
+  assignmentIds: number[];
+  receivedDate: string;
+  notes?: string;
+}): Promise<ActionState> {
+  return withActionError(async () => {
+    await requirePermission("fire_extinguisher.refill");
+    const actorId = await getActorId();
+
+    if (!data.assignmentIds || data.assignmentIds.length === 0) {
+      return { success: false, message: "Please select at least one unit to send for refill." };
+    }
+
+    const results: { assignmentId: number; success: boolean; error?: string }[] = [];
+
+    for (const assignmentId of data.assignmentIds) {
+      try {
+        const payload = {
+          assignmentId,
+          receivedDate: data.receivedDate,
+          notes: data.notes?.trim() || undefined,
+        };
+
+        const parsed = startRefillSchema.safeParse(payload);
+        if (!parsed.success) {
+          results.push({ assignmentId, success: false, error: parsed.error.issues[0]?.message });
+          continue;
+        }
+
+        await startRefillService(parsed.data, actorId);
+        results.push({ assignmentId, success: true });
+      } catch (err: any) {
+        results.push({ assignmentId, success: false, error: err?.message || "Unknown error" });
+      }
+    }
+
+    revalidatePath("/fire-extinguishers");
+    revalidatePath("/fire-extinguishers/refills");
+    revalidatePath("/fire-extinguishers/assignments");
+    revalidatePath("/fire-extinguishers/units");
+
+    const succeeded = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
+
+    if (succeeded === 0) {
+      return {
+        success: false,
+        message: `All ${failed} unit(s) failed to start refill. ${results.find((r) => r.error)?.error || ""}`,
+        data: results,
+      };
+    }
+
+    return {
+      success: true,
+      message:
+        failed === 0
+          ? `${succeeded} unit(s) sent for refill successfully.`
+          : `${succeeded} unit(s) sent for refill. ${failed} unit(s) failed.`,
+      data: results,
+    };
+  });
+}
+
+
 export async function completeRefillAction(data: any): Promise<ActionState> {
   return withActionError(async () => {
     await requirePermission("fire_extinguisher.refill");
@@ -391,6 +458,77 @@ export async function assignFireExtinguisherAction(data: any): Promise<ActionSta
     };
   });
 }
+
+/**
+ * Bulk assign multiple fire extinguisher units to the same project or customer in one action.
+ * Processes each unit sequentially. Returns a summary of successes and failures.
+ */
+export async function bulkAssignFireExtinguisherAction(data: {
+  unitIds: number[];
+  projectId?: number;
+  customerId?: number;
+  location?: string;
+  notes?: string;
+}): Promise<ActionState> {
+  return withActionError(async () => {
+    await requirePermission("fire_extinguisher.assign");
+    const actorId = await getActorId();
+
+    if (!data.unitIds || data.unitIds.length === 0) {
+      return { success: false, message: "Please select at least one unit to assign." };
+    }
+
+    const results: { unitId: number; success: boolean; error?: string }[] = [];
+
+    for (const unitId of data.unitIds) {
+      try {
+        const rawPayload = {
+          unitId,
+          projectId: data.projectId && Number(data.projectId) > 0 ? Number(data.projectId) : undefined,
+          customerId: data.customerId && Number(data.customerId) > 0 ? Number(data.customerId) : undefined,
+          location: data.location?.trim() || undefined,
+          notes: data.notes?.trim() || undefined,
+        };
+
+        const parsed = assignUnitSchema.safeParse(rawPayload);
+        if (!parsed.success) {
+          results.push({ unitId, success: false, error: parsed.error.issues[0]?.message });
+          continue;
+        }
+
+        await assignFireExtinguisherService(parsed.data, actorId);
+        results.push({ unitId, success: true });
+      } catch (err: any) {
+        results.push({ unitId, success: false, error: err?.message || "Unknown error" });
+      }
+    }
+
+    revalidatePath("/fire-extinguishers");
+    revalidatePath("/fire-extinguishers/assignments");
+    revalidatePath("/fire-extinguishers/units");
+
+    const succeeded = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
+
+    if (succeeded === 0) {
+      return {
+        success: false,
+        message: `All ${failed} unit(s) failed to assign. ${results.find((r) => r.error)?.error || ""}`,
+        data: results,
+      };
+    }
+
+    return {
+      success: true,
+      message:
+        failed === 0
+          ? `${succeeded} unit(s) assigned successfully.`
+          : `${succeeded} unit(s) assigned. ${failed} unit(s) failed.`,
+      data: results,
+    };
+  });
+}
+
 
 export async function getFireExtinguisherAssignmentsAction(filters?: {
   tab?: "ALL" | "PROJECTS" | "CUSTOMERS" | "ACTIVE" | "UNDER_REFILL" | "RETURNED";
