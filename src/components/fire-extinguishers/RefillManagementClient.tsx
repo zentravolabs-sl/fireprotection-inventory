@@ -26,6 +26,7 @@ import {
   bulkStartRefillAction,
   completeRefillAction,
 } from "@/app/actions/fire-extinguishers";
+import { formatDate } from "@/lib/dateUtils";
 
 import type { RefillStatus } from "@/generated/prisma/client";
 
@@ -361,7 +362,7 @@ export function RefillManagementClient({
                         {siteName}
                       </td>
                       <td className="py-3 px-4 text-gray-600 dark:text-gray-400 font-mono">
-                        {new Date(r.receivedDate).toLocaleDateString()}
+                        {formatDate(r.receivedDate)}
                       </td>
                       <td className="py-3 px-4 font-mono text-purple-700 dark:text-purple-400 font-bold">
                         {r.replacementUnit ? (

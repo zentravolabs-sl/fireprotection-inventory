@@ -237,6 +237,7 @@ const NAV_GROUPS_STATIC: NavGroup[] = [
   {
     title: "FIRE EXTINGUISHERS",
     items: [
+      { label: "Customer Refills",  href: "/fire-extinguishers/customer-refills", icon: Icons.returns,    permission: "customerRefills.view" },
       { label: "Assignments",       href: "/fire-extinguishers/assignments", icon: Icons.fire,       permission: "fire_extinguisher.view" },
       { label: "Refill Management", href: "/fire-extinguishers/refills",     icon: Icons.returns,    permission: "fire_extinguisher.refill" },
       { label: "Client Deliveries", href: "/fire-extinguishers/deliveries",  icon: Icons.suppliers,  permission: "fire_extinguisher.deliver" },
