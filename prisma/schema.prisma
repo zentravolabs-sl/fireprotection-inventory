@@ -56,6 +56,45 @@ enum ReferenceType {
   RETURN
   MANUAL
   PROJECT_TRANSFER
+  DELIVERY_NOTE
+  FIRE_EXTINGUISHER_REFILL
+  FIRE_EXTINGUISHER_RETURN
+}
+
+// ============================================================
+// Enums — Fire Extinguisher Management Module
+// ============================================================
+
+enum FireExtinguisherUnitStatus {
+  AVAILABLE
+  ASSIGNED
+  UNDER_REFILL
+  TEMPORARY_REPLACEMENT
+  DAMAGED
+  LOST
+  RETIRED
+}
+
+enum FireExtinguisherAssignmentStatus {
+  ACTIVE
+  RETURNED
+  UNDER_REFILL
+  REPLACED
+  COMPLETED
+}
+
+enum DeliveryStatus {
+  DRAFT
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
+
+enum RefillStatus {
+  RECEIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
 /// Pipe cut piece lifecycle states.
@@ -149,6 +188,7 @@ model User {
   staffAssignments          ProjectStaff[]      @relation("StaffAssignments")
   transfersRequested        ProjectTransfer[]   @relation("TransferRequestedBy")
   transfersApproved         ProjectTransfer[]   @relation("TransferApprovedBy")
+  deliveryNotesCreated      DeliveryNote[]      @relation("DeliveryNoteCreatedBy")
 
   @@index([email])
   @@index([role])
@@ -367,6 +407,7 @@ model Inventory {
   projectMaterials     ProjectMaterial[]
   materialReturnItems  MaterialReturnItem[]
   projectTransferItems ProjectTransferItem[]
+  fireExtinguisherUnits FireExtinguisherUnit[]
 
   @@index([itemCode])
   @@index([barcode])
@@ -587,7 +628,9 @@ model Customer {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  projects Project[]
+  projects                    Project[]
+  fireExtinguisherAssignments FireExtinguisherAssignment[]
+  deliveryNotes               DeliveryNote[]
 
   @@index([companyName])
   @@index([contactPerson])
@@ -599,6 +642,12 @@ model Customer {
 // ============================================================
 // Enums — Project Management Module
 // ============================================================
+
+/// Classifies whether a project is a government or private sector contract.
+enum ProjectType {
+  GOVERNMENT
+  PRIVATE
+}
 
 enum ProjectStatus {
   PENDING
@@ -696,6 +745,7 @@ model Project {
   startDate        DateTime?
   endDate          DateTime?
   status           ProjectStatus @default(PENDING)
+  projectType      ProjectType   @default(PRIVATE)
   description      String?
 
   // Project Value (Contract Value / Customer Price)
@@ -725,14 +775,16 @@ model Project {
   toolHistories    ToolHistory[]
   projectLabours   ProjectLabour[]
   staffAssignments ProjectStaff[]
-  transfersFrom    ProjectTransfer[] @relation("ProjectTransferFrom")
-  transfersTo      ProjectTransfer[] @relation("ProjectTransferTo")
-  pipeCutPieces    PipeCutPiece[]
+  transfersFrom               ProjectTransfer[]            @relation("ProjectTransferFrom")
+  transfersTo                 ProjectTransfer[]            @relation("ProjectTransferTo")
+  pipeCutPieces               PipeCutPiece[]
+  fireExtinguisherAssignments FireExtinguisherAssignment[]
 
   @@index([projectCode])
   @@index([customerId])
   @@index([projectManagerId])
   @@index([status])
+  @@index([projectType])
   @@map("project")
 }
 
@@ -1274,5 +1326,123 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 
   @@map("system_setting")
+}
+
+// ============================================================
+// Fire Extinguisher Management Models
+// ============================================================
+
+model FireExtinguisherUnit {
+  id              Int                        @id @default(autoincrement())
+  unitCode        String                     @unique
+  inventoryId     Int
+  status          FireExtinguisherUnitStatus @default(AVAILABLE)
+  serialNumber    String?                    @unique
+  manufactureDate DateTime?
+  expiryDate      DateTime?
+  notes           String?
+
+  inventory                Inventory                    @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+  assignments              FireExtinguisherAssignment[]
+  refillRecords            ExtinguisherRefill[]         @relation("RefillOriginalUnit")
+  replacementRefillRecords ExtinguisherRefill[]         @relation("RefillReplacementUnit")
+  deliveryItems            DeliveryNoteItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([inventoryId])
+  @@index([status])
+  @@index([unitCode])
+  @@map("fire_extinguisher_unit")
+}
+
+model FireExtinguisherAssignment {
+  id                     Int                              @id @default(autoincrement())
+  fireExtinguisherUnitId Int
+  projectId              Int?
+  customerId             Int?
+  assignedDate           DateTime                         @default(now())
+  location               String?
+  status                 FireExtinguisherAssignmentStatus @default(ACTIVE)
+  returnedDate           DateTime?
+  notes                  String?
+
+  fireExtinguisherUnit FireExtinguisherUnit @relation(fields: [fireExtinguisherUnitId], references: [id], onDelete: Restrict)
+  project              Project?             @relation(fields: [projectId], references: [id])
+  customer             Customer?            @relation(fields: [customerId], references: [id])
+  refills              ExtinguisherRefill[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fireExtinguisherUnitId])
+  @@index([projectId])
+  @@index([customerId])
+  @@index([status])
+  @@map("fire_extinguisher_assignment")
+}
+
+model DeliveryNote {
+  id              Int            @id @default(autoincrement())
+  deliveryNo      String         @unique
+  customerId      Int
+  deliveryDate    DateTime       @default(now())
+  deliveryAddress String?
+  notes           String?
+  status          DeliveryStatus @default(DRAFT)
+
+  customer    Customer           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  items       DeliveryNoteItem[]
+  createdById String?
+  createdBy   User?              @relation("DeliveryNoteCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([deliveryDate])
+  @@index([status])
+  @@map("delivery_note")
+}
+
+model DeliveryNoteItem {
+  id                     Int @id @default(autoincrement())
+  deliveryNoteId         Int
+  fireExtinguisherUnitId Int
+
+  deliveryNote         DeliveryNote         @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+  fireExtinguisherUnit FireExtinguisherUnit @relation(fields: [fireExtinguisherUnitId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@unique([deliveryNoteId, fireExtinguisherUnitId])
+  @@index([deliveryNoteId])
+  @@index([fireExtinguisherUnitId])
+  @@map("delivery_note_item")
+}
+
+model ExtinguisherRefill {
+  id                           Int          @id @default(autoincrement())
+  fireExtinguisherAssignmentId Int
+  fireExtinguisherUnitId       Int
+  receivedDate                 DateTime     @default(now())
+  completedDate                DateTime?
+  status                       RefillStatus @default(RECEIVED)
+  replacementUnitId            Int?
+  notes                        String?
+
+  assignment           FireExtinguisherAssignment @relation(fields: [fireExtinguisherAssignmentId], references: [id], onDelete: Restrict)
+  fireExtinguisherUnit FireExtinguisherUnit       @relation("RefillOriginalUnit", fields: [fireExtinguisherUnitId], references: [id], onDelete: Restrict)
+  replacementUnit      FireExtinguisherUnit?      @relation("RefillReplacementUnit", fields: [replacementUnitId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fireExtinguisherAssignmentId])
+  @@index([fireExtinguisherUnitId])
+  @@index([replacementUnitId])
+  @@index([status])
+  @@map("extinguisher_refill")
 }
 

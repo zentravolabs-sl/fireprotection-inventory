@@ -167,6 +167,7 @@ export function ProjectFormModal({
       projectName: "",
       customerId: undefined,
       projectManagerId: "",
+      projectType: "PRIVATE",
       location: "",
       startDate: "",
       endDate: "",
@@ -186,6 +187,7 @@ export function ProjectFormModal({
         projectName: "",
         customerId: undefined,
         projectManagerId: "",
+        projectType: "PRIVATE",
         location: "",
         startDate: "",
         endDate: "",
@@ -215,6 +217,7 @@ export function ProjectFormModal({
     formData.append("projectName", data.projectName);
     formData.append("customerId", String(data.customerId));
     formData.append("projectManagerId", data.projectManagerId);
+    formData.append("projectType", data.projectType ?? "PRIVATE");
     if (data.location) formData.append("location", data.location);
     if (data.startDate) formData.append("startDate", data.startDate);
     if (data.endDate) formData.append("endDate", data.endDate);
@@ -340,6 +343,64 @@ export function ProjectFormModal({
               {...register("location")}
               error={errors.location?.message}
             />
+          </div>
+
+          {/* Project Type */}
+          <div className="md:col-span-2 mb-4">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Project Type *
+            </label>
+            <Controller
+              name="projectType"
+              control={control}
+              render={({ field }) => (
+                <div className="flex gap-3">
+                  {(["GOVERNMENT", "PRIVATE"] as const).map((type) => {
+                    const isSelected = field.value === type;
+                    const icon = type === "GOVERNMENT" ? "🏛️" : "🏢";
+                    const label = type === "GOVERNMENT" ? "Government" : "Private";
+                    const accent =
+                      type === "GOVERNMENT"
+                        ? isSelected
+                          ? "border-blue-500 bg-blue-500/10 text-blue-400"
+                          : "border-gray-700 hover:border-blue-500/50 text-gray-400"
+                        : isSelected
+                          ? "border-red-500 bg-red-500/10 text-red-400"
+                          : "border-gray-700 hover:border-red-500/50 text-gray-400";
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => field.onChange(type)}
+                        className={`flex-1 flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all duration-200 cursor-pointer ${accent}`}
+                      >
+                        <span className="text-xl">{icon}</span>
+                        <div className="text-left">
+                          <p className="text-sm font-semibold">{label}</p>
+                          <p className="text-xs opacity-70">
+                            {type === "GOVERNMENT" ? "Govt. / Municipal contract" : "Commercial / private sector"}
+                          </p>
+                        </div>
+                        <div className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                          isSelected
+                            ? type === "GOVERNMENT"
+                              ? "border-blue-500 bg-blue-500"
+                              : "border-red-500 bg-red-500"
+                            : "border-gray-600"
+                        }`}>
+                          {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            />
+            {errors.projectType && (
+              <p className="mt-1.5 text-xs text-red-600 font-medium">
+                {errors.projectType.message}
+              </p>
+            )}
           </div>
         </div>
 

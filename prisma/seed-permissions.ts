@@ -112,12 +112,41 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { key: "permission.view", name: "View Permissions", module: "Permissions", description: "View granular system permission keys" },
   { key: "permission.manage", name: "Manage Permissions", module: "Permissions", description: "Modify system permission structure" },
 
+  // ── Fire Extinguisher Module ──
+  { key: "fire_extinguisher.view", name: "View Fire Extinguishers", module: "Fire Extinguishers", description: "View physical units, assignments, refills, and client delivery notes" },
+  { key: "fire_extinguisher.assign", name: "Assign Fire Extinguishers", module: "Fire Extinguishers", description: "Assign fire extinguisher units to projects or customers" },
+  { key: "fire_extinguisher.deliver", name: "Client Delivery Note", module: "Fire Extinguishers", description: "Create and confirm direct client delivery notes" },
+  { key: "fire_extinguisher.refill", name: "Refill Management", module: "Fire Extinguishers", description: "Start and complete fire extinguisher refills" },
+  { key: "fire_extinguisher.return", name: "Return Fire Extinguishers", module: "Fire Extinguishers", description: "Return assigned fire extinguishers back to warehouse" },
+  { key: "fire_extinguisher.manage", name: "Manage Fire Extinguishers", module: "Fire Extinguishers", description: "Register and manage physical fire extinguisher master units" },
+
   // ── Audit & Notifications ──
   { key: "audit_log.view", name: "View Audit Log", module: "Audit Log", description: "View security audit trails and system logs" },
   { key: "notification.view", name: "View Notifications", module: "Notifications", description: "View in-app alerts and notifications" },
 ];
 
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
+  // SUPER_ADMIN receives all permissions — also bypassed dynamically at runtime via permissions.ts
+  SUPER_ADMIN: [
+    "project.view", "project.create", "project.edit", "project.delete", "project.complete",
+    "inventory.view", "inventory.create", "inventory.edit", "inventory.delete",
+    "stock.receive", "stock.issue", "stock.return", "stock.transfer", "stock.adjust", "stock.view_history",
+    "material_request.view", "material_request.create", "material_request.edit", "material_request.submit", "material_request.approve", "material_request.reject", "material_request.cancel",
+    "labour.view", "labour.create", "labour.edit", "labour.delete", "labour.assign_project", "labour.attendance", "labour.manage_cost",
+    "project_staff.view", "project_staff.assign", "project_staff.release", "project_staff.attendance", "project_staff.manage_salary", "project_staff.manage_ot",
+    "expiry.view", "expiry.manage", "expiry.quarantine", "expiry.report",
+    "supplier.view", "supplier.create", "supplier.edit", "supplier.delete",
+    "customer.view", "customer.create", "customer.edit", "customer.delete",
+    "tool.view", "tool.create", "tool.edit", "tool.delete", "tool.assign", "tool.transfer", "tool.return",
+    "project_transfer.view", "project_transfer.create", "project_transfer.approve", "project_transfer.complete", "project_transfer.cancel",
+    "fire_extinguisher.view", "fire_extinguisher.assign", "fire_extinguisher.deliver", "fire_extinguisher.refill", "fire_extinguisher.return", "fire_extinguisher.manage",
+    "report.view", "report.project", "report.inventory", "report.financial",
+    "user.view", "user.create", "user.edit", "user.delete",
+    "role.view", "role.manage",
+    "permission.view", "permission.manage",
+    "audit_log.view", "notification.view",
+  ],
+
   ADMIN: [
     "project.view", "project.create", "project.edit", "project.delete", "project.complete",
     "inventory.view", "inventory.create", "inventory.edit", "inventory.delete",
@@ -130,6 +159,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "supplier.view", "supplier.create", "supplier.edit", "supplier.delete",
     "customer.view", "customer.create", "customer.edit", "customer.delete",
     "project_transfer.view", "project_transfer.create", "project_transfer.approve", "project_transfer.complete", "project_transfer.cancel",
+    "fire_extinguisher.view", "fire_extinguisher.assign", "fire_extinguisher.deliver", "fire_extinguisher.refill", "fire_extinguisher.return", "fire_extinguisher.manage",
     "report.view", "report.project", "report.inventory", "report.financial",
     "user.view", "user.create", "user.edit",
     "role.view", "role.manage",
@@ -147,6 +177,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "report.view", "report.project", "report.inventory", "report.financial",
     "tool.view", "supplier.view", "customer.view",
     "project_transfer.view", "project_transfer.approve",
+    "fire_extinguisher.view",
     "audit_log.view", "notification.view",
   ],
 
@@ -158,6 +189,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "tool.view", "tool.assign", "tool.transfer", "tool.return",
     "stock.view_history", "stock.transfer",
     "project_transfer.view", "project_transfer.create",
+    "fire_extinguisher.view", "fire_extinguisher.assign", "fire_extinguisher.return",
     "expiry.view", "report.project", "notification.view",
   ],
 
@@ -169,6 +201,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "tool.view", "tool.assign", "tool.return",
     "stock.view_history",
     "project_transfer.view", "project_transfer.create",
+    "fire_extinguisher.view",
     "expiry.view", "report.project", "notification.view",
   ],
 
@@ -216,25 +249,24 @@ export async function seedPermissions(prisma: PrismaClient) {
   let rolePermCount = 0;
   for (const [roleName, keys] of Object.entries(DEFAULT_ROLE_PERMISSIONS)) {
     const role = roleName as any;
-    for (const key of keys) {
-      const permissionId = permissionMap.get(key);
-      if (!permissionId) continue;
 
-      await prisma.rolePermission.upsert({
-        where: {
-          role_permissionId: {
-            role,
-            permissionId,
-          },
-        },
-        update: {},
-        create: {
-          role,
-          permissionId,
-        },
-      });
-      rolePermCount++;
-    }
+    // Resolve permission IDs for this role (skip unknown keys)
+    const permissionIds = keys
+      .map((k) => permissionMap.get(k))
+      .filter((id): id is number => id !== undefined);
+
+    // Fast replace: clear existing + bulk insert in one transaction
+    await prisma.$transaction(async (tx) => {
+      await tx.rolePermission.deleteMany({ where: { role } });
+      if (permissionIds.length > 0) {
+        await tx.rolePermission.createMany({
+          data: permissionIds.map((permissionId) => ({ role, permissionId })),
+          skipDuplicates: true,
+        });
+      }
+    });
+
+    rolePermCount += permissionIds.length;
   }
 
   console.log(`  ✓ Seeded ${rolePermCount} default role-permission mappings.`);

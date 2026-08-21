@@ -21,7 +21,7 @@ export type UserRole =
  *
  * @template T - The type of the returned data on success.
  */
-export type ActionState<T = undefined> =
+export type ActionState<T = any> =
   | { success: true; message: string; data?: T }
   | { success: false; message: string; errors?: Record<string, string[]> };
 

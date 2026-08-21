@@ -218,6 +218,17 @@ export function ProjectsClientPage({
                       {proj.location && (
                         <div className="text-xs text-gray-400">📍 {proj.location}</div>
                       )}
+                      {proj.projectType && (
+                        <div className="mt-0.5">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                            proj.projectType === "GOVERNMENT"
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                              : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                          }`}>
+                            {proj.projectType === "GOVERNMENT" ? "🏛️" : "🏢"} {proj.projectType}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3.5 font-medium text-gray-800 dark:text-gray-200">
                       {proj.customer?.companyName || "N/A"}

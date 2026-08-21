@@ -178,10 +178,20 @@ const Icons = {
       <path d="M14 17.5h7" /><path d="M17.5 14v7" />
     </svg>
   ),
-  settings: (
+  stockReceive: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
+    </svg>
+  ),
+  stockBatch: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  ),
+  stockMovement: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
     </svg>
   ),
 };
@@ -190,41 +200,55 @@ const Icons = {
 
 const NAV_GROUPS_STATIC: NavGroup[] = [
   {
-    title: "WORKSPACE",
+    title: "PROJECT MANAGEMENT",
     items: [
       { label: "Projects",          href: "/projects",          icon: Icons.projects,         permission: "project.view" },
-      { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests, permission: "material_request.view" },
-      { label: "Inventory Master",  href: "/inventory",        icon: Icons.inventory,        permission: "inventory.view" },
-      { label: "Clients",           href: "/customers",        icon: Icons.customers,        permission: "customer.view" },
-      { label: "Employees",         href: "/users-roles",      icon: Icons.users,            permission: "user.view" },
-      { label: "Suppliers",         href: "/suppliers",        icon: Icons.suppliers,        permission: "supplier.view" },
-      { label: "Tools",             href: "/tools",            icon: Icons.tools,            permission: "tool.view" },
-      { label: "Project Stock",     href: "/project-stock",    icon: Icons.projectStock,      permission: "stock.view_history" },
-      { label: "Project Transfers", href: "/transfers",        icon: Icons.returns,           permission: "project_transfer.view" },
+      { label: "Material Reque...", href: "/material-requests", icon: Icons.materialRequests, permission: "material_request.view" },
+      { label: "Project Stock",     href: "/project-stock",     icon: Icons.projectStock,     permission: "stock.view_history" },
     ],
   },
   {
-    title: "FINANCE",
+    title: "WAREHOUSE",
     items: [
-      { label: "Cost Approvals",    href: "/cost-approvals",   icon: Icons.quotations,       permission: "audit_log.view" },
-      { label: "Quotations",        href: "/quotations",       icon: Icons.quotations,       permission: "project.view" },
-      { label: "Labour Master",     href: "/labour",           icon: Icons.labour,           permission: "labour.view" },
+      { label: "Inventory Master",  href: "/inventory",         icon: Icons.inventory,        permission: "inventory.view" },
+      { label: "Stock Receive",     href: "/stock-receive",     icon: Icons.stockReceive,     permission: "stock.receive" },
+      { label: "Stock Batches",     href: "/stock-batch",       icon: Icons.stockBatch,       permission: "stock.view_history" },
+      { label: "Stock Movements",   href: "/stock-movement",    icon: Icons.stockMovement,    permission: "stock.view_history" },
+      { label: "Pipe & Cut Pieces", href: "/pipe-cut-pieces",   icon: Icons.pipe,             permission: "inventory.view" },
+      { label: "Expiry Manage...",  href: "/expiry",            icon: Icons.expiry,           permission: "expiry.view" },
     ],
   },
   {
-    title: "REPORTS",
+    title: "ASSETS & BUSINESS",
     items: [
-      { label: "Reports",           href: "/reports",          icon: Icons.reports,          permission: "report.view" },
-      { label: "Expiry Management", href: "/expiry",           icon: Icons.expiry,            permission: "expiry.view" },
-      { label: "Audit Log",         href: "/audit-log",        icon: Icons.audit,            permission: "audit_log.view" },
+      { label: "Tools",             href: "/tools",             icon: Icons.tools,            permission: "tool.view" },
+      { label: "Suppliers",         href: "/suppliers",         icon: Icons.suppliers,        permission: "supplier.view" },
+      { label: "Customers",         href: "/customers",         icon: Icons.customers,        permission: "customer.view" },
+      { label: "Quotations",        href: "/quotations",        icon: Icons.quotations,       permission: "project.view" },
     ],
   },
   {
-    title: "SYSTEM",
+    title: "LABOUR",
     items: [
-      { label: "User Management",   href: "/users-roles",      icon: Icons.users,            permission: "user.view", superAdminOnly: true },
-      { label: "Roles & Permissions", href: "/users-roles",    icon: Icons.audit,            permission: "user.view", superAdminOnly: true },
-      { label: "System Settings",   href: "/super-admin",      icon: Icons.settings,         superAdminOnly: true },
+      { label: "Labour Types",      href: "/labour-types",      icon: Icons.labourTypes,      permission: "labour.view" },
+      { label: "Labour Master",     href: "/labour",            icon: Icons.labour,           permission: "labour.view" },
+    ],
+  },
+  {
+    title: "FIRE EXTINGUISHERS",
+    items: [
+      { label: "Assignments",       href: "/fire-extinguishers/assignments", icon: Icons.fire,       permission: "fire_extinguisher.view" },
+      { label: "Refill Management", href: "/fire-extinguishers/refills",     icon: Icons.returns,    permission: "fire_extinguisher.refill" },
+      { label: "Client Deliveries", href: "/fire-extinguishers/deliveries",  icon: Icons.suppliers,  permission: "fire_extinguisher.deliver" },
+      { label: "Physical Units",    href: "/fire-extinguishers/units",       icon: Icons.inventory,  permission: "fire_extinguisher.manage" },
+    ],
+  },
+  {
+    title: "MANAGEMENT",
+    items: [
+      { label: "Reports",           href: "/reports",           icon: Icons.reports,          permission: "report.view" },
+      { label: "Users & Roles",     href: "/users-roles",       icon: Icons.users,            permission: "user.view" },
+      { label: "Audit Log",         href: "/audit-log",         icon: Icons.audit,            permission: "audit_log.view" },
     ],
   },
 ];

@@ -317,6 +317,7 @@ async function main() {
         startDate: new Date("2026-08-01"),
         endDate: new Date("2026-12-31"),
         status: "IN_PROGRESS",
+        projectType: "GOVERNMENT",
         description: "Complete design, installation, and commissioning of wet pipe automatic fire sprinkler system.",
         projectValue: 350000,
         estimatedMaterialCost: 150000,

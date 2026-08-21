@@ -15,6 +15,9 @@ export const baseProjectSchema = z.object({
     .int()
     .positive("Customer is required"),
   projectManagerId: z.string().min(1, "Project Manager is required"),
+  projectType: z.enum(["GOVERNMENT", "PRIVATE"], {
+    message: "Project type is required",
+  }).default("PRIVATE"),
   location: z.string().optional().nullable(),
   startDate: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),

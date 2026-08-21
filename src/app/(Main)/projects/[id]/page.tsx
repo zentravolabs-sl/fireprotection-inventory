@@ -39,7 +39,17 @@ export default async function ProjectDetailPage(props: PageProps) {
     notFound();
   }
 
-  const [timeline, inventoryItems, allUsers, toolAssignments, projectLabours, projectStaff, projectTransfers, allProjects] = await Promise.all([
+  const [
+    timeline,
+    inventoryItems,
+    allUsers,
+    toolAssignments,
+    projectLabours,
+    projectStaff,
+    projectTransfers,
+    allProjects,
+    projectFireExtinguishers,
+  ] = await Promise.all([
     getProjectTimelineService(projectId),
     prisma.inventory.findMany({
       select: {
@@ -97,6 +107,16 @@ export default async function ProjectDetailPage(props: PageProps) {
       select: { id: true, projectCode: true, projectName: true },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.fireExtinguisherAssignment.findMany({
+      where: { projectId },
+      include: {
+        fireExtinguisherUnit: {
+          include: { inventory: true },
+        },
+        refills: { orderBy: { receivedDate: "desc" }, take: 1 },
+      },
+      orderBy: { assignedDate: "desc" },
+    }),
   ]);
 
   // Labours that are available for assignment to this project:
@@ -135,6 +155,7 @@ export default async function ProjectDetailPage(props: PageProps) {
       availableLabours={(availableLabours || []) as any}
       projectStaff={(projectStaff || []) as any}
       projectTransfers={(projectTransfers || []) as any}
+      projectFireExtinguishers={(projectFireExtinguishers || []) as any}
       allProjects={allProjects || []}
       currentUserRole={currentUserRole}
     />

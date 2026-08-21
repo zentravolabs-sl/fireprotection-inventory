@@ -62,6 +62,7 @@ interface ProjectDetailsClientProps {
   availableLabours: any[];
   projectStaff?: any[];
   projectTransfers?: any[];
+  projectFireExtinguishers?: any[];
   allProjects?: any[];
   currentUserRole?: string;
 }
@@ -74,6 +75,7 @@ type TabType =
   | "staff"
   | "requests"
   | "issues"
+  | "fireExtinguishers"
   | "notes"
   | "returns"
   | "transport"
@@ -91,6 +93,7 @@ export function ProjectDetailsClient({
   availableLabours = [],
   projectStaff = [],
   projectTransfers = [],
+  projectFireExtinguishers = [],
   allProjects = [],
   currentUserRole = "USER",
 }: ProjectDetailsClientProps) {
@@ -242,6 +245,15 @@ export function ProjectDetailsClient({
                 {project.projectCode}
               </span>
               <ProjectStatusBadge status={project.status} />
+              {project.projectType && (
+                <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md ${
+                  project.projectType === "GOVERNMENT"
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                    : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                }`}>
+                  {project.projectType === "GOVERNMENT" ? "🏛️" : "🏢"} {project.projectType}
+                </span>
+              )}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
               {project.projectName}
@@ -406,6 +418,7 @@ export function ProjectDetailsClient({
           { id: "staff", label: "Staff", count: (project.projectManager ? 1 : 0) + (project.engineers?.length || 0), icon: "👥", category: "personnel" },
           { id: "requests", label: "Requests", count: project.materialRequests?.length || 0, icon: "📋", category: "materials" },
           { id: "issues", label: "Material Issues", count: project.projectMaterials?.length || 0, icon: "📦", category: "materials" },
+          { id: "fireExtinguishers", label: "Fire Extinguishers", count: (projectFireExtinguishers || []).length, icon: "🔥", category: "materials" },
           { id: "notes", label: "Delivery & Issue Notes", icon: "📜", category: "materials" },
           { id: "returns", label: "Returns", count: project.materialReturns?.length || 0, icon: "↩", category: "materials" },
           { id: "transport", label: "Transport", count: project.transports?.length || 0, icon: "🚚", category: "logistics" },
@@ -457,6 +470,18 @@ export function ProjectDetailsClient({
                 </button>
               </div>
               <div className="text-xs space-y-2.5 text-gray-600 dark:text-gray-300">
+                <div>
+                  <span className="text-gray-400">Project Type:</span>{" "}
+                  {project.projectType ? (
+                    <span className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-[11px] ${
+                      project.projectType === "GOVERNMENT"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                    }`}>
+                      {project.projectType === "GOVERNMENT" ? "🏛️" : "🏢"} {project.projectType}
+                    </span>
+                  ) : "Not set"}
+                </div>
                 <div>
                   <span className="text-gray-400">Location / Address:</span> {project.location || "Not specified"}
                 </div>
@@ -827,7 +852,94 @@ export function ProjectDetailsClient({
         </div>
       )}
 
-      {/* TAB 5: TRANSPORTATION MODULE */}
+      {/* TAB: FIRE EXTINGUISHERS */}
+      {activeTab === "fireExtinguishers" && (
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 space-y-4 shadow-sm">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Assigned Fire Extinguisher Units</h3>
+              <p className="text-xs text-gray-500">Track physical fire extinguishers currently or previously deployed to this project site.</p>
+            </div>
+            <Link
+              href="/fire-extinguishers/assignments"
+              className="px-3.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
+            >
+              Manage Extinguishers
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+              <thead className="bg-gray-50 dark:bg-gray-800 uppercase font-semibold text-[11px]">
+                <tr>
+                  <th className="px-4 py-3">Unit Code</th>
+                  <th className="px-4 py-3">Item Description</th>
+                  <th className="px-4 py-3">Capacity / Unit</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Assigned Date</th>
+                  <th className="px-4 py-3">Refill Due / Expiry</th>
+                  <th className="px-4 py-3">Specific Location</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                {(!projectFireExtinguishers || projectFireExtinguishers.length === 0) ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-6 text-gray-500">
+                      No fire extinguisher units assigned to this project yet.
+                    </td>
+                  </tr>
+                ) : (
+                  projectFireExtinguishers.map((assign: any) => {
+                    const unit = assign.fireExtinguisherUnit;
+                    const refillDue = unit.expiryDate ? new Date(unit.expiryDate).toLocaleDateString() : "N/A";
+
+                    return (
+                      <tr key={assign.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <td className="px-4 py-3 font-bold text-gray-900 dark:text-gray-100 font-mono">
+                          🔥 {unit.unitCode}
+                        </td>
+                        <td className="px-4 py-3 font-semibold text-gray-900 dark:text-gray-100">
+                          {unit.inventory.name}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 font-mono">
+                          {unit.inventory.unit}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            assign.status === "ACTIVE"
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                              : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                          }`}>
+                            {assign.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 font-mono">
+                          {new Date(assign.assignedDate).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 font-mono font-medium text-gray-700 dark:text-gray-300">
+                          Refill Due: {refillDue}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                          {assign.location || project.location || "Project Site"}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            href={`/fire-extinguishers/${encodeURIComponent(unit.unitCode)}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-md transition-colors"
+                          >
+                            View Details
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
       {activeTab === "transport" && (
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 space-y-4 shadow-sm">
           <div className="flex justify-between items-center">

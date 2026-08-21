@@ -83,6 +83,7 @@ export async function createProjectService(input: CreateProjectInput, userId: st
         projectName: input.projectName,
         customerId: input.customerId,
         projectManagerId: input.projectManagerId,
+        projectType: input.projectType ?? "PRIVATE",
         location: input.location || null,
         startDate: input.startDate ? new Date(input.startDate) : null,
         endDate: input.endDate ? new Date(input.endDate) : null,
@@ -590,6 +591,33 @@ export async function issueMaterialsFIFOService(input: IssueMaterialsFIFOInput, 
           status: "ASSIGNED",
         },
       });
+
+      // Auto-assign any AVAILABLE FireExtinguisherUnits for this inventory item to the Project
+      const availableFEUnits = await tx.fireExtinguisherUnit.findMany({
+        where: {
+          inventoryId: itemData.inventoryId,
+          status: "AVAILABLE",
+        },
+        take: Math.max(1, Math.floor(itemData.qty)),
+      });
+
+      for (const feUnit of availableFEUnits) {
+        await tx.fireExtinguisherUnit.update({
+          where: { id: feUnit.id },
+          data: { status: "ASSIGNED" },
+        });
+
+        await tx.fireExtinguisherAssignment.create({
+          data: {
+            fireExtinguisherUnitId: feUnit.id,
+            projectId: request.projectId,
+            assignedDate: new Date(),
+            location: request.project.location || "Project Site",
+            status: "ACTIVE",
+            notes: `Issued to project via Stock Issue #${issueNo}`,
+          },
+        });
+      }
 
       // Update MaterialRequestItem.qtyIssued
       const reqItem = request.items.find((i) => i.id === itemData.requestItemId);

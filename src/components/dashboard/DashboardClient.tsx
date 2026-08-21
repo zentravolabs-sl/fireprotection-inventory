@@ -25,6 +25,7 @@ import { InventoryOverviewWidget } from "./InventoryOverviewWidget";
 import { FinancialOverviewWidget } from "./FinancialOverviewWidget";
 import { PendingActionsWidget } from "./PendingActionsWidget";
 import { RecentProjectsTable } from "./RecentProjectsTable";
+import { FireExtinguisherDashboardWidget } from "./FireExtinguisherDashboardWidget";
 
 interface DashboardClientProps {
   userName: string;
@@ -90,6 +91,9 @@ export function DashboardClient({
 
       {/* ── 2. KPI CARDS SECTION (8 CARDS GRID) ───────────────────────── */}
       <KPICards kpis={kpis} />
+
+      {/* ── FIRE EXTINGUISHER SUMMARY & STATS ─────────────────────────── */}
+      <FireExtinguisherDashboardWidget />
 
       {/* ── 3. PROJECT OVERVIEW & PROJECT PROGRESS (EQUAL HEIGHT GRID) ─ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">

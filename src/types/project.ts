@@ -12,6 +12,8 @@ export type ProjectStatus =
   | "COMPLETED"
   | "CANCELLED";
 
+export type ProjectType = "GOVERNMENT" | "PRIVATE";
+
 export type MaterialRequestStatus =
   | "PENDING"
   | "PENDING_GM"
@@ -273,6 +275,7 @@ export interface ProjectWithDetails {
   startDate?: Date | null;
   endDate?: Date | null;
   status: ProjectStatus;
+  projectType: ProjectType;
   description?: string | null;
 
   projectValue: number;
