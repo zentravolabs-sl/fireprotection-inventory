@@ -25,7 +25,7 @@ export default async function ClientDeliveriesPage() {
   const userRole = session?.user?.role || "USER";
   const canDeliver = userRole === "SUPER_ADMIN" || userRole === "ADMIN" || permissions.has("fire_extinguisher.deliver");
 
-  const [rawDeliveries, rawCustomers, rawAvailableUnits] = await Promise.all([
+  const [rawDeliveries, rawCustomers, rawProjects, rawSelectableUnits] = await Promise.all([
     prisma.deliveryNote.findMany({
       include: {
         customer: true,
@@ -43,16 +43,33 @@ export default async function ClientDeliveriesPage() {
     prisma.customer.findMany({
       orderBy: { companyName: "asc" },
     }),
+    prisma.project.findMany({
+      where: { status: { notIn: ["COMPLETED", "CANCELLED"] } },
+      select: { id: true, projectCode: true, projectName: true, customerId: true },
+      orderBy: { projectName: "asc" },
+    }),
+    // Fetch AVAILABLE units (warehouse stock) AND ASSIGNED units (already deployed)
     prisma.fireExtinguisherUnit.findMany({
-      where: { status: "AVAILABLE" },
+      where: { status: { in: ["AVAILABLE", "ASSIGNED"] } },
       include: {
         inventory: {
           select: { name: true, itemCode: true, unit: true },
         },
+        // Include active assignment info to show "already assigned to X" in the modal
+        assignments: {
+          where: { status: { in: ["ACTIVE", "UNDER_REFILL"] } },
+          include: {
+            customer: { select: { id: true, companyName: true } },
+            project: { select: { id: true, projectCode: true, projectName: true } },
+          },
+          orderBy: { assignedDate: "desc" },
+          take: 1,
+        },
       },
-      orderBy: { unitCode: "asc" },
+      orderBy: [{ status: "asc" }, { unitCode: "asc" }],
     }),
   ]);
+
 
   const deliveries = rawDeliveries.map((d) => ({
     ...d,
@@ -69,9 +86,14 @@ export default async function ClientDeliveriesPage() {
     })),
   }));
 
-  const availableUnits = rawAvailableUnits.map((u) => ({
+  const availableUnits = rawSelectableUnits.map((u) => ({
     ...u,
     expiryDate: u.expiryDate ? u.expiryDate.toISOString() : null,
+    assignments: u.assignments.map((a) => ({
+      ...a,
+      assignedDate: a.assignedDate.toISOString(),
+      returnedDate: a.returnedDate ? a.returnedDate.toISOString() : null,
+    })),
   }));
 
   return (
@@ -105,9 +127,11 @@ export default async function ClientDeliveriesPage() {
         <ClientDeliveriesClient
           initialDeliveries={deliveries as any}
           customers={rawCustomers as any}
+          projects={rawProjects as any}
           availableUnits={availableUnits as any}
           canDeliver={canDeliver}
         />
+
       </div>
     </div>
   );

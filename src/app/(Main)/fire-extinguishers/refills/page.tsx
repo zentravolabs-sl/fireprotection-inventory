@@ -46,11 +46,12 @@ export default async function RefillsPage() {
         fireExtinguisherUnit: {
           include: { inventory: true },
         },
-        project: { select: { projectName: true, projectCode: true } },
-        customer: { select: { companyName: true } },
+        project: { select: { id: true, projectName: true, projectCode: true } },
+        customer: { select: { id: true, companyName: true } },
       },
       orderBy: { assignedDate: "desc" },
     }),
+
     prisma.fireExtinguisherUnit.findMany({
       where: { status: "AVAILABLE" },
       include: { inventory: true },
