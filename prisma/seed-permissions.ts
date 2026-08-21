@@ -120,6 +120,18 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { key: "fire_extinguisher.return", name: "Return Fire Extinguishers", module: "Fire Extinguishers", description: "Return assigned fire extinguishers back to warehouse" },
   { key: "fire_extinguisher.manage", name: "Manage Fire Extinguishers", module: "Fire Extinguishers", description: "Register and manage physical fire extinguisher master units" },
 
+  // ── Customer Refills Module ──
+  { key: "customerRefills.view", name: "View Customer Refills", module: "Customer Refills", description: "View customer-owned fire extinguisher refill jobs" },
+  { key: "customerRefills.create", name: "Create Customer Refill", module: "Customer Refills", description: "Create customer refill job drafts" },
+  { key: "customerRefills.edit", name: "Edit Customer Refill", module: "Customer Refills", description: "Edit customer refill job details" },
+  { key: "customerRefills.receive", name: "Receive Customer Items", module: "Customer Refills", description: "Receive customer-owned fire extinguishers for refill" },
+  { key: "customerRefills.issueReplacement", name: "Issue Temporary Replacement", module: "Customer Refills", description: "Issue warehouse inventory as temporary replacements" },
+  { key: "customerRefills.startRefill", name: "Start Customer Refill", module: "Customer Refills", description: "Mark customer refill job as in-progress" },
+  { key: "customerRefills.complete", name: "Complete Customer Refill", module: "Customer Refills", description: "Complete refill job and return customer extinguishers" },
+  { key: "customerRefills.returnReplacement", name: "Return Temporary Replacement", module: "Customer Refills", description: "Receive returned temporary replacement stock back to warehouse" },
+  { key: "customerRefills.print", name: "Print Customer Refill Receipt", module: "Customer Refills", description: "Print customer refill receipts" },
+  { key: "customerRefills.downloadPdf", name: "Download Customer Refill Receipt PDF", module: "Customer Refills", description: "Download PDF customer refill receipts" },
+
   // ── Audit & Notifications ──
   { key: "audit_log.view", name: "View Audit Log", module: "Audit Log", description: "View security audit trails and system logs" },
   { key: "notification.view", name: "View Notifications", module: "Notifications", description: "View in-app alerts and notifications" },
@@ -140,6 +152,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "tool.view", "tool.create", "tool.edit", "tool.delete", "tool.assign", "tool.transfer", "tool.return",
     "project_transfer.view", "project_transfer.create", "project_transfer.approve", "project_transfer.complete", "project_transfer.cancel",
     "fire_extinguisher.view", "fire_extinguisher.assign", "fire_extinguisher.deliver", "fire_extinguisher.refill", "fire_extinguisher.return", "fire_extinguisher.manage",
+    "customerRefills.view", "customerRefills.create", "customerRefills.edit", "customerRefills.receive", "customerRefills.issueReplacement", "customerRefills.startRefill", "customerRefills.complete", "customerRefills.returnReplacement", "customerRefills.print", "customerRefills.downloadPdf",
     "report.view", "report.project", "report.inventory", "report.financial",
     "user.view", "user.create", "user.edit", "user.delete",
     "role.view", "role.manage",
@@ -160,6 +173,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "customer.view", "customer.create", "customer.edit", "customer.delete",
     "project_transfer.view", "project_transfer.create", "project_transfer.approve", "project_transfer.complete", "project_transfer.cancel",
     "fire_extinguisher.view", "fire_extinguisher.assign", "fire_extinguisher.deliver", "fire_extinguisher.refill", "fire_extinguisher.return", "fire_extinguisher.manage",
+    "customerRefills.view", "customerRefills.create", "customerRefills.edit", "customerRefills.receive", "customerRefills.issueReplacement", "customerRefills.startRefill", "customerRefills.complete", "customerRefills.returnReplacement", "customerRefills.print", "customerRefills.downloadPdf",
     "report.view", "report.project", "report.inventory", "report.financial",
     "user.view", "user.create", "user.edit",
     "role.view", "role.manage",

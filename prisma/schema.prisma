@@ -59,6 +59,8 @@ enum ReferenceType {
   DELIVERY_NOTE
   FIRE_EXTINGUISHER_REFILL
   FIRE_EXTINGUISHER_RETURN
+  CUSTOMER_REFILL_TEMPORARY_REPLACEMENT
+  CUSTOMER_REFILL_TEMPORARY_REPLACEMENT_RETURN
 }
 
 // ============================================================
@@ -95,6 +97,21 @@ enum RefillStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+}
+
+enum CustomerRefillStatus {
+  DRAFT
+  RECEIVED
+  IN_PROGRESS
+  READY_TO_RETURN
+  COMPLETED
+  CANCELLED
+}
+
+enum ReplacementStatus {
+  ISSUED
+  PARTIALLY_RETURNED
+  RETURNED
 }
 
 /// Pipe cut piece lifecycle states.
@@ -189,6 +206,7 @@ model User {
   transfersRequested        ProjectTransfer[]   @relation("TransferRequestedBy")
   transfersApproved         ProjectTransfer[]   @relation("TransferApprovedBy")
   deliveryNotesCreated      DeliveryNote[]      @relation("DeliveryNoteCreatedBy")
+  createdCustomerRefills    CustomerRefill[]    @relation("CustomerRefillCreatedBy")
 
   @@index([email])
   @@index([role])
@@ -407,7 +425,8 @@ model Inventory {
   projectMaterials     ProjectMaterial[]
   materialReturnItems  MaterialReturnItem[]
   projectTransferItems ProjectTransferItem[]
-  fireExtinguisherUnits FireExtinguisherUnit[]
+  fireExtinguisherUnits      FireExtinguisherUnit[]
+  customerRefillReplacements CustomerRefillReplacement[]
 
   @@index([itemCode])
   @@index([barcode])
@@ -631,6 +650,7 @@ model Customer {
   projects                    Project[]
   fireExtinguisherAssignments FireExtinguisherAssignment[]
   deliveryNotes               DeliveryNote[]
+  customerRefills             CustomerRefill[]  @relation("CustomerRefillForCustomer")
 
   @@index([companyName])
   @@index([contactPerson])
@@ -1446,3 +1466,79 @@ model ExtinguisherRefill {
   @@map("extinguisher_refill")
 }
 
+// ============================================================
+// Customer-Owned Fire Extinguisher Refill Models
+// ============================================================
+
+/// Refill job for customer-owned fire extinguishers.
+/// Customer-owned items NEVER affect warehouse stock or Inventory.
+model CustomerRefill {
+  id            Int                  @id @default(autoincrement())
+  refillNo      String               @unique
+  customerId    Int
+  receivedDate  DateTime             @default(now())
+  completedDate DateTime?
+  status        CustomerRefillStatus @default(DRAFT)
+  notes         String?
+  createdById   String?
+
+  customer  Customer @relation("CustomerRefillForCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  createdBy User?    @relation("CustomerRefillCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  items        CustomerRefillItem[]
+  replacements CustomerRefillReplacement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([receivedDate])
+  @@map("customer_refill")
+}
+
+/// Line items: customer-owned extinguishers received for refill.
+/// These NEVER create StockMovement, StockBatch, Inventory, or Physical Unit records.
+model CustomerRefillItem {
+  id               Int    @id @default(autoincrement())
+  customerRefillId Int
+  extinguisherType String
+  capacity         String?
+  receivedQty      Float
+  returnedQty      Float  @default(0)
+  notes            String?
+
+  customerRefill CustomerRefill @relation(fields: [customerRefillId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerRefillId])
+  @@map("customer_refill_item")
+}
+
+/// Temporary replacements issued from OUR warehouse while customer extinguishers are refilled.
+/// Issue creates StockMovement OUT (CUSTOMER_REFILL_TEMPORARY_REPLACEMENT).
+/// Return creates StockMovement IN (CUSTOMER_REFILL_TEMPORARY_REPLACEMENT_RETURN).
+model CustomerRefillReplacement {
+  id               Int               @id @default(autoincrement())
+  customerRefillId Int
+  inventoryId      Int
+  issuedQty        Float
+  returnedQty      Float             @default(0)
+  status           ReplacementStatus @default(ISSUED)
+  issuedDate       DateTime          @default(now())
+  returnedDate     DateTime?
+  notes            String?
+
+  customerRefill CustomerRefill @relation(fields: [customerRefillId], references: [id], onDelete: Cascade)
+  inventory      Inventory      @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerRefillId])
+  @@index([inventoryId])
+  @@index([status])
+  @@map("customer_refill_replacement")
+}
