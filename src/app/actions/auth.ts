@@ -29,6 +29,7 @@ import type { ActionState } from "@/types/auth";
 /**
  * Write an immutable entry to the AuditLog table.
  */
+
 async function logAuditEvent(
   action: string,
   userId: string | null,
@@ -149,7 +150,10 @@ export async function registerAction(
     });
 
     if (!response?.user) {
-      return { success: false, message: "Registration failed. Please try again." };
+      return {
+        success: false,
+        message: "Registration failed. Please try again.",
+      };
     }
 
     await logAuditEvent("USER_REGISTER", response.user.id, { email, name });
@@ -225,7 +229,9 @@ export async function forgotPasswordAction(
       where: { email },
       select: { id: true },
     });
-    await logAuditEvent("PASSWORD_RESET_REQUESTED", user?.id ?? null, { email });
+    await logAuditEvent("PASSWORD_RESET_REQUESTED", user?.id ?? null, {
+      email,
+    });
 
     // Always return success to prevent email enumeration attacks
     return {
@@ -295,7 +301,10 @@ export async function changePasswordAction(
       headers: await headers(),
     });
     if (!session) {
-      return { success: false, message: "You must be signed in to change your password." };
+      return {
+        success: false,
+        message: "You must be signed in to change your password.",
+      };
     }
 
     const raw = {
@@ -334,7 +343,8 @@ export async function changePasswordAction(
 
     return {
       success: true,
-      message: "Password changed successfully. Other sessions have been signed out.",
+      message:
+        "Password changed successfully. Other sessions have been signed out.",
     };
   });
 }
