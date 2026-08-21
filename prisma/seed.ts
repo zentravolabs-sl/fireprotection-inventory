@@ -22,16 +22,16 @@ type SeedUser = {
 };
 
 const adminUsers: SeedUser[] = [
-  { name: "Super Admin",  email: "superadmin@example.com", password: "SuperAdmin@123", role: "SUPER_ADMIN" },
-  { name: "Admin 1",      email: "admin1@example.com",     password: "Admin@123",      role: "ADMIN"       },
-  { name: "Admin 2",      email: "admin2@example.com",     password: "Admin@123",      role: "ADMIN"       },
+  { name: "Super Admin", email: "superadmin@example.com", password: "SuperAdmin@123", role: "SUPER_ADMIN" },
+  { name: "Admin 1", email: "admin1@example.com", password: "Admin@123", role: "ADMIN" },
+  { name: "Admin 2", email: "admin2@example.com", password: "Admin@123", role: "ADMIN" },
 ];
 
 const demoUsers: SeedUser[] = Array.from({ length: 5 }, (_, i) => ({
-  name:     `Demo User ${i + 1}`,
-  email:    `user${i + 1}@example.com`,
+  name: `Demo User ${i + 1}`,
+  email: `user${i + 1}@example.com`,
   password: "User@123",
-  role:     "USER" as const,
+  role: "USER" as const,
 }));
 
 const allUsers: SeedUser[] = [...adminUsers, ...demoUsers];
@@ -54,29 +54,29 @@ async function main() {
       const hashedPassword = await hashPassword(seed.password);
       user = await prisma.user.create({
         data: {
-          name:          seed.name,
-          email:         seed.email,
-          password:      hashedPassword,
-          role:          seed.role,
+          name: seed.name,
+          email: seed.email,
+          password: hashedPassword,
+          role: seed.role,
           emailVerified: true,
-          isActive:      true,
+          isActive: true,
         },
         select: { id: true, role: true },
       });
 
       await prisma.account.create({
         data: {
-          userId:     user.id,
-          accountId:  user.id,
+          userId: user.id,
+          accountId: user.id,
           providerId: "credential",
-          password:   hashedPassword,
+          password: hashedPassword,
         },
       });
 
       await prisma.auditLog.create({
         data: {
-          action:   "USER_SEEDED",
-          userId:   user.id,
+          action: "USER_SEEDED",
+          userId: user.id,
           metadata: { email: seed.email, role: seed.role, seededAt: new Date().toISOString() },
         },
       });
