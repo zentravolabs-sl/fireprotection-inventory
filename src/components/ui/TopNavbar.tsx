@@ -62,10 +62,18 @@ const roleStyles: Record<string, string> = {
     "bg-purple-900/40 text-purple-300 border border-purple-700/40",
   ADMIN:
     "bg-blue-900/40 text-blue-300 border border-blue-700/40",
+  CEO:
+    "bg-rose-900/40 text-rose-300 border border-rose-700/40",
   GENERAL_MANAGER:
     "bg-orange-900/40 text-orange-300 border border-orange-700/40",
   PROJECT_MANAGER:
     "bg-green-900/40 text-green-300 border border-green-700/40",
+  QS_ENGINEER:
+    "bg-teal-900/40 text-teal-300 border border-teal-700/40",
+  PURCHASE_ENGINEER:
+    "bg-indigo-900/40 text-indigo-300 border border-indigo-700/40",
+  INVENTORY_CONTROLLER:
+    "bg-sky-900/40 text-sky-300 border border-sky-700/40",
   ENGINEER:
     "bg-cyan-900/40 text-cyan-300 border border-cyan-700/40",
   ACCOUNTANT:

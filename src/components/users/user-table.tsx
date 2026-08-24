@@ -51,8 +51,12 @@ interface ActionMenuProps {
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "SUPER_ADMIN", label: "Super Admin" },
   { value: "ADMIN", label: "Admin" },
+  { value: "CEO", label: "CEO" },
   { value: "GENERAL_MANAGER", label: "General Manager" },
   { value: "PROJECT_MANAGER", label: "Project Manager" },
+  { value: "QS_ENGINEER", label: "QS Engineer" },
+  { value: "PURCHASE_ENGINEER", label: "Purchase Engineer" },
+  { value: "INVENTORY_CONTROLLER", label: "Inventory Controller" },
   { value: "ENGINEER", label: "Engineer" },
   { value: "ACCOUNTANT", label: "Accountant" },
   { value: "USER", label: "User" },

@@ -28,8 +28,12 @@ interface RolePermissionMatrixProps {
 const CONCONFIGURABLE_ROLES: { role: UserRole; label: string; badgeColor: string; locked?: boolean }[] = [
   { role: "SUPER_ADMIN", label: "Super Admin", badgeColor: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300", locked: true },
   { role: "ADMIN", label: "Admin", badgeColor: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300" },
-  { role: "GENERAL_MANAGER", label: "General Manager", badgeColor: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" },
+  { role: "CEO", label: "CEO", badgeColor: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300" },
+  { role: "GENERAL_MANAGER", label: "General Manager", badgeColor: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300" },
   { role: "PROJECT_MANAGER", label: "Project Manager", badgeColor: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300" },
+  { role: "QS_ENGINEER", label: "QS Engineer", badgeColor: "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300" },
+  { role: "PURCHASE_ENGINEER", label: "Purchase Engineer", badgeColor: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300" },
+  { role: "INVENTORY_CONTROLLER", label: "Inventory Controller", badgeColor: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300" },
   { role: "ENGINEER", label: "Site Engineer", badgeColor: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" },
   { role: "ACCOUNTANT", label: "Accountant", badgeColor: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
   { role: "USER", label: "Standard User", badgeColor: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },

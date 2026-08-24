@@ -50,6 +50,7 @@ interface AssignedToolsTabProps {
   engineers: Engineer[];
   toolAssignments: ToolAssignment[];
   isSuperAdmin?: boolean;
+  currentUserRole?: string;
 }
 
 function formatDate(date: Date | null | undefined) {
@@ -97,7 +98,9 @@ export function AssignedToolsTab({
   engineers,
   toolAssignments,
   isSuperAdmin = false,
+  currentUserRole = "USER",
 }: AssignedToolsTabProps) {
+  const canAssignTool = isSuperAdmin || currentUserRole === "ENGINEER";
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [returnTarget, setReturnTarget] = useState<AssignedToolItem | null>(null);
 
@@ -128,7 +131,7 @@ export function AssignedToolsTab({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {isSuperAdmin && (
+          {canAssignTool && (
             <button
               onClick={() => setIsAssignOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"

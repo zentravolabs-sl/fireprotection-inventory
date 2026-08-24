@@ -39,6 +39,7 @@ export default async function MaterialRequestsPage(props: PageProps) {
     page,
     limit: 10,
     ...(userRole === "ENGINEER" ? { engineerId: userId } : {}),
+    ...(userRole === "PROJECT_MANAGER" ? { projectManagerId: userId } : {}),
   });
 
   return (

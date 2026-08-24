@@ -180,6 +180,22 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "audit_log.view", "notification.view",
   ],
 
+  CEO: [
+    "project.view", "project.create", "project.edit", "project.complete",
+    "inventory.view",
+    "stock.view_history", "stock.transfer",
+    "material_request.view", "material_request.approve", "material_request.reject",
+    "labour.view", "labour.manage_cost",
+    "project_staff.view",
+    "expiry.view", "expiry.report",
+    "report.view", "report.project", "report.inventory", "report.financial",
+    "tool.view", "supplier.view", "customer.view",
+    "project_transfer.view", "project_transfer.approve",
+    "fire_extinguisher.view",
+    "user.view", "role.view",
+    "audit_log.view", "notification.view",
+  ],
+
   GENERAL_MANAGER: [
     "project.view", "project.create", "project.edit", "project.complete",
     "inventory.view",
@@ -193,6 +209,39 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "project_transfer.view", "project_transfer.approve",
     "fire_extinguisher.view",
     "audit_log.view", "notification.view",
+  ],
+
+  QS_ENGINEER: [
+    "project.view", "project.edit",
+    "material_request.view", "material_request.create", "material_request.edit", "material_request.submit", "material_request.approve",
+    "labour.view", "labour.manage_cost",
+    "project_staff.view",
+    "inventory.view", "stock.view_history",
+    "report.view", "report.project", "report.inventory", "report.financial",
+    "supplier.view", "customer.view", "notification.view",
+  ],
+
+  PURCHASE_ENGINEER: [
+    "project.view",
+    "inventory.view", "inventory.create", "inventory.edit",
+    "stock.receive", "stock.view_history", "stock.return",
+    "material_request.view", "material_request.approve", "material_request.reject",
+    "supplier.view", "supplier.create", "supplier.edit",
+    "customer.view",
+    "report.view", "report.inventory", "notification.view",
+  ],
+
+  INVENTORY_CONTROLLER: [
+    "project.view",
+    "inventory.view", "inventory.create", "inventory.edit", "inventory.delete",
+    "stock.receive", "stock.issue", "stock.return", "stock.transfer", "stock.adjust", "stock.view_history",
+    "material_request.view", "material_request.approve",
+    "tool.view", "tool.create", "tool.edit", "tool.assign", "tool.transfer", "tool.return",
+    "project_transfer.view", "project_transfer.create", "project_transfer.approve", "project_transfer.complete",
+    "fire_extinguisher.view", "fire_extinguisher.assign", "fire_extinguisher.deliver", "fire_extinguisher.refill", "fire_extinguisher.return", "fire_extinguisher.manage",
+    "customerRefills.view", "customerRefills.create", "customerRefills.edit", "customerRefills.receive", "customerRefills.issueReplacement", "customerRefills.startRefill", "customerRefills.complete", "customerRefills.returnReplacement", "customerRefills.print", "customerRefills.downloadPdf",
+    "expiry.view", "expiry.manage", "expiry.quarantine", "expiry.report",
+    "supplier.view", "report.inventory", "notification.view",
   ],
 
   PROJECT_MANAGER: [

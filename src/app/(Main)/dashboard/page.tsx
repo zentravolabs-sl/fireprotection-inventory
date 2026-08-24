@@ -237,8 +237,8 @@ export default async function DashboardPage() {
     );
   }
 
-  // ── GENERAL_MANAGER SPECIFIC EXECUTIVE DASHBOARD ─────────────────────────
-  if (user.role === "GENERAL_MANAGER") {
+  // ── GENERAL_MANAGER & CEO SPECIFIC EXECUTIVE DASHBOARD ───────────────────
+  if (user.role === "GENERAL_MANAGER" || user.role === "CEO") {
     const [
       gmKpis,
       performancePoints,
