@@ -53,6 +53,7 @@ export async function findMaterialRequests(params: {
   status?: MaterialRequestStatus;
   projectId?: number;
   engineerId?: string;
+  projectManagerId?: string;
   page?: number;
   limit?: number;
 }) {
@@ -75,6 +76,11 @@ export async function findMaterialRequests(params: {
         { engineerId: params.engineerId },
         { project: { engineers: { some: { engineerId: params.engineerId } } } },
       ],
+    });
+  }
+  if (params.projectManagerId) {
+    conditions.push({
+      project: { projectManagerId: params.projectManagerId },
     });
   }
   if (params.search && params.search.trim() !== "") {

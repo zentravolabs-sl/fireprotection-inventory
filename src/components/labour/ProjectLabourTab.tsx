@@ -194,6 +194,8 @@ export function ProjectLabourTab({
   const isAdminOrPM = currentUserRole === "SUPER_ADMIN" || currentUserRole === "ADMIN" || currentUserRole === "PROJECT_MANAGER";
   // Hide all cost/financial data from Engineers and Project Managers
   const hideFinancials = currentUserRole === "ENGINEER" || currentUserRole === "PROJECT_MANAGER";
+  // Hide assign/release actions from Engineers
+  const isEngineer = currentUserRole === "ENGINEER";
 
   // ── Grouping by Unique Worker (NO DUPLICATES) ────────────────────────────
   const groupedWorkersMap = new Map<number, GroupedLabourWorker>();
@@ -394,7 +396,7 @@ export function ProjectLabourTab({
         </div>
 
         {/* Action Buttons */}
-        {!isClosed && (
+        {!isClosed && !isEngineer && (
           <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
@@ -624,7 +626,7 @@ export function ProjectLabourTab({
                   Active Workers Currently On Site ({activeAssignments.length})
                 </h3>
               </div>
-              {!isClosed && (
+              {!isClosed && !isEngineer && (
                 <button
                   type="button"
                   onClick={() => setIsAssignOpen(true)}
@@ -669,7 +671,7 @@ export function ProjectLabourTab({
                           {plOTTotal > 0 && <span className="block font-bold text-orange-600">OT: {LKR(plOTTotal)}</span>}
                         </div>
                       )}
-                      {!isClosed && (
+                      {!isClosed && !isEngineer && (
                         <button
                           type="button"
                           onClick={() => setReleaseTarget(pl)}

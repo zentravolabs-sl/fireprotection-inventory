@@ -224,7 +224,6 @@ const NAV_GROUPS_STATIC: NavGroup[] = [
       { label: "Tools",             href: "/tools",             icon: Icons.tools,            permission: "tool.view" },
       { label: "Suppliers",         href: "/suppliers",         icon: Icons.suppliers,        permission: "supplier.view" },
       { label: "Customers",         href: "/customers",         icon: Icons.customers,        permission: "customer.view" },
-      { label: "Quotations",        href: "/quotations",        icon: Icons.quotations,       permission: "project.view" },
     ],
   },
   {
@@ -249,7 +248,6 @@ const NAV_GROUPS_STATIC: NavGroup[] = [
     items: [
       { label: "Reports",           href: "/reports",           icon: Icons.reports,          permission: "report.view" },
       { label: "Users & Roles",     href: "/users-roles",       icon: Icons.users,            permission: "user.view" },
-      { label: "Audit Log",         href: "/audit-log",         icon: Icons.audit,            permission: "audit_log.view" },
     ],
   },
 ];
@@ -368,39 +366,11 @@ export function Sidebar() {
   if (userRole === "ENGINEER") {
     NAV_GROUPS = [
       {
-        title: "MY WORK",
+        title: "PROJECT MANAGEMENT",
         items: [
-          { label: "My Projects", href: "/projects", icon: Icons.projects },
-          { label: "My Tasks", href: "/projects", icon: Icons.materialRequests },
-          { label: "Today's Tasks", href: "/projects", icon: Icons.materialRequests },
-          { label: "Upcoming Tasks", href: "/projects", icon: Icons.expiry },
-        ],
-      },
-      {
-        title: "SITE WORK",
-        items: [
-          { label: "Inspections", href: "/projects", icon: Icons.audit },
-          { label: "Site Issues", href: "/projects", icon: Icons.audit },
-          { label: "Site Activities", href: "/audit-log", icon: Icons.audit },
-        ],
-      },
-      {
-        title: "MATERIALS",
-        items: [
-          { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests, badge: pendingMRCount > 0 ? pendingMRCount : undefined },
-        ],
-      },
-      {
-        title: "REPORTS",
-        items: [
-          { label: "My Reports", href: "/reports", icon: Icons.reports },
-        ],
-      },
-      {
-        title: "OTHER",
-        items: [
-          { label: "Notifications", href: "/dashboard", icon: Icons.expiry },
-          { label: "Profile", href: "/dashboard", icon: Icons.users },
+          { label: "My Projects",       href: "/projects",          icon: Icons.projects },
+          { label: "Material Reque...", href: "/material-requests", icon: Icons.materialRequests, badge: pendingMRCount > 0 ? pendingMRCount : undefined },
+          { label: "Project Stock",     href: "/project-stock",     icon: Icons.projectStock },
         ],
       },
     ];
@@ -409,36 +379,13 @@ export function Sidebar() {
       {
         title: "PROJECT MANAGEMENT",
         items: [
-          { label: "My Projects", href: "/projects", icon: Icons.projects },
-          { label: "Tasks", href: "/projects", icon: Icons.materialRequests },
-          { label: "Team", href: "/users-roles", icon: Icons.users },
-          { label: "Deadlines", href: "/projects", icon: Icons.expiry },
-          { label: "Issues", href: "/projects", icon: Icons.audit },
-        ],
-      },
-      {
-        title: "MATERIALS",
-        items: [
-          { label: "Material Requests", href: "/material-requests", icon: Icons.materialRequests, badge: pendingMRCount > 0 ? pendingMRCount : undefined },
-          { label: "Inventory", href: "/inventory", icon: Icons.inventory },
-        ],
-      },
-      {
-        title: "REPORTS",
-        items: [
-          { label: "Project Reports", href: "/reports", icon: Icons.reports },
-          { label: "Progress Reports", href: "/reports", icon: Icons.reports },
-        ],
-      },
-      {
-        title: "OTHER",
-        items: [
-          { label: "Notifications", href: "/dashboard", icon: Icons.expiry },
-          { label: "Profile", href: "/dashboard", icon: Icons.users },
+          { label: "My Projects",       href: "/projects",          icon: Icons.projects },
+          { label: "Material Reque...", href: "/material-requests", icon: Icons.materialRequests, badge: pendingMRCount > 0 ? pendingMRCount : undefined },
+          { label: "Project Stock",     href: "/project-stock",     icon: Icons.projectStock },
         ],
       },
     ];
-  } else if (userRole === "GENERAL_MANAGER") {
+  } else if (userRole === "GENERAL_MANAGER" || userRole === "CEO") {
     NAV_GROUPS = [
       {
         title: "MANAGEMENT",

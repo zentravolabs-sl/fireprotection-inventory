@@ -615,6 +615,7 @@ export function ProjectDetailsClient({
           }))}
           toolAssignments={toolAssignments}
           isSuperAdmin={isSuperAdmin}
+          currentUserRole={currentUserRole}
         />
       )}
 
@@ -860,12 +861,14 @@ export function ProjectDetailsClient({
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Assigned Fire Extinguisher Units</h3>
               <p className="text-xs text-gray-500">Track physical fire extinguishers currently or previously deployed to this project site.</p>
             </div>
-            <Link
-              href="/fire-extinguishers/assignments"
-              className="px-3.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
-            >
-              Manage Extinguishers
-            </Link>
+            {!isEngineerRole && (
+              <Link
+                href="/fire-extinguishers/assignments"
+                className="px-3.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-colors"
+              >
+                Manage Extinguishers
+              </Link>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -1222,12 +1225,14 @@ export function ProjectDetailsClient({
                 Direct stock movements between this project and other projects.
               </p>
             </div>
-            <button
-              onClick={() => setIsCreateTransferOpen(true)}
-              className="px-3.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm"
-            >
-              + Transfer to Project
-            </button>
+            {!isEngineerRole && (
+              <button
+                onClick={() => setIsCreateTransferOpen(true)}
+                className="px-3.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm"
+              >
+                + Transfer to Project
+              </button>
+            )}
           </div>
 
           <div className="overflow-x-auto">

@@ -663,8 +663,12 @@ export async function getRolePermissionsMatrix(): Promise<ActionState<RolePermis
     const roleMap: Record<string, number[]> = {
       SUPER_ADMIN: allPermissions.map((p) => p.id),
       ADMIN: [],
+      CEO: [],
       GENERAL_MANAGER: [],
       PROJECT_MANAGER: [],
+      QS_ENGINEER: [],
+      PURCHASE_ENGINEER: [],
+      INVENTORY_CONTROLLER: [],
       ENGINEER: [],
       ACCOUNTANT: [],
       USER: [],

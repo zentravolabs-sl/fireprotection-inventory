@@ -56,6 +56,14 @@ export default async function ProjectStockPage(props: PageProps) {
     });
   }
 
+  if (userRole === "PROJECT_MANAGER") {
+    conditions.push({
+      project: {
+        projectManagerId: userId,
+      },
+    });
+  }
+
   const whereCondition = conditions.length > 0 ? { AND: conditions } : {};
 
   const total = await prisma.projectMaterial.count({

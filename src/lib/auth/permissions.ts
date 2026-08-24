@@ -98,8 +98,12 @@ export async function hasProjectAccess(
   if (
     role === "SUPER_ADMIN" ||
     role === "ADMIN" ||
+    role === "CEO" ||
     role === "GENERAL_MANAGER" ||
-    role === "ACCOUNTANT"
+    role === "ACCOUNTANT" ||
+    role === "INVENTORY_CONTROLLER" ||
+    role === "PURCHASE_ENGINEER" ||
+    role === "QS_ENGINEER"
   ) {
     return true;
   }
