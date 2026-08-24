@@ -36,6 +36,8 @@ export const completeReturnSchema = z.object({
     z.object({
       itemId: z.number().int().min(1),
       returnQty: z.number().min(0),
+      refillDate: z.string().optional().nullable(),
+      expireDate: z.string().optional().nullable(),
     })
   ),
   returnedReplacements: z
@@ -49,3 +51,4 @@ export const completeReturnSchema = z.object({
     .default([]),
   notes: z.string().optional().nullable(),
 });
+

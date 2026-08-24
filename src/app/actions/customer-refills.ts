@@ -22,6 +22,7 @@ import {
   completeRefillReturnService,
   getCustomerRefillsService,
   getCustomerRefillByIdService,
+  getExpiringRefillItemsService,
 } from "@/lib/services/customerRefillService";
 import type { ActionState } from "@/types/auth";
 
@@ -138,6 +139,16 @@ export async function getCustomerRefillByIdAction(id: number): Promise<ActionSta
   return withActionError(async () => {
     await requirePerm("customerRefills.view");
     const data = await getCustomerRefillByIdService(id);
+    return { success: true, message: "Fetched.", data };
+  });
+}
+
+// ─── Expiring Items (within 30 days) ──────────────────────────────────────────────────
+
+export async function getExpiringRefillItemsAction(): Promise<ActionState> {
+  return withActionError(async () => {
+    await requirePerm("customerRefills.view");
+    const data = await getExpiringRefillItemsService(30);
     return { success: true, message: "Fetched.", data };
   });
 }

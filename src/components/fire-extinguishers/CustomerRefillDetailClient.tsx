@@ -22,12 +22,14 @@ import {
   Building2,
   User,
   Calendar,
+  CalendarClock,
   ChevronRight,
   ArrowUpDown,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
 import { CompleteReturnModal } from "./CompleteReturnModal";
+import { CustomerRefillPdfDownloadButton } from "./CustomerRefillPdfDownloadButton";
 import {
   startCustomerRefillAction,
   markCustomerRefillReadyAction,
@@ -62,6 +64,8 @@ interface CustomerRefillData {
       receivedQty: number;
       returnedQty: number;
       notes: string | null;
+      refillDate: string | null;
+      expireDate: string | null;
     }[];
     replacements: {
       id: number;
@@ -219,6 +223,12 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
               <Printer size={15} /> Print
             </Link>
 
+            <CustomerRefillPdfDownloadButton
+              refillId={refill.id}
+              refillNo={refill.refillNo}
+              variant="secondary"
+            />
+
             {(refill.status === "RECEIVED" || refill.status === "DRAFT") && canStart && (
               <button
                 onClick={handleStart}
@@ -325,12 +335,40 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
                 <th className="py-2.5 px-3 text-center">Received</th>
                 <th className="py-2.5 px-3 text-center">Returned</th>
                 <th className="py-2.5 px-3 text-center">Pending</th>
+                <th className="py-2.5 px-3">Refill Date</th>
+                <th className="py-2.5 px-3">Expire Date</th>
                 <th className="py-2.5 px-3">Notes</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {refill.items.map((item, idx) => {
                 const pending = item.receivedQty - item.returnedQty;
+
+                // Compute expiry urgency
+                let expireBadge: React.ReactNode = null;
+                if (item.expireDate) {
+                  const daysLeft = Math.floor(
+                    (new Date(item.expireDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                  );
+                  if (daysLeft < 0) {
+                    expireBadge = (
+                      <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
+                        EXPIRED
+                      </span>
+                    );
+                  } else if (daysLeft <= 30) {
+                    expireBadge = (
+                      <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
+                        daysLeft <= 7
+                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                      }`}>
+                        {daysLeft}d
+                      </span>
+                    );
+                  }
+                }
+
                 return (
                   <tr key={item.id}>
                     <td className="py-2.5 px-3 text-gray-400 font-mono">{idx + 1}</td>
@@ -346,6 +384,27 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
                       >
                         {pending}
                       </span>
+                    </td>
+                    <td className="py-2.5 px-3">
+                      {item.refillDate ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                          <Calendar size={11} />
+                          {formatDate(item.refillDate)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300 dark:text-gray-600">—</span>
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      {item.expireDate ? (
+                        <span className="inline-flex items-center gap-1">
+                          <CalendarClock size={11} className="text-amber-600" />
+                          <span className="text-amber-700 dark:text-amber-400">{formatDate(item.expireDate)}</span>
+                          {expireBadge}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300 dark:text-gray-600">—</span>
+                      )}
                     </td>
                     <td className="py-2.5 px-3 text-gray-400 italic">{item.notes ?? "—"}</td>
                   </tr>

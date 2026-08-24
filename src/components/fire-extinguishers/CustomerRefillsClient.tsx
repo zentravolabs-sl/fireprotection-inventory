@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { getCustomerRefillsAction } from "@/app/actions/customer-refills";
 import { formatDate } from "@/lib/dateUtils";
+import { ExpiringRefillItemsTable } from "./ExpiringRefillItemsTable";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -157,6 +158,9 @@ export function CustomerRefillsClient() {
           </button>
         ))}
       </div>
+
+      {/* Expiry Warning Table */}
+      <ExpiringRefillItemsTable />
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-3">

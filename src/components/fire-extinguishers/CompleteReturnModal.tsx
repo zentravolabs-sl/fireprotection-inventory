@@ -13,6 +13,8 @@ import {
   Flame,
   Box,
   AlertCircle,
+  Calendar,
+  CalendarClock,
 } from "lucide-react";
 import { completeCustomerRefillReturnAction } from "@/app/actions/customer-refills";
 
@@ -42,6 +44,11 @@ interface Props {
   onSuccess: () => void;
 }
 
+// Helper — today as yyyy-mm-dd for default refill date
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function CompleteReturnModal({ refillId, refillNo, items, replacements, onClose, onSuccess }: Props) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +59,16 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
     Object.fromEntries(
       items.map((item) => [item.id, Math.max(0, item.receivedQty - item.returnedQty)])
     )
+  );
+
+  // Refill dates per item
+  const [itemRefillDates, setItemRefillDates] = useState<Record<number, string>>(
+    Object.fromEntries(items.map((item) => [item.id, todayStr()]))
+  );
+
+  // Expire dates per item
+  const [itemExpireDates, setItemExpireDates] = useState<Record<number, string>>(
+    Object.fromEntries(items.map((item) => [item.id, ""]))
   );
 
   // Temp replacements (track how many are being returned now)
@@ -65,6 +82,18 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
 
   const pendingItems = items.filter((i) => i.returnedQty < i.receivedQty);
   const pendingRepls = replacements.filter((r) => r.returnedQty < r.issuedQty);
+
+  // Compute expire warning for display
+  function getExpireWarning(expireDate: string): { level: "ok" | "warn" | "danger" | "expired"; daysLeft: number } | null {
+    if (!expireDate) return null;
+    const exp = new Date(expireDate);
+    const now = new Date();
+    const diff = Math.floor((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return { level: "expired", daysLeft: diff };
+    if (diff <= 7) return { level: "danger", daysLeft: diff };
+    if (diff <= 30) return { level: "warn", daysLeft: diff };
+    return { level: "ok", daysLeft: diff };
+  }
 
   const submit = () => {
     setError(null);
@@ -93,6 +122,8 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
         returnedItems: pendingItems.map((i) => ({
           itemId: i.id,
           returnQty: itemReturns[i.id] ?? 0,
+          refillDate: itemRefillDates[i.id] || null,
+          expireDate: itemExpireDates[i.id] || null,
         })),
         returnedReplacements: pendingRepls.map((r) => ({
           replacementId: r.id,
@@ -163,28 +194,85 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                     {pendingItems.map((item) => {
                       const maxReturn = item.receivedQty - item.returnedQty;
+                      const expWarn = getExpireWarning(itemExpireDates[item.id] ?? "");
                       return (
-                        <tr key={item.id}>
-                          <td className="py-2.5 px-3 font-semibold text-gray-900 dark:text-gray-100">
-                            {item.extinguisherType}
-                            {item.capacity && <span className="text-gray-400 ml-1">({item.capacity})</span>}
-                          </td>
-                          <td className="py-2.5 px-3 text-center font-mono">{item.receivedQty}</td>
-                          <td className="py-2.5 px-3 text-center font-mono text-gray-400">{item.returnedQty}</td>
-                          <td className="py-2.5 px-3 text-center">
-                            <input
-                              type="number"
-                              min={0}
-                              max={maxReturn}
-                              value={itemReturns[item.id] ?? 0}
-                              onChange={(e) =>
-                                setItemReturns((p) => ({ ...p, [item.id]: Number(e.target.value) }))
-                              }
-                              className="w-20 text-center px-2 py-1 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono font-bold focus:ring-2 focus:ring-emerald-500"
-                            />
-                            <span className="text-gray-400 ml-1.5">/ {maxReturn}</span>
-                          </td>
-                        </tr>
+                        <React.Fragment key={item.id}>
+                          <tr>
+                            <td className="py-2.5 px-3 font-semibold text-gray-900 dark:text-gray-100">
+                              {item.extinguisherType}
+                              {item.capacity && <span className="text-gray-400 ml-1">({item.capacity})</span>}
+                            </td>
+                            <td className="py-2.5 px-3 text-center font-mono">{item.receivedQty}</td>
+                            <td className="py-2.5 px-3 text-center font-mono text-gray-400">{item.returnedQty}</td>
+                            <td className="py-2.5 px-3 text-center">
+                              <input
+                                type="number"
+                                min={0}
+                                max={maxReturn}
+                                value={itemReturns[item.id] ?? 0}
+                                onChange={(e) =>
+                                  setItemReturns((p) => ({ ...p, [item.id]: Number(e.target.value) }))
+                                }
+                                className="w-20 text-center px-2 py-1 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono font-bold focus:ring-2 focus:ring-emerald-500"
+                              />
+                              <span className="text-gray-400 ml-1.5">/ {maxReturn}</span>
+                            </td>
+                          </tr>
+                          {/* Date row */}
+                          <tr className="bg-amber-50/40 dark:bg-amber-950/10">
+                            <td colSpan={4} className="py-2.5 px-3">
+                              <div className="flex flex-wrap items-center gap-4">
+                                {/* Refill Date */}
+                                <div className="flex items-center gap-2">
+                                  <Calendar size={13} className="text-emerald-600 shrink-0" />
+                                  <label className="text-[11px] font-bold text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                                    Refill Date
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={itemRefillDates[item.id] ?? ""}
+                                    onChange={(e) =>
+                                      setItemRefillDates((p) => ({ ...p, [item.id]: e.target.value }))
+                                    }
+                                    className="px-2.5 py-1 text-[11px] rounded-lg border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  />
+                                </div>
+                                {/* Expire Date */}
+                                <div className="flex items-center gap-2">
+                                  <CalendarClock size={13} className="text-amber-600 shrink-0" />
+                                  <label className="text-[11px] font-bold text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                                    Expire Date
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={itemExpireDates[item.id] ?? ""}
+                                    onChange={(e) =>
+                                      setItemExpireDates((p) => ({ ...p, [item.id]: e.target.value }))
+                                    }
+                                    className="px-2.5 py-1 text-[11px] rounded-lg border border-amber-200 dark:border-amber-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                  />
+                                  {/* Expiry warning pill */}
+                                  {expWarn && expWarn.level !== "ok" && (
+                                    <span
+                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                        expWarn.level === "expired"
+                                          ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
+                                          : expWarn.level === "danger"
+                                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                      }`}
+                                    >
+                                      <AlertCircle size={10} />
+                                      {expWarn.level === "expired"
+                                        ? "EXPIRED"
+                                        : `${expWarn.daysLeft}d left`}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
