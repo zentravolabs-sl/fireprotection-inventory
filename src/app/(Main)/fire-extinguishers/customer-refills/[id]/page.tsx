@@ -46,6 +46,8 @@ export default async function CustomerRefillDetailPage({ params }: Props) {
         ...i,
         createdAt: i.createdAt.toISOString(),
         updatedAt: i.updatedAt.toISOString(),
+        refillDate: i.refillDate?.toISOString() ?? null,
+        expireDate: i.expireDate?.toISOString() ?? null,
       })),
       replacements: data.refill.replacements.map((r) => ({
         ...r,

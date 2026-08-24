@@ -1500,13 +1500,18 @@ model CustomerRefill {
 /// Line items: customer-owned extinguishers received for refill.
 /// These NEVER create StockMovement, StockBatch, Inventory, or Physical Unit records.
 model CustomerRefillItem {
-  id               Int    @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   customerRefillId Int
   extinguisherType String
   capacity         String?
   receivedQty      Float
-  returnedQty      Float  @default(0)
+  returnedQty      Float     @default(0)
   notes            String?
+
+  /// Date the extinguisher was refilled (set during Process Return)
+  refillDate  DateTime?
+  /// Expiry date of the refill — used for upcoming-expiry alerts (set during Process Return)
+  expireDate  DateTime?
 
   customerRefill CustomerRefill @relation(fields: [customerRefillId], references: [id], onDelete: Cascade)
 
@@ -1514,6 +1519,7 @@ model CustomerRefillItem {
   updatedAt DateTime @updatedAt
 
   @@index([customerRefillId])
+  @@index([expireDate])
   @@map("customer_refill_item")
 }
 
