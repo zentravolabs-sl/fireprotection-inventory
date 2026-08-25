@@ -447,6 +447,41 @@ export function Sidebar() {
         ],
       },
     ];
+  } else if (userRole === "PURCHASE_ENGINEER") {
+    // Build the standard permission-filtered nav, then ensure Tools is always visible
+    const baseGroups = NAV_GROUPS_STATIC
+      .map((group) => {
+        const authorizedItems = group.items
+          .filter((item) => {
+            if (item.superAdminOnly) return false;
+            return !item.permission || can(item.permission);
+          })
+          .map((item) =>
+            item.href === "/material-requests" && pendingMRCount > 0
+              ? { ...item, badge: pendingMRCount }
+              : item,
+          );
+        return { ...group, items: authorizedItems };
+      })
+      .filter((group) => group.items.length > 0);
+
+    // Ensure Tools route always appears for PURCHASE_ENGINEER
+    const assetsGroupIdx = baseGroups.findIndex((g) => g.title === "ASSETS & BUSINESS");
+    if (assetsGroupIdx !== -1) {
+      const alreadyHasTools = baseGroups[assetsGroupIdx].items.some((i) => i.href === "/tools");
+      if (!alreadyHasTools) {
+        baseGroups[assetsGroupIdx] = {
+          ...baseGroups[assetsGroupIdx],
+          items: [{ label: "Tools", href: "/tools", icon: Icons.tools }, ...baseGroups[assetsGroupIdx].items],
+        };
+      }
+    } else {
+      baseGroups.push({
+        title: "ASSETS & BUSINESS",
+        items: [{ label: "Tools", href: "/tools", icon: Icons.tools }],
+      });
+    }
+    NAV_GROUPS = baseGroups;
   } else {
     NAV_GROUPS = NAV_GROUPS_STATIC
       .map((group) => {

@@ -3,7 +3,7 @@
 // Loading skeleton state for Customers page.
 // ============================================================
 
-import TableSkeleton from "@/components/ui/TableSkeleton";
+import CustomerTableSkeleton from "./components/CustomerTableSkeleton";
 
 export default function CustomersLoading() {
   return (
@@ -18,22 +18,7 @@ export default function CustomersLoading() {
           <div className="h-10 w-full sm:w-80 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                {["#", "Company Name", "Contact Person", "Phone", "Email", "Address", "Created Date", "Actions"].map((h) => (
-                  <th key={h} className="px-4 py-3.5 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <TableSkeleton rows={5} cols={8} />
-            </tbody>
-          </table>
-        </div>
+        <CustomerTableSkeleton />
       </main>
     </div>
   );

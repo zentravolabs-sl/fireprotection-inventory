@@ -3,11 +3,12 @@
 // Customer-Owned Fire Extinguisher Refills Master Page
 // ============================================================
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getCurrentUserPermissions } from "@/lib/auth/permissions";
 import { CustomerRefillsClient } from "@/components/fire-extinguishers/CustomerRefillsClient";
+import CustomerRefillsTableSkeleton from "@/components/fire-extinguishers/CustomerRefillsTableSkeleton";
 import { Flame, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,9 @@ export default async function CustomerRefillsPage() {
         </div>
 
         {/* CustomerRefillsClient fetches data via server actions internally */}
-        <CustomerRefillsClient />
+        <Suspense fallback={<CustomerRefillsTableSkeleton />}>
+          <CustomerRefillsClient />
+        </Suspense>
       </div>
     </div>
   );

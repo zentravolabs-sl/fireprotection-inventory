@@ -16,11 +16,12 @@ import { createCustomer, updateCustomer, deleteCustomer, type CustomerRow } from
 import type { CustomerFormValues } from "@/lib/validations/customer";
 
 interface CustomerTableProps {
-  customers: CustomerRow[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  customers?: CustomerRow[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+  isLoading?: boolean;
 }
 
 function formatDate(date: Date) {
@@ -31,13 +32,21 @@ function formatDate(date: Date) {
   }).format(new Date(date));
 }
 
+import CustomerTableSkeleton from "./CustomerTableSkeleton";
+
+export { CustomerTableSkeleton };
+
 export default function CustomerTable({
-  customers,
-  total,
-  page,
-  limit,
-  totalPages,
+  customers = [],
+  total = 0,
+  page = 1,
+  limit = 5,
+  totalPages = 1,
+  isLoading = false,
 }: CustomerTableProps) {
+  if (isLoading) {
+    return <CustomerTableSkeleton />;
+  }
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<CustomerRow | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<CustomerRow | undefined>(undefined);

@@ -19,6 +19,8 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { key: "project.edit", name: "Edit Project", module: "Projects", description: "Update project information and budget estimates" },
   { key: "project.delete", name: "Delete Project", module: "Projects", description: "Delete projects" },
   { key: "project.complete", name: "Complete Project", module: "Projects", description: "Mark active projects as completed" },
+  { key: "project_material.view", name: "View Material Summaries", module: "Projects", description: "View project estimated material quantities and summary tables" },
+  { key: "project_material.manage_estimate", name: "Manage Estimated Materials", module: "Projects", description: "Set total estimated material quantities for project" },
 
   // ── Inventory Master Module ──
   { key: "inventory.view", name: "View Inventory", module: "Inventory", description: "View inventory master catalogue" },
@@ -141,6 +143,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   // SUPER_ADMIN receives all permissions — also bypassed dynamically at runtime via permissions.ts
   SUPER_ADMIN: [
     "project.view", "project.create", "project.edit", "project.delete", "project.complete",
+    "project_stage.view", "project_stage.manage", "project_stage.complete", "project_material.view", "project_material.manage_estimate", "project_material.allocate",
     "inventory.view", "inventory.create", "inventory.edit", "inventory.delete",
     "stock.receive", "stock.issue", "stock.return", "stock.transfer", "stock.adjust", "stock.view_history",
     "material_request.view", "material_request.create", "material_request.edit", "material_request.submit", "material_request.approve", "material_request.reject", "material_request.cancel",
@@ -162,6 +165,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
 
   ADMIN: [
     "project.view", "project.create", "project.edit", "project.delete", "project.complete",
+    "project_stage.view", "project_stage.manage", "project_stage.complete", "project_material.view", "project_material.manage_estimate", "project_material.allocate",
     "inventory.view", "inventory.create", "inventory.edit", "inventory.delete",
     "stock.receive", "stock.issue", "stock.return", "stock.transfer", "stock.adjust", "stock.view_history",
     "material_request.view", "material_request.create", "material_request.submit", "material_request.approve", "material_request.reject", "material_request.cancel",
@@ -182,6 +186,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
 
   CEO: [
     "project.view", "project.create", "project.edit", "project.complete",
+    "project_stage.view", "project_stage.complete", "project_material.view",
     "inventory.view",
     "stock.view_history", "stock.transfer",
     "material_request.view", "material_request.approve", "material_request.reject",
@@ -197,7 +202,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 
   GENERAL_MANAGER: [
-    "project.view", "project.create", "project.edit", "project.complete",
+    "project.view", "project.create", "project.edit", "project.complete", "project_material.view", "project_material.manage_estimate",
     "inventory.view",
     "stock.view_history", "stock.transfer",
     "material_request.view", "material_request.approve", "material_request.reject",
@@ -212,7 +217,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 
   QS_ENGINEER: [
-    "project.view", "project.edit",
+    "project.view", "project.create", "project.edit", "project_material.view", "project_material.manage_estimate",
     "material_request.view", "material_request.create", "material_request.edit", "material_request.submit", "material_request.approve",
     "labour.view", "labour.manage_cost",
     "project_staff.view",
@@ -222,7 +227,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 
   PURCHASE_ENGINEER: [
-    "project.view",
+    "project.view", "project_material.view",
     "inventory.view", "inventory.create", "inventory.edit",
     "stock.receive", "stock.view_history", "stock.return",
     "material_request.view", "material_request.approve", "material_request.reject",
@@ -232,7 +237,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 
   INVENTORY_CONTROLLER: [
-    "project.view",
+    "project.view", "project_material.view",
     "inventory.view", "inventory.create", "inventory.edit", "inventory.delete",
     "stock.receive", "stock.issue", "stock.return", "stock.transfer", "stock.adjust", "stock.view_history",
     "material_request.view", "material_request.approve",
@@ -245,7 +250,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 
   PROJECT_MANAGER: [
-    "project.view", "project.edit",
+    "project.view", "project.edit", "project_material.view", "project_material.manage_estimate",
     "material_request.view", "material_request.create", "material_request.edit", "material_request.submit",
     "project_staff.view", "project_staff.assign", "project_staff.release", "project_staff.attendance",
     "labour.view", "labour.assign_project", "labour.attendance",
@@ -257,7 +262,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 
   ENGINEER: [
-    "project.view",
+    "project.view", "project_material.view",
     "material_request.view", "material_request.create", "material_request.edit", "material_request.submit",
     "project_staff.view", "project_staff.attendance",
     "labour.view", "labour.attendance",

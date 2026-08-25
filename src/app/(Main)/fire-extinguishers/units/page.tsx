@@ -3,12 +3,13 @@
 // Physical Fire Extinguisher Master List Page
 // ============================================================
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { getCurrentUserPermissions } from "@/lib/auth/permissions";
 import { PhysicalUnitsClient } from "@/components/fire-extinguishers/PhysicalUnitsClient";
+import ExtinguisherUnitsTableSkeleton from "@/components/fire-extinguishers/ExtinguisherUnitsTableSkeleton";
 import { Flame, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -87,11 +88,13 @@ export default async function PhysicalUnitsPage() {
         </div>
 
         {/* Main Client UI */}
-        <PhysicalUnitsClient
-          initialUnits={units as any}
-          inventoryItems={inventoryItems}
-          canManage={canManage}
-        />
+        <Suspense fallback={<ExtinguisherUnitsTableSkeleton />}>
+          <PhysicalUnitsClient
+            initialUnits={units as any}
+            inventoryItems={inventoryItems}
+            canManage={canManage}
+          />
+        </Suspense>
       </div>
     </div>
   );

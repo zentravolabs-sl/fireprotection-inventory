@@ -418,19 +418,20 @@ model Inventory {
   subCategoryId Int
 
   // Relations
-  category             Category              @relation(fields: [categoryId], references: [id])
-  subCategory          SubCategory           @relation(fields: [subCategoryId], references: [id])
-  stockReceiveItems    StockReceiveItem[]
-  stockBatches         StockBatch[]
-  stockMovements       StockMovement[]
-  pipeCutPieces        PipeCutPiece[]
-  materialRequestItems MaterialRequestItem[]
-  materialIssueItems   MaterialIssueItem[]
-  projectMaterials     ProjectMaterial[]
-  materialReturnItems  MaterialReturnItem[]
-  projectTransferItems ProjectTransferItem[]
+  category                   Category                    @relation(fields: [categoryId], references: [id])
+  subCategory                SubCategory                 @relation(fields: [subCategoryId], references: [id])
+  stockReceiveItems          StockReceiveItem[]
+  stockBatches               StockBatch[]
+  stockMovements             StockMovement[]
+  pipeCutPieces              PipeCutPiece[]
+  materialRequestItems       MaterialRequestItem[]
+  materialIssueItems         MaterialIssueItem[]
+  projectMaterials           ProjectMaterial[]
+  materialReturnItems        MaterialReturnItem[]
+  projectTransferItems       ProjectTransferItem[]
   fireExtinguisherUnits      FireExtinguisherUnit[]
   customerRefillReplacements CustomerRefillReplacement[]
+  projectEstimateMaterials   ProjectEstimateMaterial[]
 
   @@index([itemCode])
   @@index([barcode])
@@ -474,8 +475,8 @@ model StockReceive {
 /// Line item within a goods receive document.
 /// When the parent StockReceive is CONFIRMED, trigger creation of StockBatch.
 model StockReceiveItem {
-  id         Int       @id @default(autoincrement())
-  qty        Float
+  id              Int       @id @default(autoincrement())
+  qty             Float
   unitCost        Float
   batchNo         String?
   manufactureDate DateTime?
@@ -502,10 +503,10 @@ model StockReceiveItem {
 /// Represents one received batch — the unit of FIFO consumption.
 /// availableQty decreases as stock is issued; it must never go below 0.
 model StockBatch {
-  id           Int       @id @default(autoincrement())
-  batchNo      String?
-  receivedQty  Float
-  availableQty Float
+  id              Int       @id @default(autoincrement())
+  batchNo         String?
+  receivedQty     Float
+  availableQty    Float
   unitCost        Float
   manufactureDate DateTime?
   expiryDate      DateTime?
@@ -520,8 +521,8 @@ model StockBatch {
   stockReceiveItemId Int @unique // 1-to-1: one batch per receive line
 
   // Relations
-  inventory            Inventory           @relation(fields: [inventoryId], references: [id])
-  stockReceiveItem     StockReceiveItem    @relation(fields: [stockReceiveItemId], references: [id])
+  inventory            Inventory             @relation(fields: [inventoryId], references: [id])
+  stockReceiveItem     StockReceiveItem      @relation(fields: [stockReceiveItemId], references: [id])
   stockMovements       StockMovement[]
   pipeCutPieces        PipeCutPiece[]
   materialIssueItems   MaterialIssueItem[]
@@ -624,7 +625,7 @@ model Tool {
   updatedAt DateTime      @updatedAt
 
   // Relations
-  assignmentItems     ToolAssignmentItem[]
+  assignmentItems      ToolAssignmentItem[]
   histories            ToolHistory[]
   projectTransferItems ProjectTransferItem[]
 
@@ -654,7 +655,7 @@ model Customer {
   projects                    Project[]
   fireExtinguisherAssignments FireExtinguisherAssignment[]
   deliveryNotes               DeliveryNote[]
-  customerRefills             CustomerRefill[]  @relation("CustomerRefillForCustomer")
+  customerRefills             CustomerRefill[]             @relation("CustomerRefillForCustomer")
 
   @@index([companyName])
   @@index([contactPerson])
@@ -786,23 +787,24 @@ model Project {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  customer         Customer            @relation(fields: [customerId], references: [id])
-  projectManager   User                @relation("ProjectManager", fields: [projectManagerId], references: [id])
-  assignments      ProjectAssignment[]
-  engineers        ProjectEngineer[]
-  materialRequests MaterialRequest[]
-  projectMaterials ProjectMaterial[]
-  materialReturns  MaterialReturn[]
-  transports       ProjectTransport[]
-  expenses         ProjectExpense[]
-  toolAssignments  ToolAssignment[]
-  toolHistories    ToolHistory[]
-  projectLabours   ProjectLabour[]
-  staffAssignments ProjectStaff[]
+  customer                    Customer                     @relation(fields: [customerId], references: [id])
+  projectManager              User                         @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  assignments                 ProjectAssignment[]
+  engineers                   ProjectEngineer[]
+  materialRequests            MaterialRequest[]
+  projectMaterials            ProjectMaterial[]
+  materialReturns             MaterialReturn[]
+  transports                  ProjectTransport[]
+  expenses                    ProjectExpense[]
+  toolAssignments             ToolAssignment[]
+  toolHistories               ToolHistory[]
+  projectLabours              ProjectLabour[]
+  staffAssignments            ProjectStaff[]
   transfersFrom               ProjectTransfer[]            @relation("ProjectTransferFrom")
   transfersTo                 ProjectTransfer[]            @relation("ProjectTransferTo")
   pipeCutPieces               PipeCutPiece[]
   fireExtinguisherAssignments FireExtinguisherAssignment[]
+  estimateMaterials           ProjectEstimateMaterial[]
 
   @@index([projectCode])
   @@index([customerId])
@@ -849,23 +851,23 @@ model ProjectEngineer {
 }
 
 model ProjectExpense {
-  id             Int                  @id @default(autoincrement())
-  expenseNo      String               @unique
-  projectId      Int
-  expenseType    ExpenseType
-  amount         Float
-  expenseDate    DateTime             @default(now())
-  description    String?
-  referenceNo    String?
-  createdBy      String
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
+  id          Int         @id @default(autoincrement())
+  expenseNo   String      @unique
+  projectId   Int
+  expenseType ExpenseType
+  amount      Float
+  expenseDate DateTime    @default(now())
+  description String?
+  referenceNo String?
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   /// Approval gate: auto-approved unless actual cost reaches LKR 5 M threshold.
   approvalStatus ExpenseApprovalStatus @default(APPROVED)
-  approvedBy     String?              // references User.id — set on APPROVED or REJECTED
-  approvedAt     DateTime?            // timestamp of the Super Admin decision
-  approvalNote   String?              // optional rejection reason
+  approvedBy     String? // references User.id — set on APPROVED or REJECTED
+  approvedAt     DateTime? // timestamp of the Super Admin decision
+  approvalNote   String? // optional rejection reason
 
   project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdByUser User    @relation("ExpenseCreatedByUser", fields: [createdBy], references: [id])
@@ -1051,6 +1053,31 @@ model MaterialReturnItem {
 }
 
 // ============================================================
+// Project Stage & Material Planning Models
+// ============================================================
+// Project Material Planning Models
+// ============================================================
+
+model ProjectEstimateMaterial {
+  id           String  @id @default(cuid())
+  projectId    Int
+  inventoryId  Int
+  estimatedQty Float
+  notes        String?
+
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  inventory Inventory @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, inventoryId])
+  @@index([projectId])
+  @@index([inventoryId])
+  @@map("project_estimate_material")
+}
+
+// ============================================================
 // Tool Assignment Models
 // ============================================================
 
@@ -1225,20 +1252,20 @@ model LabourOT {
 /// Tracks role, cost, and release status per assignment.
 /// User details (name, email, role) come from the User relation — never duplicated here.
 model ProjectStaff {
-  id           Int               @id @default(autoincrement())
+  id           Int                @id @default(autoincrement())
   projectId    Int
-  userId       String            // references User.id
+  userId       String // references User.id
   role         ProjectStaffRole
-  isLead       Boolean           @default(false)
-  assignedDate DateTime          @default(now())
+  isLead       Boolean            @default(false)
+  assignedDate DateTime           @default(now())
   releasedDate DateTime?
   status       ProjectStaffStatus @default(ACTIVE)
-  salaryCost   Float             @default(0)
-  otHours      Float             @default(0)
-  otCost       Float             @default(0)
+  salaryCost   Float              @default(0)
+  otHours      Float              @default(0)
+  otCost       Float              @default(0)
   remarks      String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation("StaffAssignments", fields: [userId], references: [id])
@@ -1281,15 +1308,15 @@ model ProjectTransfer {
 }
 
 model ProjectTransferItem {
-  id                Int   @id @default(autoincrement())
+  id                Int     @id @default(autoincrement())
   projectTransferId Int
   inventoryId       Int?
   stockBatchId      Int?
   pipeCutPieceId    Int?
   toolId            Int?
-  qty               Float @default(0)
+  qty               Float   @default(0)
   unit              String
-  unitCost          Float @default(0)
+  unitCost          Float   @default(0)
   remarks           String?
 
   projectTransfer ProjectTransfer @relation(fields: [projectTransferId], references: [id], onDelete: Cascade)
@@ -1317,12 +1344,12 @@ enum NotificationType {
   INFO
   WARNING
   MATERIAL_REQUEST_SUBMITTED
-  MATERIAL_REQUEST_CREATED         // Admin/Super-Admin alert — new request pending
-  MATERIAL_REQUEST_APPROVED        // Requester alert — their request was approved
-  MATERIAL_REQUEST_REJECTED        // Requester alert — their request was rejected
-  COST_THRESHOLD_PENDING_APPROVAL  // Super-Admin alert — expense needs approval (cost ≥ 5 M)
-  COST_THRESHOLD_APPROVED          // Requester alert — their high-cost expense was approved
-  COST_THRESHOLD_REJECTED          // Requester alert — their high-cost expense was rejected
+  MATERIAL_REQUEST_CREATED // Admin/Super-Admin alert — new request pending
+  MATERIAL_REQUEST_APPROVED // Requester alert — their request was approved
+  MATERIAL_REQUEST_REJECTED // Requester alert — their request was rejected
+  COST_THRESHOLD_PENDING_APPROVAL // Super-Admin alert — expense needs approval (cost ≥ 5 M)
+  COST_THRESHOLD_APPROVED // Requester alert — their high-cost expense was approved
+  COST_THRESHOLD_REJECTED // Requester alert — their high-cost expense was rejected
 }
 
 model Notification {
@@ -1331,9 +1358,9 @@ model Notification {
   title             String
   message           String
   isRead            Boolean          @default(false)
-  batchId           Int?             // used by expiry notifications
-  materialRequestId Int?             // used by material request notifications
-  userId            String?          // null = broadcast; non-null = targeted user
+  batchId           Int? // used by expiry notifications
+  materialRequestId Int? // used by material request notifications
+  userId            String? // null = broadcast; non-null = targeted user
   createdAt         DateTime         @default(now())
 
   @@index([userId])
@@ -1504,18 +1531,18 @@ model CustomerRefill {
 /// Line items: customer-owned extinguishers received for refill.
 /// These NEVER create StockMovement, StockBatch, Inventory, or Physical Unit records.
 model CustomerRefillItem {
-  id               Int       @id @default(autoincrement())
+  id               Int     @id @default(autoincrement())
   customerRefillId Int
   extinguisherType String
   capacity         String?
   receivedQty      Float
-  returnedQty      Float     @default(0)
+  returnedQty      Float   @default(0)
   notes            String?
 
   /// Date the extinguisher was refilled (set during Process Return)
-  refillDate  DateTime?
+  refillDate DateTime?
   /// Expiry date of the refill — used for upcoming-expiry alerts (set during Process Return)
-  expireDate  DateTime?
+  expireDate DateTime?
 
   customerRefill CustomerRefill @relation(fields: [customerRefillId], references: [id], onDelete: Cascade)
 

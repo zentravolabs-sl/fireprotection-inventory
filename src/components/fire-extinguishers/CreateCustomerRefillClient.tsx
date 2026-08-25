@@ -163,7 +163,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
 
       {/* Page title */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-amber-600/10 border border-amber-600/20 flex items-center justify-center text-amber-600 shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-red-600/10 border border-red-600/20 flex items-center justify-center text-red-600 shrink-0">
           <Flame size={22} />
         </div>
         <div>
@@ -199,7 +199,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
             <select
               value={customerId}
               onChange={(e) => setCustomerId(Number(e.target.value))}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -217,7 +217,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
               type="date"
               value={receivedDate}
               onChange={(e) => setReceivedDate(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
         </div>
@@ -229,7 +229,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
             placeholder="Job remarks, special instructions..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
           />
         </div>
       </div>
@@ -238,7 +238,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-6 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-2">
-            <Flame className="text-amber-500" size={17} />
+            <Flame className="text-red-600" size={17} />
             <div>
               <h2 className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">
                 Section 2: Customer's Fire Extinguishers
@@ -252,7 +252,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
           <button
             type="button"
             onClick={addItem}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors"
           >
             <Plus size={14} /> Add Item
           </button>
@@ -281,7 +281,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
                         const v = e.target.value;
                         setItems((p) => p.map((r) => r._id === item._id ? { ...r, extinguisherType: v } : r));
                       }}
-                      className="w-full px-2.5 py-1.5 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-2.5 py-1.5 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500"
                     />
                   </td>
                   <td className="py-2 px-3">
@@ -293,7 +293,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
                         const v = e.target.value;
                         setItems((p) => p.map((r) => r._id === item._id ? { ...r, capacity: v } : r));
                       }}
-                      className="w-full px-2.5 py-1.5 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-2.5 py-1.5 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500"
                     />
                   </td>
                   <td className="py-2 px-3">
@@ -306,7 +306,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
                         const v = e.target.value === "" ? "" : Number(e.target.value);
                         setItems((p) => p.map((r) => r._id === item._id ? { ...r, receivedQty: v } : r));
                       }}
-                      className="w-full px-2.5 py-1.5 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono font-bold focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-2.5 py-1.5 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono font-bold focus:ring-2 focus:ring-red-500"
                     />
                   </td>
                   <td className="py-2 px-3">
@@ -318,7 +318,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
                         const v = e.target.value;
                         setItems((p) => p.map((r) => r._id === item._id ? { ...r, notes: v } : r));
                       }}
-                      className="w-full px-2.5 py-1.5 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-2.5 py-1.5 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500"
                     />
                   </td>
                   <td className="py-2 px-3">
@@ -480,7 +480,7 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
           type="button"
           onClick={() => submit(false)}
           disabled={isPending}
-          className="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-xl shadow-md hover:shadow-lg shadow-red-500/25 transition-all disabled:opacity-50"
         >
           <PackageCheck size={16} />
           {isPending

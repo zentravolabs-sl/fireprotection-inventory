@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/labour/page.tsx
 // Labour Master admin page â€” React Server Component.
 // ============================================================
@@ -8,7 +8,7 @@ import Link from "next/link";
 import { ArrowLeft, HardHat, ShieldCheck } from "lucide-react";
 import { getLabours, getActiveLabourTypes } from "./actions";
 import LabourTable from "./components/LabourTable";
-import TableSkeleton from "@/components/ui/TableSkeleton";
+import LabourMasterTableSkeleton from "./components/LabourMasterTableSkeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -49,24 +49,7 @@ export default async function LabourMasterPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        <Suspense
-          fallback={
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                    {["#", "Code", "Name", "Type", "NIC", "Phone", "Monthly Salary", "Projects", "Status", "Added", "Actions"].map((h) => (
-                      <th key={h} className="px-4 py-3.5 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <TableSkeleton rows={5} cols={11} />
-                </tbody>
-              </table>
-            </div>
-          }
-        >
+        <Suspense fallback={<LabourMasterTableSkeleton />}>
           <LabourTable
             labours={labourResult.labours}
             labourTypes={labourTypes}

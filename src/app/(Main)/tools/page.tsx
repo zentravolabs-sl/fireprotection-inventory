@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/tools/page.tsx
 // Tools management page â€” React Server Component.
 // ============================================================
@@ -8,9 +8,9 @@ import Link from "next/link";
 import { ArrowLeft, Wrench, ShieldCheck } from "lucide-react";
 import { getTools } from "./actions";
 import ToolTable from "./components/ToolTable";
+import ToolTableSkeleton from "./components/ToolTableSkeleton";
 import ToolFilters from "./components/ToolFilters";
 import SearchInput from "@/components/ui/SearchInput";
-import TableSkeleton from "@/components/ui/TableSkeleton";
 import type { ToolCondition, ToolStatus } from "@/generated/prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -76,26 +76,7 @@ export default async function ToolsPage({ searchParams }: PageProps) {
         )}
 
         {/* Tools Data Table */}
-        <Suspense
-          fallback={
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                    {["#", "Tool Code", "Tool Name", "Serial Number", "Condition", "Status", "Created Date", "Actions"].map((h) => (
-                      <th key={h} className="px-4 py-3.5 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <TableSkeleton rows={5} cols={8} />
-                </tbody>
-              </table>
-            </div>
-          }
-        >
+        <Suspense fallback={<ToolTableSkeleton />}>
           <ToolTable
             tools={tools}
             total={total}

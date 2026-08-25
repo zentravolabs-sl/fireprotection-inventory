@@ -3,7 +3,7 @@
 // Loading skeleton state for Inventory page.
 // ============================================================
 
-import TableSkeleton from "@/components/ui/TableSkeleton";
+import InventoryTableSkeleton from "./components/InventoryTableSkeleton";
 
 export default function InventoryLoading() {
   return (
@@ -20,24 +20,7 @@ export default function InventoryLoading() {
 
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-6 h-24 animate-pulse" />
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                {["#", "Item Code", "Image", "Name", "Category", "Sub Category", "Brand", "Unit", "Current Stock", "Min Stock", "Buy Price", "Sell Price", "Supplier", "Warehouse", "Rack", "Location", "Expiry", "Barcode", "Actions"].map(
-                  (h) => (
-                    <th key={h} className="px-4 py-3.5 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                      {h}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              <TableSkeleton rows={5} cols={19} />
-            </tbody>
-          </table>
-        </div>
+        <InventoryTableSkeleton />
       </main>
     </div>
   );

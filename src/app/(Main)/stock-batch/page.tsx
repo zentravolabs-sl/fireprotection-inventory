@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/stock-batch/page.tsx
 // Read-Only FIFO Stock Batch Screen â€” React Server Component.
 // ============================================================
@@ -8,8 +8,8 @@ import Link from "next/link";
 import { ArrowLeft, Layers, ShieldCheck } from "lucide-react";
 import { getStockBatches } from "./actions";
 import StockBatchTable from "./components/StockBatchTable";
+import StockBatchTableSkeleton from "./components/StockBatchTableSkeleton";
 import SearchInput from "@/components/ui/SearchInput";
-import TableSkeleton from "@/components/ui/TableSkeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -61,28 +61,7 @@ export default async function StockBatchPage({ searchParams }: PageProps) {
         </div>
 
         {/* Batch Table */}
-        <Suspense
-          fallback={
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                    {["#", "Batch No", "Item", "Received Qty", "Available Qty", "Unit Cost", "Receive Date", "Expiry", "Warehouse", "Rack", "Status"].map(
-                      (h) => (
-                        <th key={h} className="px-4 py-3.5 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                          {h}
-                        </th>
-                      )
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  <TableSkeleton rows={5} cols={11} />
-                </tbody>
-              </table>
-            </div>
-          }
-        >
+        <Suspense fallback={<StockBatchTableSkeleton />}>
           <StockBatchTable
             batches={batches}
             total={total}

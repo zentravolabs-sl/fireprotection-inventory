@@ -176,7 +176,7 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-6">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-600/10 border border-amber-600/20 flex items-center justify-center text-amber-600 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-red-600/10 border border-red-600/20 flex items-center justify-center text-red-600 shrink-0">
               <Flame size={26} />
             </div>
             <div>
@@ -233,7 +233,7 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
               <button
                 onClick={handleStart}
                 disabled={isPending}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-xl shadow-sm transition-colors disabled:opacity-50"
               >
                 <PlayCircle size={15} /> Start Refill
               </button>
@@ -270,7 +270,7 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Items Received", value: totalReceived, icon: <Flame size={18} />, color: "text-amber-600", bg: "bg-amber-50 dark:bg-amber-900/20" },
+          { label: "Items Received", value: totalReceived, icon: <Flame size={18} />, color: "text-red-600", bg: "bg-red-50 dark:bg-red-950/30" },
           { label: "Items Returned", value: totalReturned, icon: <CheckCircle size={18} />, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
           { label: "Replacements Issued", value: totalReplIssued, icon: <TrendingDown size={18} />, color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" },
           { label: "Replacements Returned", value: totalReplReturned, icon: <TrendingUp size={18} />, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
@@ -323,7 +323,7 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
       {/* Customer's Extinguishers */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-6">
         <h2 className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <Flame size={14} className="text-amber-500" /> Customer's Fire Extinguishers
+          <Flame size={14} className="text-red-600" /> Customer's Fire Extinguishers
         </h2>
         <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
           <table className="w-full text-xs text-left">
@@ -379,7 +379,7 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
                     <td className="py-2.5 px-3 text-center">
                       <span
                         className={`font-mono font-bold ${
-                          pending === 0 ? "text-emerald-500" : "text-amber-600"
+                          pending === 0 ? "text-emerald-500" : "text-red-600"
                         }`}
                       >
                         {pending}
@@ -398,8 +398,8 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
                     <td className="py-2.5 px-3">
                       {item.expireDate ? (
                         <span className="inline-flex items-center gap-1">
-                          <CalendarClock size={11} className="text-amber-600" />
-                          <span className="text-amber-700 dark:text-amber-400">{formatDate(item.expireDate)}</span>
+                          <CalendarClock size={11} className="text-red-600" />
+                          <span className="text-red-700 dark:text-red-400">{formatDate(item.expireDate)}</span>
                           {expireBadge}
                         </span>
                       ) : (

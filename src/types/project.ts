@@ -156,6 +156,52 @@ export interface MaterialRequestItemSummary {
   };
 }
 
+export interface MaterialRequestItemSummary {
+  id: number;
+  materialRequestId: number;
+  inventoryId: number;
+  qtyRequested: number;
+  qtyApproved: number;
+  qtyIssued: number;
+  inventory: {
+    id: number;
+    itemCode: string;
+    name: string;
+    unit: string;
+    brand?: string | null;
+  };
+}
+
+export interface ProjectEstimateMaterialItem {
+  id: string;
+  projectId: number;
+  inventoryId: number;
+  estimatedQty: number;
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  inventory: {
+    id: number;
+    itemCode: string;
+    name: string;
+    unit: string;
+    brand?: string | null;
+  };
+}
+
+export interface ProjectOverallMaterialSummaryRow {
+  inventoryId: number;
+  itemCode: string;
+  name: string;
+  unit: string;
+  totalEstimatedQty: number;
+  totalRequestedQty: number;
+  totalIssuedQty: number;
+  totalReturnedQty: number;
+  remainingToRequest: number;
+  remainingToIssue: number;
+}
+
 export interface MaterialRequestSummary {
   id: number;
   requestNo: string;
@@ -292,6 +338,7 @@ export interface ProjectWithDetails {
   projectManager: UserSummary;
   engineers?: ProjectEngineerItem[];
   assignments?: ProjectAssignmentItem[];
+  estimateMaterials?: ProjectEstimateMaterialItem[];
   materialRequests?: MaterialRequestSummary[];
   projectMaterials?: ProjectMaterialSummary[];
   materialReturns?: MaterialReturnSummary[];

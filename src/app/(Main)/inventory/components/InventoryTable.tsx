@@ -23,22 +23,31 @@ interface CategoryOption {
 }
 
 interface InventoryTableProps {
-  inventories: InventoryRow[];
-  categories: CategoryOption[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  inventories?: InventoryRow[];
+  categories?: CategoryOption[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+  isLoading?: boolean;
 }
 
+import InventoryTableSkeleton from "./InventoryTableSkeleton";
+
+export { InventoryTableSkeleton };
+
 export default function InventoryTable({
-  inventories,
-  categories,
-  total,
-  page,
-  limit,
-  totalPages,
+  inventories = [],
+  categories = [],
+  total = 0,
+  page = 1,
+  limit = 5,
+  totalPages = 1,
+  isLoading = false,
 }: InventoryTableProps) {
+  if (isLoading) {
+    return <InventoryTableSkeleton />;
+  }
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<InventoryRow | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<InventoryRow | undefined>(undefined);

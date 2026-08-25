@@ -3,7 +3,7 @@
 // Loading skeleton state for Tools page.
 // ============================================================
 
-import TableSkeleton from "@/components/ui/TableSkeleton";
+import ToolTableSkeleton from "./components/ToolTableSkeleton";
 
 export default function ToolsLoading() {
   return (
@@ -20,22 +20,7 @@ export default function ToolsLoading() {
 
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-6 h-20 animate-pulse" />
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                {["#", "Tool Code", "Tool Name", "Serial Number", "Condition", "Status", "Created Date", "Actions"].map((h) => (
-                  <th key={h} className="px-4 py-3.5 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <TableSkeleton rows={5} cols={8} />
-            </tbody>
-          </table>
-        </div>
+        <ToolTableSkeleton />
       </main>
     </div>
   );

@@ -42,6 +42,7 @@ interface ProjectFormModalProps {
   onClose: () => void;
   customers: CustomerOption[];
   users: UserOption[];
+  userRole?: string;
 }
 
 const formatDateToString = (date: Date | null): string => {
@@ -149,6 +150,7 @@ export function ProjectFormModal({
   onClose,
   customers,
   users,
+  userRole,
 }: ProjectFormModalProps) {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -355,7 +357,7 @@ export function ProjectFormModal({
               control={control}
               render={({ field }) => (
                 <div className="flex gap-3">
-                  {(["GOVERNMENT", "PRIVATE"] as const).map((type) => {
+                  {(userRole === "QS_ENGINEER" ? (["PRIVATE"] as const) : (["GOVERNMENT", "PRIVATE"] as const)).map((type) => {
                     const isSelected = field.value === type;
                     const icon = type === "GOVERNMENT" ? "🏛️" : "🏢";
                     const label = type === "GOVERNMENT" ? "Government" : "Private";

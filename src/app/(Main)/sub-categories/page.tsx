@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/sub-categories/page.tsx
 // Sub-Category management page â€” React Server Component.
 // Loads categories for the dropdown filter and form.
@@ -10,9 +10,9 @@ import { ArrowLeft, Layers, ShieldCheck } from "lucide-react";
 import { getSubCategories } from "./actions";
 import { getCategories } from "../categories/actions";
 import SubCategoryTable from "./components/SubCategoryTable";
+import SubCategoryTableSkeleton from "./components/SubCategoryTableSkeleton";
 import CategoryFilterSelect from "./components/CategoryFilterSelect";
 import SearchInput from "@/components/ui/SearchInput";
-import TableSkeleton from "@/components/ui/TableSkeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -94,31 +94,7 @@ export default async function SubCategoriesPage({ searchParams }: PageProps) {
         )}
 
         {/* Table */}
-        <Suspense
-          fallback={
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-6 overflow-hidden">
-              <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
-                <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs font-semibold tracking-wider">
-                  <tr>
-                    {["#", "Sub-Category Name", "Category", "Created", "Updated", "Actions"].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3"
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  <TableSkeleton rows={5} cols={6} />
-                </tbody>
-              </table>
-            </div>
-          }
-        >
+        <Suspense fallback={<SubCategoryTableSkeleton />}>
           <SubCategoryTable
             subCategories={subCatResult.subCategories}
             categories={categoriesResult.categories}

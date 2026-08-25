@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/categories/page.tsx
 // Category management page â€” React Server Component.
 // ============================================================
@@ -8,8 +8,8 @@ import Link from "next/link";
 import { ArrowLeft, Tag, ShieldCheck } from "lucide-react";
 import { getCategories } from "./actions";
 import CategoryTable from "./components/CategoryTable";
+import CategoryTableSkeleton from "./components/CategoryTableSkeleton";
 import SearchInput from "@/components/ui/SearchInput";
-import TableSkeleton from "@/components/ui/TableSkeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -63,29 +63,7 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
         )}
 
         {/* Table */}
-        <Suspense
-          fallback={
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                    {["#", "Category Name", "Created", "Updated", "Actions"].map((h) => (
-                      <th
-                        key={h}
-                        className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <TableSkeleton rows={5} cols={5} />
-                </tbody>
-              </table>
-            </div>
-          }
-        >
+        <Suspense fallback={<CategoryTableSkeleton />}>
           <CategoryTable
             categories={categories}
             total={total}
