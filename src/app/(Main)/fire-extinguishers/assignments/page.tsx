@@ -3,12 +3,13 @@
 // Unified Fire Extinguisher Assignments Management Page
 // ============================================================
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { getCurrentUserPermissions } from "@/lib/auth/permissions";
 import { AssignmentsClient } from "@/components/fire-extinguishers/AssignmentsClient";
+import ExtinguisherAssignmentsTableSkeleton from "@/components/fire-extinguishers/ExtinguisherAssignmentsTableSkeleton";
 import { Flame, Shield } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -81,14 +82,16 @@ export default async function FireExtinguisherAssignmentsPage() {
           </div>
         </div>
 
-        <AssignmentsClient
-          initialAssignments={assignments as any}
-          projects={rawProjects}
-          customers={rawCustomers}
-          availableUnits={rawAvailableUnits as any}
-          canAssign={canAssign}
-          canReturn={canReturn}
-        />
+        <Suspense fallback={<ExtinguisherAssignmentsTableSkeleton />}>
+          <AssignmentsClient
+            initialAssignments={assignments as any}
+            projects={rawProjects}
+            customers={rawCustomers}
+            availableUnits={rawAvailableUnits as any}
+            canAssign={canAssign}
+            canReturn={canReturn}
+          />
+        </Suspense>
       </div>
     </div>
   );

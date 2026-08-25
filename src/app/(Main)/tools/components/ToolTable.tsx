@@ -18,11 +18,12 @@ import type { ToolFormValues } from "@/lib/validations/tool";
 import type { ToolCondition, ToolStatus } from "@/generated/prisma/client";
 
 interface ToolTableProps {
-  tools: ToolRow[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  tools?: ToolRow[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+  isLoading?: boolean;
 }
 
 function formatDate(date: Date) {
@@ -77,13 +78,21 @@ function getStatusLabel(status: ToolStatus) {
   return status;
 }
 
+import ToolTableSkeleton from "./ToolTableSkeleton";
+
+export { ToolTableSkeleton };
+
 export default function ToolTable({
-  tools,
-  total,
-  page,
-  limit,
-  totalPages,
+  tools = [],
+  total = 0,
+  page = 1,
+  limit = 5,
+  totalPages = 1,
+  isLoading = false,
 }: ToolTableProps) {
+  if (isLoading) {
+    return <ToolTableSkeleton />;
+  }
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ToolRow | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<ToolRow | undefined>(undefined);

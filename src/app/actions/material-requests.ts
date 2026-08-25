@@ -163,3 +163,33 @@ export async function resubmitMaterialRequestAction(data: {
     };
   }
 }
+
+export async function getInventoryOptionsAction() {
+  try {
+    const items = await prisma.inventory.findMany({
+      select: {
+        id: true,
+        itemCode: true,
+        name: true,
+        unit: true,
+        stockBatches: {
+          select: { availableQty: true },
+        },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return {
+      success: true,
+      data: items.map((inv) => ({
+        id: inv.id,
+        itemCode: inv.itemCode,
+        name: inv.name,
+        unit: inv.unit,
+        availableStock: inv.stockBatches.reduce((acc, b) => acc + b.availableQty, 0),
+      })),
+    };
+  } catch (err: any) {
+    return { success: false, data: [], message: err.message };
+  }
+}

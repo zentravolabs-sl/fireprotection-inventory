@@ -756,12 +756,24 @@ export async function returnMaterialsService(input: ReturnMaterialsInput, userId
     for (const returnItem of input.items) {
       const projMaterial = await tx.projectMaterial.findUnique({
         where: { id: returnItem.projectMaterialId },
-        include: { materialIssueItem: true },
+        include: {
+          materialIssueItem: {
+            include: {
+              materialIssue: {
+                include: {
+                  materialRequest: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!projMaterial) {
         throw new Error(`Project material assignment #${returnItem.projectMaterialId} not found.`);
       }
+
+
 
       if (returnItem.qtyReturned > projMaterial.balanceQty) {
         throw new Error(

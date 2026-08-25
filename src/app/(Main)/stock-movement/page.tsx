@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/stock-movement/page.tsx
 // Stock Movement History Screen â€” React Server Component.
 // ============================================================
@@ -8,8 +8,8 @@ import Link from "next/link";
 import { ArrowLeft, History, ShieldCheck } from "lucide-react";
 import { getStockMovements } from "./actions";
 import StockMovementTable from "./components/StockMovementTable";
+import StockMovementTableSkeleton from "./components/StockMovementTableSkeleton";
 import SearchInput from "@/components/ui/SearchInput";
-import TableSkeleton from "@/components/ui/TableSkeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -71,28 +71,7 @@ export default async function StockMovementPage({ searchParams }: PageProps) {
         </div>
 
         {/* Movement Table */}
-        <Suspense
-          fallback={
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                    {["#", "Date & Time", "Item", "Batch No", "Movement", "Qty", "Reference Type", "Created By", "Remarks"].map(
-                      (h) => (
-                        <th key={h} className="px-4 py-3.5 text-left font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                          {h}
-                        </th>
-                      )
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  <TableSkeleton rows={5} cols={9} />
-                </tbody>
-              </table>
-            </div>
-          }
-        >
+        <Suspense fallback={<StockMovementTableSkeleton />}>
           <StockMovementTable
             movements={movements}
             total={total}

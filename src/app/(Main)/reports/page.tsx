@@ -1,9 +1,9 @@
-﻿// ============================================================
+// ============================================================
 // src/app/(Main)/reports/page.tsx
 // Central Fire Protection ERP Reports Page
 // ============================================================
 
-import React from "react";
+import React, { Suspense } from "react";
 import {
   getProjectCostSummaryReport,
   getCategoryExpenseReport,
@@ -13,6 +13,7 @@ import {
   getProjectTransferReport,
 } from "@/lib/repositories/reportRepository";
 import { ReportsClientPage } from "./ReportsClientPage";
+import ReportsSkeleton from "./components/ReportsSkeleton";
 
 export const revalidate = 0;
 
@@ -36,14 +37,16 @@ export default async function ERPReportsPage() {
   ]);
 
   return (
-    <ReportsClientPage
-      costSummaryReport={costSummaryReport}
-      categoryExpenseReport={categoryExpenseReport}
-      transportReport={transportReport}
-      engineerReport={engineerReport}
-      customerReport={customerReport}
-      transferReport={transferReport}
-    />
+    <Suspense fallback={<ReportsSkeleton />}>
+      <ReportsClientPage
+        costSummaryReport={costSummaryReport}
+        categoryExpenseReport={categoryExpenseReport}
+        transportReport={transportReport}
+        engineerReport={engineerReport}
+        customerReport={customerReport}
+        transferReport={transferReport}
+      />
+    </Suspense>
   );
 }
 

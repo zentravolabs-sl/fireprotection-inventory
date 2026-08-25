@@ -10,8 +10,8 @@ import Link from "next/link";
 import { requireAnyRole } from "@/lib/auth/authorization";
 import { queryUsers } from "@/lib/data/users";
 import UserTable from "@/components/users/user-table";
+import UserTableSkeleton from "@/components/users/UserTableSkeleton";
 import UserFilters from "@/components/users/user-filters";
-import TableSkeleton from "@/components/ui/TableSkeleton";
 import { UserPlus, Users } from "lucide-react";
 import type { UserRole, UserProfile } from "@/types/auth";
 
@@ -134,7 +134,7 @@ export default async function UsersRolesPage({ searchParams }: PageProps) {
         )}
 
         {/* Table */}
-        <Suspense fallback={<TableSkeleton rows={8} cols={8} />}>
+        <Suspense fallback={<UserTableSkeleton />}>
           <UserTable
             users={users}
             actorRole={actor.role}

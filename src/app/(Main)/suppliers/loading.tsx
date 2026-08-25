@@ -3,7 +3,7 @@
 // Loading skeleton state for Suppliers page.
 // ============================================================
 
-import TableSkeleton from "@/components/ui/TableSkeleton";
+import SupplierTableSkeleton from "./components/SupplierTableSkeleton";
 
 export default function SuppliersLoading() {
   return (
@@ -17,27 +17,7 @@ export default function SuppliersLoading() {
           </div>
           <div className="h-10 w-full sm:w-72 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
-                {["#", "Company", "Contact Person", "Phone", "Email", "Address", "Created", "Actions"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide"
-                    >
-                      {h}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              <TableSkeleton rows={5} cols={8} />
-            </tbody>
-          </table>
-        </div>
+        <SupplierTableSkeleton />
       </main>
     </div>
   );

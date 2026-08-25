@@ -170,6 +170,13 @@ export const returnMaterialsSchema = z.object({
   items: z.array(returnMaterialItemSchema).min(1, "At least one item to return"),
 });
 
+export const saveProjectEstimateSchema = z.object({
+  projectId: z.number().int().positive("Project is required"),
+  inventoryId: z.number().int().positive("Inventory item is required"),
+  estimatedQty: z.number().positive("Estimated quantity must be greater than 0"),
+  notes: z.string().optional().nullable(),
+});
+
 export type CreateProjectInput = z.output<typeof createProjectSchema>;
 export type CreateProjectFormValues = z.input<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
@@ -183,3 +190,4 @@ export type ApproveMaterialRequestInput = z.infer<typeof approveMaterialRequestS
 export type ResubmitMaterialRequestInput = z.infer<typeof resubmitMaterialRequestSchema>;
 export type IssueMaterialsFIFOInput = z.infer<typeof issueMaterialsFIFOSchema>;
 export type ReturnMaterialsInput = z.infer<typeof returnMaterialsSchema>;
+export type SaveProjectEstimateInput = z.infer<typeof saveProjectEstimateSchema>;

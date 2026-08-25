@@ -3,12 +3,13 @@
 // Fire Extinguisher Refill Management Page
 // ============================================================
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { getCurrentUserPermissions } from "@/lib/auth/permissions";
 import { RefillManagementClient } from "@/components/fire-extinguishers/RefillManagementClient";
+import ExtinguisherRefillsTableSkeleton from "@/components/fire-extinguishers/ExtinguisherRefillsTableSkeleton";
 import { RefreshCw, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -95,12 +96,14 @@ export default async function RefillsPage() {
           </div>
         </div>
 
-        <RefillManagementClient
-          initialRefills={refills as any}
-          activeAssignments={rawActiveAssignments as any}
-          availableReplacements={rawAvailableReplacements as any}
-          canRefill={canRefill}
-        />
+        <Suspense fallback={<ExtinguisherRefillsTableSkeleton />}>
+          <RefillManagementClient
+            initialRefills={refills as any}
+            activeAssignments={rawActiveAssignments as any}
+            availableReplacements={rawAvailableReplacements as any}
+            canRefill={canRefill}
+          />
+        </Suspense>
       </div>
     </div>
   );

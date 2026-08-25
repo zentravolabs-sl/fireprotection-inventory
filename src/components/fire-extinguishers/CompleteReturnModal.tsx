@@ -176,7 +176,7 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
           {pendingItems.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Flame className="text-amber-500" size={15} />
+                <Flame className="text-red-600" size={15} />
                 <h3 className="text-xs font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">
                   Customer's Extinguishers (Return to Customer)
                 </h3>
@@ -219,7 +219,7 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
                             </td>
                           </tr>
                           {/* Date row */}
-                          <tr className="bg-amber-50/40 dark:bg-amber-950/10">
+                          <tr className="bg-red-50/30 dark:bg-red-950/20">
                             <td colSpan={4} className="py-2.5 px-3">
                               <div className="flex flex-wrap items-center gap-4">
                                 {/* Refill Date */}
@@ -239,7 +239,7 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
                                 </div>
                                 {/* Expire Date */}
                                 <div className="flex items-center gap-2">
-                                  <CalendarClock size={13} className="text-amber-600 shrink-0" />
+                                  <CalendarClock size={13} className="text-red-600 shrink-0" />
                                   <label className="text-[11px] font-bold text-gray-600 dark:text-gray-400 whitespace-nowrap">
                                     Expire Date
                                   </label>
@@ -249,7 +249,7 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
                                     onChange={(e) =>
                                       setItemExpireDates((p) => ({ ...p, [item.id]: e.target.value }))
                                     }
-                                    className="px-2.5 py-1 text-[11px] rounded-lg border border-amber-200 dark:border-amber-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                    className="px-2.5 py-1 text-[11px] rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
                                   />
                                   {/* Expiry warning pill */}
                                   {expWarn && expWarn.level !== "ok" && (

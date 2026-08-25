@@ -21,11 +21,12 @@ import {
 import type { SupplierFormValues } from "@/lib/validations/supplier";
 
 interface SupplierTableProps {
-  suppliers: SupplierRow[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  suppliers?: SupplierRow[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+  isLoading?: boolean;
 }
 
 function formatDate(date: Date) {
@@ -36,13 +37,21 @@ function formatDate(date: Date) {
   }).format(new Date(date));
 }
 
+import SupplierTableSkeleton from "./SupplierTableSkeleton";
+
+export { SupplierTableSkeleton };
+
 export default function SupplierTable({
-  suppliers,
-  total,
-  page,
-  limit,
-  totalPages,
+  suppliers = [],
+  total = 0,
+  page = 1,
+  limit = 5,
+  totalPages = 1,
+  isLoading = false,
 }: SupplierTableProps) {
+  if (isLoading) {
+    return <SupplierTableSkeleton />;
+  }
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<SupplierRow | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<SupplierRow | undefined>(undefined);

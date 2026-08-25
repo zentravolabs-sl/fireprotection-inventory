@@ -104,11 +104,11 @@ export function ExpiringRefillItemsTable() {
   ).length;
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-amber-200 dark:border-amber-900/60 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-200 dark:border-red-900/60 shadow-sm overflow-hidden">
       {/* Table header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-amber-100 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-950/20">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-red-100 dark:border-red-900/40 bg-red-50/60 dark:bg-red-950/20">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-600/10 border border-amber-600/20 flex items-center justify-center text-amber-600">
+          <div className="w-9 h-9 rounded-xl bg-red-600/10 border border-red-600/20 flex items-center justify-center text-red-600">
             <CalendarClock size={20} />
           </div>
           <div>
@@ -125,7 +125,7 @@ export function ExpiringRefillItemsTable() {
                 </span>
               )}
             </h2>
-            <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
+            <p className="text-[11px] text-red-700 dark:text-red-400 mt-0.5">
               Customer extinguisher refills expiring within 30 days
             </p>
           </div>
@@ -133,7 +133,7 @@ export function ExpiringRefillItemsTable() {
         <button
           onClick={fetchData}
           disabled={loading || isPending}
-          className="p-2 text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-200 bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 rounded-xl transition-colors"
+          className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 bg-red-100 dark:bg-red-950/40 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-xl transition-colors"
           title="Refresh"
         >
           <RefreshCw size={14} className={loading || isPending ? "animate-spin" : ""} />
@@ -142,12 +142,12 @@ export function ExpiringRefillItemsTable() {
 
       {loading ? (
         <div className="flex items-center justify-center h-24">
-          <RefreshCw size={18} className="animate-spin text-amber-500" />
+          <RefreshCw size={18} className="animate-spin text-red-600" />
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="bg-amber-50/40 dark:bg-amber-950/10 text-[10px] font-bold uppercase text-amber-800 dark:text-amber-400">
+            <thead className="bg-red-50/40 dark:bg-red-950/10 text-[10px] font-bold uppercase text-red-800 dark:text-red-400">
               <tr>
                 <th className="py-2.5 px-4">Refill Job</th>
                 <th className="py-2.5 px-4">Customer</th>
@@ -159,7 +159,7 @@ export function ExpiringRefillItemsTable() {
                 <th className="py-2.5 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-amber-100 dark:divide-amber-900/20">
+            <tbody className="divide-y divide-red-100 dark:divide-red-900/20">
               {items.map((item) => {
                 const daysLeft = item.expireDate ? getDaysLeft(item.expireDate) : null;
                 const rowBg =
@@ -174,7 +174,7 @@ export function ExpiringRefillItemsTable() {
                 return (
                   <tr
                     key={item.id}
-                    className={`hover:bg-amber-50/60 dark:hover:bg-amber-950/20 transition-colors ${rowBg}`}
+                    className={`hover:bg-red-50/60 dark:hover:bg-red-950/20 transition-colors ${rowBg}`}
                   >
                     {/* Refill job */}
                     <td className="py-3 px-4">
@@ -198,7 +198,7 @@ export function ExpiringRefillItemsTable() {
                     {/* Extinguisher type */}
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5">
-                        <Flame size={12} className="text-amber-500 shrink-0" />
+                        <Flame size={12} className="text-red-600 shrink-0" />
                         <span className="font-semibold text-gray-900 dark:text-gray-100">
                           {item.extinguisherType}
                         </span>
@@ -216,7 +216,7 @@ export function ExpiringRefillItemsTable() {
                     </td>
 
                     {/* Expire date */}
-                    <td className="py-3 px-4 font-semibold text-amber-700 dark:text-amber-400">
+                    <td className="py-3 px-4 font-semibold text-red-700 dark:text-red-400">
                       {item.expireDate ? formatDate(item.expireDate) : "—"}
                     </td>
 
@@ -233,7 +233,7 @@ export function ExpiringRefillItemsTable() {
                     <td className="py-3 px-4 text-right">
                       <Link
                         href={`/fire-extinguishers/customer-refills/${item.customerRefill.id}`}
-                        className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 font-bold transition-colors"
+                        className="inline-flex items-center gap-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-bold transition-colors"
                       >
                         View <ChevronRight size={13} />
                       </Link>

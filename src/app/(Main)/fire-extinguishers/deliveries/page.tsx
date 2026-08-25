@@ -3,12 +3,13 @@
 // Client Delivery Notes Management Page
 // ============================================================
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { getCurrentUserPermissions } from "@/lib/auth/permissions";
 import { ClientDeliveriesClient } from "@/components/fire-extinguishers/ClientDeliveriesClient";
+import ExtinguisherDeliveriesTableSkeleton from "@/components/fire-extinguishers/ExtinguisherDeliveriesTableSkeleton";
 import { Truck, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -124,13 +125,15 @@ export default async function ClientDeliveriesPage() {
           </div>
         </div>
 
-        <ClientDeliveriesClient
-          initialDeliveries={deliveries as any}
-          customers={rawCustomers as any}
-          projects={rawProjects as any}
-          availableUnits={availableUnits as any}
-          canDeliver={canDeliver}
-        />
+        <Suspense fallback={<ExtinguisherDeliveriesTableSkeleton />}>
+          <ClientDeliveriesClient
+            initialDeliveries={deliveries as any}
+            customers={rawCustomers as any}
+            projects={rawProjects as any}
+            availableUnits={availableUnits as any}
+            canDeliver={canDeliver}
+          />
+        </Suspense>
 
       </div>
     </div>

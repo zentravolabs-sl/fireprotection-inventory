@@ -320,6 +320,7 @@ export function ProjectsClientPage({
           }}
           customers={customers}
           users={users}
+          userRole={userRole}
         />
       )}
     </div>

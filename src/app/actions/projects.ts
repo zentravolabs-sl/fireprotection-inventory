@@ -54,7 +54,7 @@ export async function createProjectAction(formData: FormData) {
       projectName: formData.get("projectName"),
       customerId: Number(formData.get("customerId")),
       projectManagerId: formData.get("projectManagerId"),
-      projectType: formData.get("projectType") || "PRIVATE",
+      projectType: user.role === "QS_ENGINEER" ? "PRIVATE" : (formData.get("projectType") || "PRIVATE"),
       location: formData.get("location") || undefined,
       startDate: formData.get("startDate") || undefined,
       endDate: formData.get("endDate") || undefined,

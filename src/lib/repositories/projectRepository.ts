@@ -109,6 +109,14 @@ export async function findProjectById(id: number) {
           },
         },
       },
+      estimateMaterials: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          inventory: {
+            select: { id: true, itemCode: true, name: true, unit: true, brand: true },
+          },
+        },
+      },
     },
   });
 
@@ -231,6 +239,7 @@ export async function findProjects(params: {
   customerId?: number;
   engineerId?: string;
   projectManagerId?: string;
+  projectType?: "GOVERNMENT" | "PRIVATE";
   page?: number;
   limit?: number;
 }) {
@@ -256,6 +265,10 @@ export async function findProjects(params: {
 
   if (params.projectManagerId) {
     where.projectManagerId = params.projectManagerId;
+  }
+
+  if (params.projectType) {
+    where.projectType = params.projectType;
   }
 
   if (params.search && params.search.trim() !== "") {

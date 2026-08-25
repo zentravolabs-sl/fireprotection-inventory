@@ -25,6 +25,8 @@ import { ProjectStaffTab } from "@/components/staff";
 import { CreateTransferModal } from "@/components/transfers/CreateTransferModal";
 import { TransferDetailModal } from "@/components/transfers/TransferDetailModal";
 import { ProjectDeliveryAndIssueNotesTab } from "@/components/projects/ProjectDeliveryAndIssueNotesTab";
+import { ProjectEstimatesTab } from "@/components/projects/ProjectEstimatesTab";
+import { ProjectMaterialSummaryTab } from "@/components/projects/ProjectMaterialSummaryTab";
 import { ScrollableTabs, TabItem } from "@/components/ui/ScrollableTabs";
 import {
   completeProjectAction,
@@ -69,6 +71,8 @@ interface ProjectDetailsClientProps {
 
 type TabType =
   | "overview"
+  | "estimates"
+  | "materialSummary"
   | "engineers"
   | "tools"
   | "labour"
@@ -412,6 +416,8 @@ export function ProjectDetailsClient({
       {(() => {
         const allTabs: TabItem<TabType>[] = [
           { id: "overview", label: "Overview & Budget", icon: "📊", category: "general" },
+          { id: "estimates", label: "Estimated Materials", count: project.estimateMaterials?.length || 0, icon: "📐", category: "materials" },
+          { id: "materialSummary", label: "Material Summary", icon: "📊", category: "materials" },
           { id: "engineers", label: "Engineers", count: project.engineers?.length || 0, icon: "👥", category: "personnel" },
           { id: "tools", label: "Assigned Tools", count: (toolAssignments || []).flatMap((a: any) => a?.items || []).length, icon: "🔧", category: "personnel" },
           { id: "labour", label: "Labour", count: (projectLabours || []).length, icon: "👷", category: "personnel" },
@@ -602,6 +608,26 @@ export function ProjectDetailsClient({
           </div>
         </div>
       )}
+
+      {/* TAB: ESTIMATED MATERIALS */}
+      {activeTab === "estimates" && (
+        <ProjectEstimatesTab
+          projectId={project.id}
+          estimates={project.estimateMaterials || []}
+          inventoryItems={inventoryItems}
+          onRefresh={() => router.refresh()}
+        />
+      )}
+
+      {/* TAB: MATERIAL SUMMARY */}
+      {activeTab === "materialSummary" && (
+        <ProjectMaterialSummaryTab
+          projectId={project.id}
+          materialRequestsCount={project.materialRequests?.length || 0}
+        />
+      )}
+
+
 
       {/* TAB: ASSIGNED TOOLS */}
       {activeTab === "tools" && (
@@ -1514,5 +1540,7 @@ export function ProjectDetailsClient({
     </div>
   );
 }
+
+
 
 export default ProjectDetailsClient;

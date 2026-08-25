@@ -42,11 +42,12 @@ export default async function ProjectsDashboardPage(props: PageProps) {
   // Engineers and Project Managers only see their assigned projects
   const engineerFilter = userRole === "ENGINEER" ? userId : undefined;
   const pmFilter = userRole === "PROJECT_MANAGER" ? userId : undefined;
+  const projectTypeFilter = userRole === "QS_ENGINEER" ? "PRIVATE" : undefined;
   const isRestrictedRole = userRole === "ENGINEER" || userRole === "PROJECT_MANAGER";
 
   const [stats, projectsResult, customers, users] = await Promise.all([
     isRestrictedRole ? Promise.resolve(null) : getDashboardStats(),
-    findProjects({ search, status, page, limit, engineerId: engineerFilter, projectManagerId: pmFilter }),
+    findProjects({ search, status, page, limit, engineerId: engineerFilter, projectManagerId: pmFilter, projectType: projectTypeFilter }),
     prisma.customer.findMany({
       select: { id: true, companyName: true },
       orderBy: { companyName: "asc" },

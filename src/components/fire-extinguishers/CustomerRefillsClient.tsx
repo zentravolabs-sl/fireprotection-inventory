@@ -119,7 +119,7 @@ export function CustomerRefillsClient() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-600/10 border border-amber-600/20 flex items-center justify-center text-amber-600 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-red-600/10 border border-red-600/20 flex items-center justify-center text-red-600 shrink-0">
             <Flame size={22} />
           </div>
           <div>
@@ -131,7 +131,7 @@ export function CustomerRefillsClient() {
         </div>
         <Link
           href="/fire-extinguishers/customer-refills/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-xl shadow-md hover:shadow-lg shadow-red-500/25 transition-all"
         >
           <Plus size={16} /> New Refill Job
         </Link>
@@ -172,7 +172,7 @@ export function CustomerRefillsClient() {
               placeholder="Search by refill no, customer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
@@ -182,21 +182,21 @@ export function CustomerRefillsClient() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="px-2.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="px-2.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             <span className="text-gray-400 text-xs">to</span>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="px-2.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="px-2.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
           <div className="flex gap-2">
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors"
             >
               Search
             </button>
@@ -210,7 +210,7 @@ export function CustomerRefillsClient() {
             <button
               type="button"
               onClick={fetchData}
-              className="p-2 text-gray-500 hover:text-amber-600 dark:text-gray-400 dark:hover:text-amber-400 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
               <RefreshCw size={15} className={isPending ? "animate-spin" : ""} />
             </button>
@@ -225,7 +225,7 @@ export function CustomerRefillsClient() {
               onClick={() => setTab(t.value)}
               className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-colors ${
                 tab === t.value
-                  ? "bg-amber-600 text-white"
+                  ? "bg-red-600 text-white shadow-sm"
                   : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400"
               }`}
             >
@@ -239,7 +239,7 @@ export function CustomerRefillsClient() {
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-40">
-            <RefreshCw size={20} className="animate-spin text-amber-500" />
+            <RefreshCw size={20} className="animate-spin text-red-600" />
           </div>
         ) : refills.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-gray-400 gap-2">
@@ -264,7 +264,7 @@ export function CustomerRefillsClient() {
                 {refills.map((r) => (
                   <tr
                     key={r.id}
-                    className="hover:bg-amber-50/40 dark:hover:bg-amber-950/10 transition-colors cursor-pointer"
+                    className="hover:bg-red-50/30 dark:hover:bg-red-950/10 transition-colors cursor-pointer"
                     onClick={() => (window.location.href = `/fire-extinguishers/customer-refills/${r.id}`)}
                   >
                     <td className="py-3 px-4">
@@ -287,7 +287,7 @@ export function CustomerRefillsClient() {
                       {formatDate(r.receivedDate)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 font-bold">
                         {r.items.length}
                       </span>
                     </td>
@@ -307,7 +307,7 @@ export function CustomerRefillsClient() {
                       <Link
                         href={`/fire-extinguishers/customer-refills/${r.id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 font-bold"
+                        className="inline-flex items-center gap-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-bold"
                       >
                         View <ChevronRight size={14} />
                       </Link>
