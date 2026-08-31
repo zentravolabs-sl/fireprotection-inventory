@@ -136,13 +136,47 @@ export default async function ProjectDetailPage(props: PageProps) {
     orderBy: { name: "asc" },
   });
 
-  const formattedInventory = (inventoryItems || []).map((item: any) => ({
-    id: item.id,
-    itemCode: item.itemCode,
-    name: item.name,
-    unit: item.unit,
-    availableStock: (item.stockBatches || []).reduce((sum: number, b: any) => sum + (b.availableQty || 0), 0),
-  }));
+  // Build estimate & already-requested maps for the MaterialRequestModal
+  const [projectEstimates, existingRequestItems] = await Promise.all([
+    prisma.projectEstimateMaterial.findMany({
+      where: { projectId },
+      select: { inventoryId: true, estimatedQty: true },
+    }),
+    prisma.materialRequestItem.findMany({
+      where: {
+        materialRequest: {
+          projectId,
+          status: { notIn: ["REJECTED"] },
+        },
+      },
+      select: { inventoryId: true, qtyRequested: true },
+    }),
+  ]);
+
+  const estimateMap: Record<number, number> = {};
+  projectEstimates.forEach((e) => { estimateMap[e.inventoryId] = e.estimatedQty; });
+
+  const requestedMap: Record<number, number> = {};
+  existingRequestItems.forEach((ri) => {
+    requestedMap[ri.inventoryId] = (requestedMap[ri.inventoryId] || 0) + ri.qtyRequested;
+  });
+
+  const formattedInventory = (inventoryItems || []).map((item: any) => {
+    const estimatedQty = estimateMap[item.id] ?? null;
+    const alreadyRequestedQty = requestedMap[item.id] ?? 0;
+    const remainingEstimate =
+      estimatedQty !== null ? Math.max(0, estimatedQty - alreadyRequestedQty) : null;
+    return {
+      id: item.id,
+      itemCode: item.itemCode,
+      name: item.name,
+      unit: item.unit,
+      availableStock: (item.stockBatches || []).reduce((sum: number, b: any) => sum + (b.availableQty || 0), 0),
+      estimatedQty,
+      alreadyRequestedQty,
+      remainingEstimate,
+    };
+  });
 
   return (
     <ProjectDetailsClient

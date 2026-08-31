@@ -2,8 +2,9 @@
 
 // ============================================================
 // src/components/projects/MaterialRequestModal.tsx
-// Modal for Engineers to create material requests with multi-item selection
-// Shows custom UI Notice Modal when the LKR 5M threshold is reached
+// Modal for Engineers to create material requests with multi-item selection.
+// Enforces estimate-first rule: can only request up to remaining estimate qty.
+// Once estimate is fully exhausted, additional requests are allowed freely.
 // ============================================================
 
 import React, { useState } from "react";
@@ -20,6 +21,9 @@ interface InventoryItemOption {
   name: string;
   unit: string;
   availableStock: number;
+  estimatedQty: number | null;
+  alreadyRequestedQty: number;
+  remainingEstimate: number | null;
 }
 
 interface MaterialRequestModalProps {
@@ -58,8 +62,31 @@ export function MaterialRequestModal({
 
   function handleItemChange(index: number, field: "inventoryId" | "qtyRequested", value: number) {
     const updated = [...requestItems];
-    updated[index][field] = value;
+    // When inventory changes, reset qty to 1 and auto-set to remaining estimate if applicable
+    if (field === "inventoryId") {
+      const inv = inventoryItems.find((i) => i.id === value);
+      const defaultQty =
+        inv && inv.remainingEstimate !== null && inv.remainingEstimate > 0
+          ? inv.remainingEstimate
+          : 1;
+      updated[index] = { inventoryId: value, qtyRequested: defaultQty };
+    } else {
+      updated[index][field] = value;
+    }
     setRequestItems(updated);
+    setError(null);
+  }
+
+  // Client-side validation of qty against estimate limits
+  function validateQty(inventoryId: number, qtyRequested: number): string | null {
+    const inv = inventoryItems.find((i) => i.id === inventoryId);
+    if (!inv) return null;
+
+    // If remaining estimate > 0 and request exceeds it → warn
+    if (inv.remainingEstimate !== null && inv.remainingEstimate > 0 && qtyRequested > inv.remainingEstimate) {
+      return `Max allowed within estimate: ${inv.remainingEstimate} ${inv.unit} (Estimate: ${inv.estimatedQty}, Already requested: ${inv.alreadyRequestedQty})`;
+    }
+    return null;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -75,6 +102,16 @@ export function MaterialRequestModal({
       setLoading(false);
       setError("Please select at least one valid inventory item.");
       return;
+    }
+
+    // Client-side estimate validation before submit
+    for (const item of validItems) {
+      const err = validateQty(item.inventoryId, item.qtyRequested);
+      if (err) {
+        setLoading(false);
+        setError(err);
+        return;
+      }
     }
 
     const res = await createMaterialRequestAction({
@@ -107,7 +144,7 @@ export function MaterialRequestModal({
       <Modal isOpen={isOpen && !approvalNotice} onClose={onClose} title="Create Material Request">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 text-xs text-red-700 bg-red-100 border border-red-200 rounded-md">
+            <div className="p-3 text-xs text-red-700 bg-red-100 border border-red-200 rounded-xl dark:bg-red-950/40 dark:text-red-300 dark:border-red-800">
               {error}
             </div>
           )}
@@ -119,11 +156,25 @@ export function MaterialRequestModal({
 
             {requestItems.map((item, idx) => {
               const selectedInv = inventoryItems.find((inv) => inv.id === item.inventoryId);
+              const qtyErr = selectedInv ? validateQty(item.inventoryId, item.qtyRequested) : null;
+
+              // Estimate state for this item
+              const hasEstimate = selectedInv?.estimatedQty !== null;
+              const estimateExhausted =
+                hasEstimate &&
+                selectedInv !== undefined &&
+                selectedInv.remainingEstimate !== null &&
+                selectedInv.remainingEstimate <= 0;
+              const remainingEstimate = selectedInv?.remainingEstimate ?? null;
 
               return (
                 <div
                   key={idx}
-                  className="p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2"
+                  className={`p-3.5 rounded-xl border space-y-2 transition-colors ${
+                    qtyErr
+                      ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-800"
+                      : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                  }`}
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
@@ -131,17 +182,29 @@ export function MaterialRequestModal({
                         instanceId={`mat-req-select-${idx}`}
                         options={inventoryItems.map((inv) => ({
                           value: inv.id,
-                          label: `${inv.itemCode} - ${inv.name} (Stock: ${inv.availableStock} ${inv.unit})`,
+                          label: `${inv.itemCode} - ${inv.name}${
+                            inv.estimatedQty !== null
+                              ? ` | Est: ${inv.estimatedQty} ${inv.unit}${
+                                  inv.remainingEstimate !== null && inv.remainingEstimate > 0
+                                    ? ` (Rem: ${inv.remainingEstimate})`
+                                    : inv.remainingEstimate === 0
+                                    ? " ✓ Est. done — additional OK"
+                                    : ""
+                                }`
+                              : ` (Stock: ${inv.availableStock} ${inv.unit})`
+                          }`,
                         }))}
                         value={
                           inventoryItems
                             .filter((inv) => inv.id === item.inventoryId)
                             .map((inv) => ({
                               value: inv.id,
-                              label: `${inv.itemCode} - ${inv.name} (Stock: ${inv.availableStock} ${inv.unit})`,
+                              label: `${inv.itemCode} - ${inv.name}`,
                             }))[0] || null
                         }
-                        onChange={(val) => handleItemChange(idx, "inventoryId", val ? val.value : 0)}
+                        onChange={(val) =>
+                          handleItemChange(idx, "inventoryId", val ? val.value : 0)
+                        }
                         placeholder="Select Material..."
                         isSearchable
                         isClearable
@@ -153,15 +216,24 @@ export function MaterialRequestModal({
                     <div className="w-28">
                       <input
                         type="number"
-                        min="1"
+                        min="0.01"
                         step="any"
+                        max={
+                          selectedInv && remainingEstimate !== null && remainingEstimate > 0
+                            ? remainingEstimate
+                            : undefined
+                        }
                         value={item.qtyRequested}
                         onChange={(e) =>
                           handleItemChange(idx, "qtyRequested", Number(e.target.value))
                         }
                         required
                         placeholder="Qty"
-                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-bold text-xs outline-none focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                        className={`w-full px-3 py-2.5 border rounded-xl text-gray-900 dark:text-gray-100 font-bold text-xs outline-none focus:ring-1 transition-colors ${
+                          qtyErr
+                            ? "border-red-400 bg-red-50 dark:bg-red-950/30 focus:border-red-500 focus:ring-red-200"
+                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-red-500 focus:ring-red-200"
+                        }`}
                       />
                     </div>
 
@@ -177,10 +249,54 @@ export function MaterialRequestModal({
                     )}
                   </div>
 
+                  {/* Info row per item */}
                   {selectedInv && (
-                    <div className="text-[11px] flex justify-between text-gray-500 pt-1 border-t border-gray-100 dark:border-gray-800">
-                      <span>Unit: {selectedInv.unit}</span>
-                      <span className="font-semibold text-green-600">Available Stock: {selectedInv.availableStock} {selectedInv.unit}</span>
+                    <div className="border-t border-gray-100 dark:border-gray-700 pt-2 space-y-1">
+                      {hasEstimate ? (
+                        <>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+                            <span className="text-gray-500">
+                              📐 Total Estimate:{" "}
+                              <span className="font-semibold text-gray-700 dark:text-gray-200">
+                                {selectedInv.estimatedQty} {selectedInv.unit}
+                              </span>
+                            </span>
+                            <span className="text-gray-500">
+                              📋 Already Requested:{" "}
+                              <span className="font-semibold text-orange-600 dark:text-orange-400">
+                                {selectedInv.alreadyRequestedQty} {selectedInv.unit}
+                              </span>
+                            </span>
+                            {estimateExhausted ? (
+                              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                ✅ Estimate fully used — additional request allowed
+                              </span>
+                            ) : (
+                              <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
+                                🔖 Remaining within estimate:{" "}
+                                <strong>{remainingEstimate} {selectedInv.unit}</strong>
+                              </span>
+                            )}
+                            <span className="text-gray-400">
+                              Warehouse Stock: {selectedInv.availableStock} {selectedInv.unit}
+                            </span>
+                          </div>
+
+                          {/* Qty error message */}
+                          {qtyErr && (
+                            <div className="text-[11px] text-red-600 dark:text-red-400 font-semibold">
+                              ⚠ {qtyErr}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex justify-between text-[11px] text-gray-500">
+                          <span>Unit: {selectedInv.unit}</span>
+                          <span className="font-semibold text-green-600 dark:text-green-400">
+                            Available Stock: {selectedInv.availableStock} {selectedInv.unit}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

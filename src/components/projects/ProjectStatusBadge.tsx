@@ -17,9 +17,9 @@ export function ProjectStatusBadge({ status, className = "" }: StatusBadgeProps)
     switch (s) {
       case "PENDING":
       case "PENDING_GM":
-        return { bg: "#fef3c7", text: "#92400e", border: "#fde68a" }; // Amber (GM Pending)
+        return { bg: "#cffafe", text: "#155e75", border: "#a5f3fc" }; // Cyan (Pending PE Review)
       case "PENDING_ADMIN":
-        return { bg: "#e0e7ff", text: "#3730a3", border: "#c7d2fe" }; // Indigo (Admin Pending)
+        return { bg: "#e0e7ff", text: "#3730a3", border: "#c7d2fe" }; // Indigo (Legacy Admin Pending)
       case "MATERIAL_REQUEST":
         return { bg: "#e0f2fe", text: "#075985", border: "#bae6fd" }; // Sky Blue
       case "MATERIAL_APPROVED":
@@ -47,7 +47,12 @@ export function ProjectStatusBadge({ status, className = "" }: StatusBadgeProps)
   };
 
   const style = getBadgeStyle(status);
-  const formattedText = status.replace(/_/g, " ");
+  // Override display text for specific statuses
+  const getDisplayText = (s: string) => {
+    if (s === "PENDING_GM") return "PENDING PE REVIEW";
+    return s.replace(/_/g, " ");
+  };
+  const formattedText = getDisplayText(status);
 
   return (
     <span

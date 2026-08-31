@@ -51,6 +51,9 @@ interface ProjectDetailsClientProps {
     name: string;
     unit: string;
     availableStock: number;
+    estimatedQty: number | null;
+    alreadyRequestedQty: number;
+    remainingEstimate: number | null;
   }[];
   users: {
     id: string;
@@ -755,51 +758,49 @@ export function ProjectDetailsClient({
                       Submitted: {formatDate(req.createdAt)} by {req.engineer?.name}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center flex-wrap gap-2">
                     <ProjectStatusBadge status={req.status} />
 
-                    {/* GM Review Step */}
+                    {/* Purchase Engineer Review Step */}
                     {(req.status === "PENDING" || req.status === "PENDING_GM") &&
-                      (currentUserRole === "GENERAL_MANAGER" || userRole === "GENERAL_MANAGER" || isSuperAdmin) && (
+                      (currentUserRole === "PURCHASE_ENGINEER" || userRole === "PURCHASE_ENGINEER" || isSuperAdmin) && (
                         <button
                           onClick={() => setSelectedApproveRequest(req)}
-                          className="px-3 py-1 text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 hover:bg-indigo-100 rounded-md"
+                          className="px-3 py-1 text-xs font-semibold bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900 rounded-md border border-cyan-200 dark:border-cyan-800 transition-colors"
                         >
-                          GM Review
+                          🔍 PE Review
                         </button>
                       )}
 
-                    {/* Admin Review Step */}
-                    {req.status === "PENDING_ADMIN" &&
-                      (currentUserRole === "ADMIN" || userRole === "ADMIN" || isSuperAdmin) && (
+                    {/* Inventory Controller FIFO Issue */}
+                    {(req.status === "APPROVED" || req.status === "PARTIAL") &&
+                      (currentUserRole === "INVENTORY_CONTROLLER" || userRole === "INVENTORY_CONTROLLER" || isSuperAdmin) && (
                         <button
-                          onClick={() => setSelectedApproveRequest(req)}
-                          className="px-3 py-1 text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 hover:bg-purple-100 rounded-md"
+                          onClick={() => setSelectedIssueRequest(req)}
+                          className="px-3 py-1 text-xs font-semibold bg-teal-600 text-white hover:bg-teal-700 rounded-md transition-colors"
                         >
-                          Admin Review
+                          ⚡ Issue FIFO
                         </button>
                       )}
-
-                    {/* Super Admin FIFO Issue */}
-                    {(req.status === "APPROVED" || req.status === "PARTIAL") && isSuperAdmin && (
-                      <button
-                        onClick={() => setSelectedIssueRequest(req)}
-                        className="px-3 py-1 text-xs font-semibold bg-teal-600 text-white hover:bg-teal-700 rounded-md"
-                      >
-                        Issue FIFO
-                      </button>
-                    )}
 
                     {/* Engineer Edit & Resubmit */}
                     {req.status === "REJECTED" && (isEngineerRole || isSuperAdmin) && (
                       <button
                         onClick={() => setSelectedEditRequest(req)}
-                        className="px-3 py-1 text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 rounded-md"
+                        className="px-3 py-1 text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 rounded-md transition-colors"
                       >
                         ✏ Edit & Resubmit
                       </button>
                     )}
                   </div>
+
+                  {/* Rejection note — shown below button row */}
+                  {req.status === "REJECTED" && req.remarks && (
+                    <div className="mt-2 px-3 py-2 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg">
+                      <p className="text-[11px] font-semibold text-red-700 dark:text-red-400 mb-0.5">❌ Rejection Note from Purchase Engineer:</p>
+                      <p className="text-[11px] text-red-600 dark:text-red-300 leading-relaxed">{req.remarks}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="overflow-x-auto">
