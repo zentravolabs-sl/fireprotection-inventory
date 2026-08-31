@@ -18,7 +18,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All Statuses" },
-  { value: "PENDING", label: "PENDING" },
+  { value: "PENDING_GM", label: "PENDING PE REVIEW" },
   { value: "APPROVED", label: "APPROVED" },
   { value: "PARTIAL", label: "PARTIAL" },
   { value: "ISSUED", label: "ISSUED" },
@@ -151,39 +151,36 @@ export function MaterialRequestsClientPage({
                   <td className="px-4 py-3.5 font-medium">{req.items?.length || 0} item(s)</td>
                   <td className="px-4 py-3.5">
                     <ProjectStatusBadge status={req.status} />
+                    {/* Show rejection note to engineer */}
+                    {req.status === "REJECTED" && req.remarks && (
+                      <div className="mt-2 max-w-[240px] px-2.5 py-1.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p className="text-[11px] font-semibold text-red-700 dark:text-red-400 mb-0.5">❌ Rejection Note:</p>
+                        <p className="text-[11px] text-red-600 dark:text-red-300 leading-relaxed">{req.remarks}</p>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3.5 text-right space-x-2">
-                    {/* GM Review Step */}
+                    {/* Purchase Engineer Review Step */}
                     {(req.status === "PENDING" || req.status === "PENDING_GM") &&
-                      (userRole === "GENERAL_MANAGER" || isSuperAdmin) && (
+                      (userRole === "PURCHASE_ENGINEER" || isSuperAdmin) && (
                         <button
                           onClick={() => setSelectedApproveRequest(req)}
-                          className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 hover:bg-indigo-100 rounded-md"
+                          className="px-3 py-1.5 text-xs font-semibold bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900 rounded-md border border-cyan-200 dark:border-cyan-800 transition-colors"
                         >
-                          GM Review
+                          🔍 PE Review
                         </button>
                       )}
 
-                    {/* Admin Review Step */}
-                    {req.status === "PENDING_ADMIN" &&
-                      (userRole === "ADMIN" || isSuperAdmin) && (
+                    {/* Inventory Controller FIFO Issue */}
+                    {(req.status === "APPROVED" || req.status === "PARTIAL") &&
+                      (userRole === "INVENTORY_CONTROLLER" || isSuperAdmin) && (
                         <button
-                          onClick={() => setSelectedApproveRequest(req)}
-                          className="px-3 py-1.5 text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 hover:bg-purple-100 rounded-md"
+                          onClick={() => setSelectedIssueRequest(req)}
+                          className="px-3 py-1.5 text-xs font-semibold bg-teal-600 text-white hover:bg-teal-700 rounded-md shadow-sm transition-colors"
                         >
-                          Admin Review
+                          ⚡ Issue FIFO
                         </button>
                       )}
-
-                    {/* Super Admin Issue FIFO */}
-                    {(req.status === "APPROVED" || req.status === "PARTIAL") && isSuperAdmin && (
-                      <button
-                        onClick={() => setSelectedIssueRequest(req)}
-                        className="px-3 py-1.5 text-xs font-semibold bg-teal-600 text-white hover:bg-teal-700 rounded-md shadow-sm"
-                      >
-                        Issue FIFO
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))

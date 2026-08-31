@@ -68,7 +68,7 @@ export default function NewMaterialRequestPage() {
       setError(null);
       setRequestQuantities({});
 
-      const res = await getInventoryOptionsAction();
+      const res = await getInventoryOptionsAction(selectedProject.id);
       setLoadingMaterials(false);
       if (res.success) {
         setInventoryItems(res.data || []);
@@ -82,9 +82,16 @@ export default function NewMaterialRequestPage() {
 
   function handleQtyChange(inventoryId: number, val: string) {
     const num = parseFloat(val) || 0;
+    const inv = inventoryItems.find((i: any) => i.id === inventoryId);
+    // Clamp to remainingEstimate if estimate is not yet exhausted
+    const max =
+      inv && inv.remainingEstimate !== null && inv.remainingEstimate > 0
+        ? inv.remainingEstimate
+        : Infinity;
+    const clamped = num < 0 ? 0 : num > max ? max : num;
     setRequestQuantities((prev) => ({
       ...prev,
-      [inventoryId]: num < 0 ? 0 : num,
+      [inventoryId]: clamped,
     }));
     setError(null);
   }
@@ -230,38 +237,118 @@ export default function NewMaterialRequestPage() {
                       <tr>
                         <th className="px-4 py-3">Material Item</th>
                         <th className="px-4 py-3">Unit</th>
+                        <th className="px-4 py-3 text-right">Est. Qty</th>
+                        <th className="px-4 py-3 text-right">Requested</th>
+                        <th className="px-4 py-3 text-right text-indigo-600 dark:text-indigo-400">Remaining</th>
                         <th className="px-4 py-3 text-right">Warehouse Stock</th>
                         <th className="px-4 py-3 text-right w-36">Request Qty</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                      {inventoryItems.map((inv) => {
+                      {inventoryItems.map((inv: any) => {
                         const currentReq = requestQuantities[inv.id] || 0;
+                        const hasEstimate = inv.estimatedQty !== null;
+                        const estimateExhausted = hasEstimate && inv.remainingEstimate <= 0;
+                        const overLimit =
+                          hasEstimate &&
+                          !estimateExhausted &&
+                          currentReq > inv.remainingEstimate;
 
                         return (
-                          <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                          <tr
+                            key={inv.id}
+                            className={`hover:bg-gray-50 dark:hover:bg-gray-800/40 ${
+                              overLimit ? "bg-red-50 dark:bg-red-950/20" : ""
+                            }`}
+                          >
                             <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
                               <span className="font-mono text-xs font-bold text-red-600 dark:text-red-400 mr-2">
                                 {inv.itemCode}
                               </span>
                               {inv.name}
+                              {estimateExhausted && (
+                                <span className="ml-2 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                  ✅ Extra request OK
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">
                               {inv.unit}
                             </td>
+                            {/* Estimated Qty */}
+                            <td className="px-4 py-3 text-right">
+                              {hasEstimate ? (
+                                <span className="font-semibold text-gray-800 dark:text-gray-200">
+                                  {inv.estimatedQty}
+                                </span>
+                              ) : (
+                                <span className="text-gray-300 dark:text-gray-600">—</span>
+                              )}
+                            </td>
+                            {/* Already Requested */}
+                            <td className="px-4 py-3 text-right">
+                              {hasEstimate ? (
+                                <span className={`font-semibold ${
+                                  estimateExhausted
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-orange-500 dark:text-orange-400"
+                                }`}>
+                                  {inv.alreadyRequestedQty}
+                                </span>
+                              ) : (
+                                <span className="text-gray-300 dark:text-gray-600">—</span>
+                              )}
+                            </td>
+                            {/* Remaining Estimate */}
+                            <td className="px-4 py-3 text-right">
+                              {hasEstimate ? (
+                                estimateExhausted ? (
+                                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                                    Done
+                                  </span>
+                                ) : (
+                                  <span className={`font-bold ${
+                                    overLimit
+                                      ? "text-red-600 dark:text-red-400"
+                                      : "text-indigo-600 dark:text-indigo-400"
+                                  }`}>
+                                    {inv.remainingEstimate}
+                                    {overLimit && " ⚠"}
+                                  </span>
+                                )
+                              ) : (
+                                <span className="text-gray-300 dark:text-gray-600">—</span>
+                              )}
+                            </td>
+                            {/* Warehouse Stock */}
                             <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
                               {inv.availableStock.toLocaleString()} {inv.unit}
                             </td>
+                            {/* Request Qty input */}
                             <td className="px-4 py-3 text-right">
                               <input
                                 type="number"
                                 step="any"
                                 min="0"
+                                max={
+                                  hasEstimate && !estimateExhausted
+                                    ? inv.remainingEstimate
+                                    : undefined
+                                }
                                 value={currentReq === 0 ? "" : currentReq}
                                 placeholder="0"
                                 onChange={(e) => handleQtyChange(inv.id, e.target.value)}
-                                className="w-28 px-3 py-1.5 text-xs font-extrabold text-right border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                                className={`w-28 px-3 py-1.5 text-xs font-extrabold text-right border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:outline-none transition-colors ${
+                                  overLimit
+                                    ? "border-red-400 dark:border-red-700 focus:ring-red-500"
+                                    : "border-gray-300 dark:border-gray-700 focus:ring-red-500"
+                                }`}
                               />
+                              {overLimit && (
+                                <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5 text-right">
+                                  Max: {inv.remainingEstimate}
+                                </div>
+                              )}
                             </td>
                           </tr>
                         );

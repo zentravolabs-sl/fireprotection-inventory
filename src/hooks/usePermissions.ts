@@ -18,5 +18,7 @@ export function usePermissions() {
     canAll,
     isSuperAdmin: userRole === "SUPER_ADMIN",
     isAdmin: userRole === "ADMIN" || userRole === "SUPER_ADMIN",
+    isPurchaseEngineer: userRole === "PURCHASE_ENGINEER" || userRole === "SUPER_ADMIN",
+    isInventoryController: userRole === "INVENTORY_CONTROLLER" || userRole === "SUPER_ADMIN",
   };
 }

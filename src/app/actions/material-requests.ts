@@ -98,6 +98,7 @@ export async function approveMaterialRequestAction(data: {
   remarks?: string;
 }) {
   try {
+    // Purchase Engineer review step — requires material_request.approve permission
     const user = await requirePermission("material_request.approve");
     const actorId = user.id;
     const parsed = approveMaterialRequestSchema.safeParse(data);
@@ -117,7 +118,7 @@ export async function approveMaterialRequestAction(data: {
 
     return {
       success: true,
-      message: `Material Request ${updated.requestNo} status updated to ${updated.status}.`,
+      message: `Material Request ${updated.requestNo} ${updated.status === "APPROVED" ? "approved successfully!" : "has been rejected."}`,
       data: updated,
     };
   } catch (err: any) {
@@ -164,7 +165,7 @@ export async function resubmitMaterialRequestAction(data: {
   }
 }
 
-export async function getInventoryOptionsAction() {
+export async function getInventoryOptionsAction(projectId?: number) {
   try {
     const items = await prisma.inventory.findMany({
       select: {
@@ -179,15 +180,55 @@ export async function getInventoryOptionsAction() {
       orderBy: { name: "asc" },
     });
 
+    // If projectId provided, fetch per-item estimate and already-requested totals
+    let estimateMap: Record<number, number> = {}; // inventoryId → estimatedQty
+    let requestedMap: Record<number, number> = {}; // inventoryId → sum of qtyRequested (non-rejected)
+
+    if (projectId) {
+      // Fetch project estimates
+      const estimates = await prisma.projectEstimateMaterial.findMany({
+        where: { projectId },
+        select: { inventoryId: true, estimatedQty: true },
+      });
+      estimates.forEach((e) => {
+        estimateMap[e.inventoryId] = e.estimatedQty;
+      });
+
+      // Sum qtyRequested across all non-rejected requests for this project
+      const existingItems = await prisma.materialRequestItem.findMany({
+        where: {
+          materialRequest: {
+            projectId,
+            status: { notIn: ["REJECTED"] },
+          },
+        },
+        select: { inventoryId: true, qtyRequested: true },
+      });
+      existingItems.forEach((ri) => {
+        requestedMap[ri.inventoryId] = (requestedMap[ri.inventoryId] || 0) + ri.qtyRequested;
+      });
+    }
+
     return {
       success: true,
-      data: items.map((inv) => ({
-        id: inv.id,
-        itemCode: inv.itemCode,
-        name: inv.name,
-        unit: inv.unit,
-        availableStock: inv.stockBatches.reduce((acc, b) => acc + b.availableQty, 0),
-      })),
+      data: items.map((inv) => {
+        const estimatedQty = estimateMap[inv.id] ?? null;
+        const alreadyRequestedQty = requestedMap[inv.id] ?? 0;
+        // How much of the estimate is still available to request
+        const remainingEstimate =
+          estimatedQty !== null ? Math.max(0, estimatedQty - alreadyRequestedQty) : null;
+
+        return {
+          id: inv.id,
+          itemCode: inv.itemCode,
+          name: inv.name,
+          unit: inv.unit,
+          availableStock: inv.stockBatches.reduce((acc, b) => acc + b.availableQty, 0),
+          estimatedQty,
+          alreadyRequestedQty,
+          remainingEstimate,
+        };
+      }),
     };
   } catch (err: any) {
     return { success: false, data: [], message: err.message };

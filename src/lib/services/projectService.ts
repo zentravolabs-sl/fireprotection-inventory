@@ -35,6 +35,7 @@ import { ProjectTimelineEvent, ProjectStatus } from "@/types/project";
 import {
   notifyMaterialRequestSubmitted,
   notifyMaterialRequestDecision,
+  notifyMaterialIssued,
   notifyCostThresholdPendingApproval,
 } from "@/lib/notifications";
 import {
@@ -224,6 +225,53 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
     }
   }
 
+  // ── Estimate-First Validation ─────────────────────────────────────────────
+  // Engineers must first exhaust the project's estimated quantity for each item
+  // before requesting additional quantities beyond the estimate.
+  for (const item of input.items) {
+    // Check if there is a project estimate for this item
+    const estimate = await prisma.projectEstimateMaterial.findUnique({
+      where: {
+        projectId_inventoryId: {
+          projectId: input.projectId,
+          inventoryId: item.inventoryId,
+        },
+      },
+      include: { inventory: { select: { name: true, unit: true } } },
+    });
+
+    if (!estimate) {
+      // No estimate for this item — free to request any quantity (up to stock)
+      continue;
+    }
+
+    // Sum all non-rejected qtyRequested for this project + inventory item
+    const existingRequested = await prisma.materialRequestItem.aggregate({
+      _sum: { qtyRequested: true },
+      where: {
+        inventoryId: item.inventoryId,
+        materialRequest: {
+          projectId: input.projectId,
+          status: { notIn: ["REJECTED"] },
+        },
+      },
+    });
+
+    const alreadyRequested = existingRequested._sum.qtyRequested ?? 0;
+    const remainingEstimate = estimate.estimatedQty - alreadyRequested;
+
+    if (remainingEstimate > 0 && item.qtyRequested > remainingEstimate) {
+      // Estimate not yet exhausted — must stay within remaining limit
+      throw new Error(
+        `For "${estimate.inventory.name}": the project estimate is ${estimate.estimatedQty} ${estimate.inventory.unit}. ` +
+        `Already requested: ${alreadyRequested} ${estimate.inventory.unit}. ` +
+        `You can only request up to ${remainingEstimate} ${estimate.inventory.unit} more within the estimate. ` +
+        `Once the estimate is fully used, you may submit additional requests beyond the estimated quantity.`
+      );
+    }
+    // If remainingEstimate <= 0, the estimate is exhausted — allow any additional quantity freely
+  }
+
   // ── Resolve requester name for the notification message ──────────────
   const engineer = await prisma.user.findUnique({
     where: { id: input.engineerId },
@@ -290,7 +338,7 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
   return request;
 }
 
-// ─── 6. Approve / Reject Material Request (Multi-Tier Approval) ─────────────
+// ─── 6. Approve / Reject Material Request (Purchase Engineer Single-Step) ────
 
 export async function approveMaterialRequestService(input: ApproveMaterialRequestInput, userId: string) {
   const request = await prisma.materialRequest.findUnique({
@@ -306,18 +354,13 @@ export async function approveMaterialRequestService(input: ApproveMaterialReques
   let newRequestStatus: "PENDING_GM" | "PENDING_ADMIN" | "APPROVED" | "REJECTED";
 
   if (request.status === "PENDING" || request.status === "PENDING_GM") {
-    // GM Review Step
+    // Purchase Engineer Review Step — single-step approval
     if (decision === "REJECT") {
+      // Rejected: goes back to the requester with the rejection note stored in remarks
       newRequestStatus = "REJECTED";
     } else {
-      newRequestStatus = "PENDING_ADMIN";
-    }
-  } else if (request.status === "PENDING_ADMIN") {
-    // Admin Review Step
-    if (decision === "REJECT") {
-      newRequestStatus = "PENDING_GM"; // Send back to GM
-    } else {
-      newRequestStatus = "APPROVED"; // Approved for Super Admin FIFO issue
+      // Approved: ready for Inventory Controller to do FIFO issue
+      newRequestStatus = "APPROVED";
     }
   } else {
     throw new Error(`Request cannot be processed because it is currently in '${request.status}' status.`);
@@ -402,7 +445,7 @@ export async function resubmitMaterialRequestService(
     throw new Error("Only rejected material requests can be edited and resubmitted.");
   }
 
-  return prisma.$transaction(
+  const updated = await prisma.$transaction(
     async (tx) => {
       await tx.materialRequestItem.deleteMany({
         where: { materialRequestId: request.id },
@@ -437,6 +480,23 @@ export async function resubmitMaterialRequestService(
     },
     { maxWait: 15000, timeout: 60000 }
   );
+
+  // Fire notification to Purchase Engineers AFTER transaction commits (non-fatal)
+  const resubmitter = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true },
+  });
+  await notifyMaterialRequestSubmitted(
+    request.id,
+    request.requestNo,
+    request.projectId,
+    request.project.projectName,
+    resubmitter?.name || "An Engineer",
+    userId,
+    true, // isResubmission
+  );
+
+  return updated;
 }
 
 // ─── 7. Issue Materials (FIFO Batch Selection + AUTOMATIC MATERIAL EXPENSE) ─
@@ -706,7 +766,16 @@ export async function issueMaterialsFIFOService(input: IssueMaterialsFIFOInput, 
     return { materialIssue, autoExpenseForNotification };
   }, { maxWait: 15000, timeout: 60000 });
 
-  // ── Fire cost-threshold notification AFTER transaction (non-fatal) ──
+  // ── Fire notifications AFTER transaction (non-fatal) ──
+  await notifyMaterialIssued(
+    request.id,
+    request.requestNo,
+    request.projectId,
+    request.project.projectName,
+    request.engineerId,
+    result.materialIssue.issueNo,
+  );
+
   if (result.autoExpenseForNotification) {
     const exp = result.autoExpenseForNotification;
     const issuer = await prisma.user.findUnique({
