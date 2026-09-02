@@ -14,18 +14,18 @@
 
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root {
-  --sb-width:          260px;
+  --sb-width: 260px;
   --sb-width-collapsed: 64px;
-  --sb-bg:             #090e1a;
-  --sb-bg-hover:       #161d2e;
-  --sb-bg-active:      #1a2035;
-  --sb-accent:         #e02424;
-  --sb-accent-glow:    rgba(224, 36, 36, 0.18);
-  --sb-border:         #1e2a3d;
-  --sb-text:           #dce3ef;
-  --sb-text-muted:     #5a657a;
-  --sb-text-group:     #3d4c62;
-  --sb-transition:     220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --sb-bg: #090e1a;
+  --sb-bg-hover: #161d2e;
+  --sb-bg-active: #1a2035;
+  --sb-accent: #e02424;
+  --sb-accent-glow: rgba(224, 36, 36, 0.18);
+  --sb-border: #1e2a3d;
+  --sb-text: #dce3ef;
+  --sb-text-muted: #5a657a;
+  --sb-text-group: #3d4c62;
+  --sb-transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Shell Layout ──────────────────────────────────────────── */
@@ -59,7 +59,7 @@
   z-index: 50;
   transition: width var(--sb-transition);
   /* Subtle inner glow on the right edge */
-  box-shadow: 1px 0 0 0 var(--sb-border), 4px 0 24px rgba(0,0,0,0.45);
+  box-shadow: 1px 0 0 0 var(--sb-border), 4px 0 24px rgba(0, 0, 0, 0.45);
 }
 
 .sidebar--collapsed {
@@ -86,7 +86,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 0 12px var(--sb-accent-glow);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+  padding: 4px;
 }
 
 .sidebar-logo-fire {
@@ -136,9 +137,11 @@
 .sidebar-nav::-webkit-scrollbar {
   width: 4px;
 }
+
 .sidebar-nav::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .sidebar-nav::-webkit-scrollbar-thumb {
   background: var(--sb-border);
   border-radius: 4px;
@@ -286,7 +289,7 @@
   pointer-events: none;
   z-index: 100;
   border: 1px solid var(--sb-border);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* ── Toggle Button ─────────────────────────────────────────── */
@@ -367,6 +370,7 @@
 }
 
 @media (max-width: 767px) {
+
   /* Show mobile topbar */
   .mobile-topbar {
     display: flex;
@@ -379,7 +383,7 @@
     height: 56px;
     background: var(--sb-bg);
     border-bottom: 1px solid var(--sb-border);
-    box-shadow: 0 1px 0 0 var(--sb-border), 0 4px 16px rgba(0,0,0,0.4);
+    box-shadow: 0 1px 0 0 var(--sb-border), 0 4px 16px rgba(0, 0, 0, 0.4);
     padding: 0 16px;
     z-index: 60;
   }
@@ -394,13 +398,14 @@
   .mobile-topbar-brand-icon {
     width: 30px;
     height: 30px;
-    background: var(--sb-accent);
+    background: #ffffff;
     border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 10px var(--sb-accent-glow);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
     flex-shrink: 0;
+    padding: 3px;
   }
 
   .mobile-topbar-brand-name {
@@ -461,8 +466,13 @@
   }
 
   @keyframes fadeInOverlay {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   /* Main content — no sidebar offset on mobile, add top padding for topbar */

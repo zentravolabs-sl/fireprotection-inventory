@@ -20,7 +20,6 @@ interface InventoryOption {
   id: number;
   itemCode: string;
   name: string;
-  unit: string;
 }
 
 interface PipeCutTableProps {

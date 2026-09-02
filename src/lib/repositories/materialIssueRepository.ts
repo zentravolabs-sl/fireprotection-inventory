@@ -27,7 +27,7 @@ export async function findProjectMaterials(projectId: number) {
     where: { projectId },
     include: {
       inventory: {
-        select: { id: true, itemCode: true, name: true, unit: true, brand: true },
+        select: { id: true, itemCode: true, name: true, brand: true },
       },
       materialIssueItem: {
         include: {
@@ -58,7 +58,7 @@ export async function findMaterialIssuesByProject(projectId: number) {
       items: {
         include: {
           inventory: {
-            select: { id: true, itemCode: true, name: true, unit: true },
+            select: { id: true, itemCode: true, name: true },
           },
           stockBatch: {
             select: { id: true, batchNo: true, unitCost: true },

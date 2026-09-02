@@ -32,7 +32,6 @@ interface InventoryStockItem {
   id: number;
   itemCode: string;
   name: string;
-  unit: string;
   availableStock: number;
 }
 
@@ -410,13 +409,13 @@ export function CreateCustomerRefillClient({ customers, inventoryItems }: Props)
                             >
                               {inventoryItems.map((i) => (
                                 <option key={i.id} value={i.id}>
-                                  {i.name} ({i.itemCode}) — Avail: {i.availableStock} {i.unit}
+                                  {i.name} ({i.itemCode}) — Avail: {i.availableStock}
                                 </option>
                               ))}
                             </select>
                           </td>
                           <td className="py-2 px-3 text-center font-mono font-bold text-gray-700 dark:text-gray-300">
-                            {avail} {inv?.unit ?? ""}
+                            {avail}
                           </td>
                           <td className="py-2 px-3">
                             <input

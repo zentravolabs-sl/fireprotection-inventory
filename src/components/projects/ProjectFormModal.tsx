@@ -423,9 +423,9 @@ export function ProjectFormModal({
                   placeholderText="Select start date..."
                   isClearable
                   showPopperArrow={false}
-                  className={`w-full px-4 py-3 border rounded-xl bg-gray-800 text-gray-100 text-sm outline-none transition-all duration-200 ${errors.startDate
+                  className={`w-full px-4 py-3 border rounded-xl bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm outline-none transition-all duration-200 ${errors.startDate
                       ? "border-red-400 ring-1 ring-red-300 focus:border-red-500"
-                      : "border-gray-700 focus:border-red-500 focus:ring-1 focus:ring-red-900"
+                      : "border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
                     }`}
                   wrapperClassName="w-full"
                 />
@@ -453,9 +453,9 @@ export function ProjectFormModal({
                   placeholderText="Select end date..."
                   isClearable
                   showPopperArrow={false}
-                  className={`w-full px-4 py-3 border rounded-xl bg-gray-800 text-gray-100 text-sm outline-none transition-all duration-200 ${errors.endDate
+                  className={`w-full px-4 py-3 border rounded-xl bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 text-sm outline-none transition-all duration-200 ${errors.endDate
                       ? "border-red-400 ring-1 ring-red-300 focus:border-red-500"
-                      : "border-gray-700 focus:border-red-500 focus:ring-1 focus:ring-red-900"
+                      : "border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900"
                     }`}
                   wrapperClassName="w-full"
                 />

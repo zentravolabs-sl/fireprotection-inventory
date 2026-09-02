@@ -268,7 +268,7 @@ export default function ExpiryReportsPage() {
                       <td className="px-4 py-3.5 text-xs text-gray-600 dark:text-gray-300">{formatDate(row.manufactureDate)}</td>
                       <td className="px-4 py-3.5 font-medium text-gray-900 dark:text-gray-100">{formatDate(row.expiryDate)}</td>
                       <td className="px-4 py-3.5 text-right font-medium tabular-nums text-gray-900 dark:text-gray-100">
-                        {row.availableQty} {row.inventory.unit}
+                        {row.availableQty}
                       </td>
                       <td className="px-4 py-3.5 text-right font-medium text-gray-600 dark:text-gray-400 tabular-nums">
                         LKR {row.unitCost.toLocaleString()}
@@ -377,7 +377,7 @@ export default function ExpiryReportsPage() {
                           <td className="px-4 py-3.5 font-mono text-xs font-semibold text-gray-900 dark:text-gray-100">{item.inventory.itemCode}</td>
                           <td className="px-4 py-3.5 font-mono text-xs font-semibold text-gray-900 dark:text-gray-100">{item.batchNo}</td>
                           <td className="px-4 py-3.5 font-medium text-gray-900 dark:text-gray-100">{formatDate(item.expiryDate)}</td>
-                          <td className="px-4 py-3.5 text-right font-medium tabular-nums text-gray-900 dark:text-gray-100">{item.availableQty} {item.inventory.unit}</td>
+                          <td className="px-4 py-3.5 text-right font-medium tabular-nums text-gray-900 dark:text-gray-100">{item.availableQty}</td>
                           <td className="px-4 py-3.5 text-right font-medium tabular-nums text-gray-900 dark:text-gray-100">{formatCurrency(item.stockValue)}</td>
                           <td className="px-4 py-3.5">
                             {item.status === "EXPIRED" ? (

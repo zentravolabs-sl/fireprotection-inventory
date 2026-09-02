@@ -19,7 +19,6 @@ interface InventoryItemOption {
   id: number;
   itemCode: string;
   name: string;
-  unit: string;
   availableStock: number;
   estimatedQty: number | null;
   alreadyRequestedQty: number;
@@ -84,7 +83,7 @@ export function MaterialRequestModal({
 
     // If remaining estimate > 0 and request exceeds it → warn
     if (inv.remainingEstimate !== null && inv.remainingEstimate > 0 && qtyRequested > inv.remainingEstimate) {
-      return `Max allowed within estimate: ${inv.remainingEstimate} ${inv.unit} (Estimate: ${inv.estimatedQty}, Already requested: ${inv.alreadyRequestedQty})`;
+      return `Max allowed within estimate: ${inv.remainingEstimate} (Estimate: ${inv.estimatedQty}, Already requested: ${inv.alreadyRequestedQty})`;
     }
     return null;
   }
@@ -184,14 +183,14 @@ export function MaterialRequestModal({
                           value: inv.id,
                           label: `${inv.itemCode} - ${inv.name}${
                             inv.estimatedQty !== null
-                              ? ` | Est: ${inv.estimatedQty} ${inv.unit}${
+                              ? ` | Est: ${inv.estimatedQty}${
                                   inv.remainingEstimate !== null && inv.remainingEstimate > 0
                                     ? ` (Rem: ${inv.remainingEstimate})`
                                     : inv.remainingEstimate === 0
                                     ? " ✓ Est. done — additional OK"
                                     : ""
                                 }`
-                              : ` (Stock: ${inv.availableStock} ${inv.unit})`
+                              : ` (Stock: ${inv.availableStock})`
                           }`,
                         }))}
                         value={
@@ -258,13 +257,13 @@ export function MaterialRequestModal({
                             <span className="text-gray-500">
                               📐 Total Estimate:{" "}
                               <span className="font-semibold text-gray-700 dark:text-gray-200">
-                                {selectedInv.estimatedQty} {selectedInv.unit}
+                                {selectedInv.estimatedQty}
                               </span>
                             </span>
                             <span className="text-gray-500">
                               📋 Already Requested:{" "}
                               <span className="font-semibold text-orange-600 dark:text-orange-400">
-                                {selectedInv.alreadyRequestedQty} {selectedInv.unit}
+                                {selectedInv.alreadyRequestedQty}
                               </span>
                             </span>
                             {estimateExhausted ? (
@@ -274,11 +273,11 @@ export function MaterialRequestModal({
                             ) : (
                               <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
                                 🔖 Remaining within estimate:{" "}
-                                <strong>{remainingEstimate} {selectedInv.unit}</strong>
+                                <strong>{remainingEstimate}</strong>
                               </span>
                             )}
                             <span className="text-gray-400">
-                              Warehouse Stock: {selectedInv.availableStock} {selectedInv.unit}
+                              Warehouse Stock: {selectedInv.availableStock}
                             </span>
                           </div>
 
@@ -291,9 +290,9 @@ export function MaterialRequestModal({
                         </>
                       ) : (
                         <div className="flex justify-between text-[11px] text-gray-500">
-                          <span>Unit: {selectedInv.unit}</span>
+                          <span>Item</span>
                           <span className="font-semibold text-green-600 dark:text-green-400">
-                            Available Stock: {selectedInv.availableStock} {selectedInv.unit}
+                            Available Stock: {selectedInv.availableStock}
                           </span>
                         </div>
                       )}

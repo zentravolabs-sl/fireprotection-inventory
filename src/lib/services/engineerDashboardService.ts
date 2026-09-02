@@ -353,7 +353,7 @@ export async function getEngineerMaterialRequests(engineerUserId?: string): Prom
     orderBy: { createdAt: "desc" },
     include: {
       project: { select: { projectName: true } },
-      items: { include: { inventory: { select: { name: true, unit: true } } } },
+      items: { include: { inventory: { select: { name: true } } } },
     },
   });
 
@@ -361,7 +361,7 @@ export async function getEngineerMaterialRequests(engineerUserId?: string): Prom
     const firstItem = mr.items[0];
     const materialName = firstItem?.inventory?.name || "Fire Safety Equipment";
     const qty = firstItem?.qtyRequested || 1;
-    const unit = firstItem?.inventory?.unit || "Pcs";
+    const unit = "";
 
     let status: EngMaterialRequestItem["status"] = "Pending";
     const st = mr.status as string;

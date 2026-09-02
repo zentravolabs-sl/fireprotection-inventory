@@ -336,7 +336,7 @@ export default async function DeliveryNoteDetailPage({ params }: PageProps) {
                             </div>
                           </td>
                           <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                            {item.fireExtinguisherUnit.inventory.unit}
+                            —
                           </td>
                           <td className="py-3 px-4 font-mono text-gray-500 dark:text-gray-400">
                             {item.fireExtinguisherUnit.serialNumber ?? (

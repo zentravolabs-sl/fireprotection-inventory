@@ -216,7 +216,7 @@ export function MaterialRequestsClientPage({
             inventoryName: i.inventory.name,
             qtyApproved: i.qtyApproved,
             qtyIssued: i.qtyIssued,
-            unit: i.inventory.unit,
+            unit: "",
           }))}
         />
       )}

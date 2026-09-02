@@ -21,7 +21,6 @@ interface AssignedMaterialItem {
   inventory: {
     name: string;
     itemCode: string;
-    unit: string;
   };
 }
 
@@ -37,7 +36,6 @@ interface GroupedMaterialItem {
   inventoryId: number;
   name: string;
   itemCode: string;
-  unit: string;
   totalIssuedQty: number;
   totalReturnedQty: number;
   totalBalanceQty: number;
@@ -73,7 +71,6 @@ export function ReturnMaterialModal({
           inventoryId: item.inventoryId,
           name: item.inventory.name,
           itemCode: item.inventory.itemCode,
-          unit: item.inventory.unit,
           totalIssuedQty: item.issuedQty,
           totalReturnedQty: item.returnedQty,
           totalBalanceQty: item.balanceQty,
@@ -146,7 +143,7 @@ export function ReturnMaterialModal({
       if (state.qty > group.totalBalanceQty) {
         setLoading(false);
         setError(
-          `Return quantity (${state.qty} ${group.unit}) for "${group.name}" cannot exceed available balance (${group.totalBalanceQty} ${group.unit}).`
+          `Return quantity (${state.qty}) for "${group.name}" cannot exceed available balance (${group.totalBalanceQty}).`
         );
         return;
       }
@@ -238,7 +235,7 @@ export function ReturnMaterialModal({
                       </span>
                     </label>
                     <span className="text-xs text-gray-500">
-                      Balance: <strong className="text-gray-800 dark:text-gray-200">{item.totalBalanceQty} {item.unit}</strong>
+                      Balance: <strong className="text-gray-800 dark:text-gray-200">{item.totalBalanceQty}</strong>
                     </span>
                   </div>
 

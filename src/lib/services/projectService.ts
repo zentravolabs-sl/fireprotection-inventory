@@ -220,7 +220,7 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
 
     if (item.qtyRequested > availableStock) {
       throw new Error(
-        `Requested quantity (${item.qtyRequested} ${inventory.unit}) for item "${inventory.name}" exceeds total available stock (${availableStock} ${inventory.unit}).`
+        `Requested quantity (${item.qtyRequested}) for item "${inventory.name}" exceeds total available stock (${availableStock}).`
       );
     }
   }
@@ -237,7 +237,7 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
           inventoryId: item.inventoryId,
         },
       },
-      include: { inventory: { select: { name: true, unit: true } } },
+      include: { inventory: { select: { name: true } } },
     });
 
     if (!estimate) {
@@ -263,9 +263,9 @@ export async function createMaterialRequestService(input: CreateMaterialRequestI
     if (remainingEstimate > 0 && item.qtyRequested > remainingEstimate) {
       // Estimate not yet exhausted — must stay within remaining limit
       throw new Error(
-        `For "${estimate.inventory.name}": the project estimate is ${estimate.estimatedQty} ${estimate.inventory.unit}. ` +
-        `Already requested: ${alreadyRequested} ${estimate.inventory.unit}. ` +
-        `You can only request up to ${remainingEstimate} ${estimate.inventory.unit} more within the estimate. ` +
+        `For "${estimate.inventory.name}": the project estimate is ${estimate.estimatedQty}. ` +
+        `Already requested: ${alreadyRequested}. ` +
+        `You can only request up to ${remainingEstimate} more within the estimate. ` +
         `Once the estimate is fully used, you may submit additional requests beyond the estimated quantity.`
       );
     }

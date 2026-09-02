@@ -22,7 +22,7 @@ export async function findMaterialReturnsByProject(projectId: number) {
       items: {
         include: {
           inventory: {
-            select: { id: true, itemCode: true, name: true, unit: true },
+            select: { id: true, itemCode: true, name: true },
           },
         },
       },

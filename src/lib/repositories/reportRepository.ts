@@ -141,7 +141,7 @@ export async function getProjectTransferReport() {
       approvedBy: { select: { name: true } },
       items: {
         include: {
-          inventory: { select: { name: true, itemCode: true, unit: true } },
+          inventory: { select: { name: true, itemCode: true } },
           pipeCutPiece: { select: { id: true, pieceLength: true, unit: true, barcode: true } },
           tool: { select: { name: true, toolCode: true } },
         },

@@ -57,6 +57,11 @@ export function ProjectsClientPage({
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState(currentSearch);
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -134,15 +139,21 @@ export function ProjectsClientPage({
 
         <div className="flex items-center gap-3">
           <div className="w-56 sm:w-64">
-            <Select
-              instanceId="project-status-filter"
-              classNamePrefix="react-select"
-              options={STATUS_OPTIONS}
-              value={selectedStatusOption}
-              onChange={(val) => handleStatusFilter(val ? val.value : "")}
-              isSearchable={false}
-              styles={getCustomSelectStyles(false, "40px")}
-            />
+            {isMounted ? (
+              <Select
+                instanceId="project-status-filter"
+                classNamePrefix="react-select"
+                options={STATUS_OPTIONS}
+                value={selectedStatusOption}
+                onChange={(val) => handleStatusFilter(val ? val.value : "")}
+                isSearchable={false}
+                styles={getCustomSelectStyles(false, "40px")}
+              />
+            ) : (
+              <div className="h-[40px] w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg flex items-center px-3 text-sm text-gray-700 dark:text-gray-300">
+                {selectedStatusOption.label}
+              </div>
+            )}
           </div>
 
           {can("project.create") && (

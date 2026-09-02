@@ -172,7 +172,7 @@ export async function createCustomerRefillService(
           customer: true,
           createdBy: { select: { id: true, name: true, email: true } },
           items: true,
-          replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true, unit: true } } } },
+          replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true } } } },
         },
       });
     },
@@ -198,7 +198,7 @@ export async function startRefillService(refillId: number) {
     include: {
       customer: true,
       items: true,
-      replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true, unit: true } } } },
+      replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true } } } },
     },
   });
 }
@@ -215,7 +215,7 @@ export async function markRefillReadyService(refillId: number) {
     include: {
       customer: true,
       items: true,
-      replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true, unit: true } } } },
+      replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true } } } },
     },
   });
 }
@@ -230,7 +230,7 @@ export async function completeRefillReturnService(input: CompleteReturnInput, ac
         include: {
           customer: true,
           items: true,
-          replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true, unit: true } } } },
+          replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true } } } },
         },
       });
 
@@ -373,7 +373,7 @@ export async function completeRefillReturnService(input: CompleteReturnInput, ac
             customer: true,
             createdBy: { select: { id: true, name: true, email: true } },
             items: true,
-            replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true, unit: true } } } },
+            replacements: { include: { inventory: { select: { id: true, itemCode: true, name: true } } } },
           },
         }),
       ]);
@@ -426,7 +426,7 @@ export async function getCustomerRefillsService(filters?: {
       createdBy: { select: { id: true, name: true } },
       items: true,
       replacements: {
-        include: { inventory: { select: { id: true, itemCode: true, name: true, unit: true } } },
+        include: { inventory: { select: { id: true, itemCode: true, name: true } } },
       },
     },
     orderBy: { createdAt: "desc" },
@@ -441,7 +441,7 @@ export async function getCustomerRefillByIdService(id: number) {
       createdBy: { select: { id: true, name: true, email: true } },
       items: true,
       replacements: {
-        include: { inventory: { select: { id: true, itemCode: true, name: true, unit: true } } },
+        include: { inventory: { select: { id: true, itemCode: true, name: true } } },
       },
     },
   });
@@ -456,7 +456,7 @@ export async function getCustomerRefillByIdService(id: number) {
       },
     },
     include: {
-      inventory: { select: { itemCode: true, name: true, unit: true } },
+      inventory: { select: { itemCode: true, name: true } },
       createdByUser: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: "asc" },

@@ -44,7 +44,7 @@ interface CustomerRefill {
     issuedQty: number;
     returnedQty: number;
     status: string;
-    inventory: { itemCode: string; name: string; unit: string };
+    inventory: { itemCode: string; name: string };
   }[];
 }
 

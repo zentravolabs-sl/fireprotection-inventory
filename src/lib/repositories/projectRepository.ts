@@ -45,7 +45,7 @@ export async function findProjectById(id: number) {
           items: {
             include: {
               inventory: {
-                select: { id: true, itemCode: true, name: true, unit: true, brand: true },
+                select: { id: true, itemCode: true, name: true, brand: true },
               },
             },
           },
@@ -55,7 +55,7 @@ export async function findProjectById(id: number) {
         orderBy: { createdAt: "desc" },
         include: {
           inventory: {
-            select: { id: true, itemCode: true, name: true, unit: true },
+            select: { id: true, itemCode: true, name: true },
           },
           materialIssueItem: {
             include: {
@@ -75,7 +75,7 @@ export async function findProjectById(id: number) {
           items: {
             include: {
               inventory: {
-                select: { id: true, itemCode: true, name: true, unit: true },
+                select: { id: true, itemCode: true, name: true },
               },
             },
           },
@@ -113,7 +113,7 @@ export async function findProjectById(id: number) {
         orderBy: { createdAt: "asc" },
         include: {
           inventory: {
-            select: { id: true, itemCode: true, name: true, unit: true, brand: true },
+            select: { id: true, itemCode: true, name: true, brand: true },
           },
         },
       },

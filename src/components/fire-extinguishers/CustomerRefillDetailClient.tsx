@@ -76,7 +76,7 @@ interface CustomerRefillData {
       issuedDate: string;
       returnedDate: string | null;
       notes: string | null;
-      inventory: { id: number; itemCode: string; name: string; unit: string };
+      inventory: { id: number; itemCode: string; name: string };
     }[];
   };
   stockMovements: {
@@ -86,7 +86,7 @@ interface CustomerRefillData {
     referenceType: string;
     remarks: string | null;
     createdAt: string;
-    inventory: { itemCode: string; name: string; unit: string };
+    inventory: { itemCode: string; name: string };
     createdByUser: { id: string; name: string } | null;
   }[];
 }
@@ -441,7 +441,7 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
                       <div className="text-[10px] font-mono text-gray-400">{repl.inventory.itemCode}</div>
                     </td>
                     <td className="py-2.5 px-3 text-center font-mono font-bold">
-                      {repl.issuedQty} {repl.inventory.unit}
+                      {repl.issuedQty}
                     </td>
                     <td className="py-2.5 px-3 text-center font-mono text-emerald-600">{repl.returnedQty}</td>
                     <td className="py-2.5 px-3 text-center">
@@ -508,7 +508,7 @@ export function CustomerRefillDetailClient({ data: initialData, userPermissions 
                       <div className="text-[10px] font-mono text-gray-400">{m.inventory.itemCode}</div>
                     </td>
                     <td className="py-2.5 px-3 text-center font-mono font-bold">
-                      {m.qty} {m.inventory.unit}
+                      {m.qty}
                     </td>
                     <td className="py-2.5 px-3 text-gray-500 italic">{m.remarks ?? "—"}</td>
                     <td className="py-2.5 px-3 text-gray-500">{m.createdByUser?.name ?? "—"}</td>

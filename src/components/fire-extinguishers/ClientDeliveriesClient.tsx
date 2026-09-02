@@ -58,7 +58,6 @@ interface AvailableUnit {
   inventory: {
     name: string;
     itemCode: string;
-    unit: string;
   };
   // Populated for ASSIGNED units
   assignments?: Array<{
@@ -720,7 +719,6 @@ export function ClientDeliveriesClient({
                               </td>
                               <td className="py-2 px-3 text-gray-700 dark:text-gray-300 font-semibold">
                                 {u.inventory.name}
-                                <span className="ml-1 text-gray-400 font-normal text-[11px]">({u.inventory.unit})</span>
                               </td>
                               <td className="py-2 px-3">
                                 {isAssigned ? (

@@ -54,7 +54,7 @@ export default async function ClientDeliveriesPage() {
       where: { status: { in: ["AVAILABLE", "ASSIGNED"] } },
       include: {
         inventory: {
-          select: { name: true, itemCode: true, unit: true },
+          select: { name: true, itemCode: true },
         },
         // Include active assignment info to show "already assigned to X" in the modal
         assignments: {

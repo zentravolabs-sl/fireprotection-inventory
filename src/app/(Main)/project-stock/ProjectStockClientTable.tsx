@@ -25,7 +25,6 @@ interface SerializedProjectMaterial {
     id: number;
     name: string;
     itemCode: string;
-    unit: string;
   };
   materialIssueItem?: {
     stockBatchId?: number;
@@ -161,13 +160,13 @@ export function ProjectStockClientTable({
                         : "N/A")}
                   </td>
                   <td className="px-4 py-3.5 font-semibold text-blue-600">
-                    {pm.issuedQty} {pm.inventory.unit}
+                    {pm.issuedQty}
                   </td>
                   <td className="px-4 py-3.5 text-orange-600">
-                    {pm.returnedQty} {pm.inventory.unit}
+                    {pm.returnedQty}
                   </td>
                   <td className="px-4 py-3.5 font-bold text-gray-900 dark:text-gray-100">
-                    {pm.balanceQty} {pm.inventory.unit}
+                    {pm.balanceQty}
                   </td>
                   <td className="px-4 py-3.5">
                     <ProjectStatusBadge status={pm.status} />

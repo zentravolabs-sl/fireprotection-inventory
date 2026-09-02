@@ -24,7 +24,6 @@ export type StockBatchRow = {
     id: number;
     itemCode: string;
     name: string;
-    unit: string;
   };
   stockReceiveItem: {
     stockReceive: {
@@ -107,7 +106,6 @@ export async function getStockBatches(
             id: true,
             itemCode: true,
             name: true,
-            unit: true,
           },
         },
         stockReceiveItem: {

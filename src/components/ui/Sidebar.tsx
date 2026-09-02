@@ -10,6 +10,7 @@
 
 import React, { useState, createContext, useContext, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { usePendingMRCount } from "@/components/ui/NotificationBell";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -41,9 +42,9 @@ interface SidebarContextValue {
 
 const SidebarContext = createContext<SidebarContextValue>({
   collapsed: false,
-  setCollapsed: () => {},
+  setCollapsed: () => { },
   mobileOpen: false,
-  setMobileOpen: () => {},
+  setMobileOpen: () => { },
 });
 
 export function useSidebar() {
@@ -144,7 +145,7 @@ const Icons = {
   ),
   fire: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C12 2 7 8 7 13a5 5 0 0 0 10 0C17 8 12 2 12 2zm0 15a3 3 0 0 1-3-3c0-2.5 3-7 3-7s3 4.5 3 7a3 3 0 0 1-3 3z"/>
+      <path d="M12 2C12 2 7 8 7 13a5 5 0 0 0 10 0C17 8 12 2 12 2zm0 15a3 3 0 0 1-3-3c0-2.5 3-7 3-7s3 4.5 3 7a3 3 0 0 1-3 3z" />
     </svg>
   ),
   hamburger: (
@@ -202,52 +203,54 @@ const NAV_GROUPS_STATIC: NavGroup[] = [
   {
     title: "PROJECT MANAGEMENT",
     items: [
-      { label: "Projects",          href: "/projects",          icon: Icons.projects,         permission: "project.view" },
+      { label: "Projects", href: "/projects", icon: Icons.projects, permission: "project.view" },
       { label: "Material Reque...", href: "/material-requests", icon: Icons.materialRequests, permission: "material_request.view" },
-      { label: "Project Stock",     href: "/project-stock",     icon: Icons.projectStock,     permission: "stock.view_history" },
+      { label: "Project Stock", href: "/project-stock", icon: Icons.projectStock, permission: "stock.view_history" },
     ],
   },
   {
     title: "WAREHOUSE",
     items: [
-      { label: "Inventory Master",  href: "/inventory",         icon: Icons.inventory,        permission: "inventory.view" },
-      { label: "Stock Receive",     href: "/stock-receive",     icon: Icons.stockReceive,     permission: "stock.receive" },
-      { label: "Stock Batches",     href: "/stock-batch",       icon: Icons.stockBatch,       permission: "stock.view_history" },
-      { label: "Stock Movements",   href: "/stock-movement",    icon: Icons.stockMovement,    permission: "stock.view_history" },
-      { label: "Pipe & Cut Pieces", href: "/pipe-cut-pieces",   icon: Icons.pipe,             permission: "inventory.view" },
-      { label: "Expiry Manage...",  href: "/expiry",            icon: Icons.expiry,           permission: "expiry.view" },
+      { label: "Inventory Master", href: "/inventory", icon: Icons.inventory, permission: "inventory.view" },
+      { label: "Categories", href: "/categories", icon: Icons.categories, permission: "inventory.view" },
+      { label: "Sub-Categories", href: "/sub-categories", icon: Icons.categories, permission: "inventory.view" },
+      { label: "Stock Receive", href: "/stock-receive", icon: Icons.stockReceive, permission: "stock.receive" },
+      { label: "Stock Batches", href: "/stock-batch", icon: Icons.stockBatch, permission: "stock.view_history" },
+      { label: "Stock Movements", href: "/stock-movement", icon: Icons.stockMovement, permission: "stock.view_history" },
+      { label: "Pipe & Cut Pieces", href: "/pipe-cut-pieces", icon: Icons.pipe, permission: "inventory.view" },
+      { label: "Expiry Manage...", href: "/expiry", icon: Icons.expiry, permission: "expiry.view" },
     ],
   },
   {
     title: "ASSETS & BUSINESS",
     items: [
-      { label: "Tools",             href: "/tools",             icon: Icons.tools,            permission: "tool.view" },
-      { label: "Suppliers",         href: "/suppliers",         icon: Icons.suppliers,        permission: "supplier.view" },
-      { label: "Customers",         href: "/customers",         icon: Icons.customers,        permission: "customer.view" },
+      { label: "Tools", href: "/tools", icon: Icons.tools, permission: "tool.view" },
+      { label: "Suppliers", href: "/suppliers", icon: Icons.suppliers, permission: "supplier.view" },
+      { label: "Customers", href: "/customers", icon: Icons.customers, permission: "customer.view" },
     ],
   },
   {
     title: "LABOUR",
     items: [
-      { label: "Labour Types",      href: "/labour-types",      icon: Icons.labourTypes,      permission: "labour.view" },
-      { label: "Labour Master",     href: "/labour",            icon: Icons.labour,           permission: "labour.view" },
+      { label: "Labour Types", href: "/labour-types", icon: Icons.labourTypes, permission: "labour.view" },
+      { label: "Labour Master", href: "/labour", icon: Icons.labour, permission: "labour.view" },
     ],
   },
   {
     title: "FIRE EXTINGUISHERS",
     items: [
-      { label: "Customer Refills",  href: "/fire-extinguishers/customer-refills", icon: Icons.returns,    permission: "customerRefills.view" },
-      { label: "Assignments",       href: "/fire-extinguishers/assignments", icon: Icons.fire,       permission: "fire_extinguisher.view" },
-      { label: "Refill Management", href: "/fire-extinguishers/refills",     icon: Icons.returns,    permission: "fire_extinguisher.refill" },
-      { label: "Client Deliveries", href: "/fire-extinguishers/deliveries",  icon: Icons.suppliers,  permission: "fire_extinguisher.deliver" },
-      { label: "Physical Units",    href: "/fire-extinguishers/units",       icon: Icons.inventory,  permission: "fire_extinguisher.manage" },
+      { label: "Customer Refills", href: "/fire-extinguishers/customer-refills", icon: Icons.returns, permission: "customerRefills.view" },
+      { label: "Assignments", href: "/fire-extinguishers/assignments", icon: Icons.fire, permission: "fire_extinguisher.view" },
+      { label: "Refill Management", href: "/fire-extinguishers/refills", icon: Icons.returns, permission: "fire_extinguisher.refill" },
+      { label: "Client Deliveries", href: "/fire-extinguishers/deliveries", icon: Icons.suppliers, permission: "fire_extinguisher.deliver" },
+      { label: "Physical Units", href: "/fire-extinguishers/units", icon: Icons.inventory, permission: "fire_extinguisher.manage" },
     ],
   },
   {
     title: "MANAGEMENT",
     items: [
-      { label: "Reports",           href: "/reports",           icon: Icons.reports,          permission: "report.view" },
-      { label: "Users & Roles",     href: "/users-roles",       icon: Icons.users,            permission: "user.view" },
+      { label: "Reports", href: "/reports", icon: Icons.reports, permission: "report.view" },
+      { label: "Users & Roles", href: "/users-roles", icon: Icons.users, permission: "user.view" },
     ],
   },
 ];
@@ -343,9 +346,15 @@ export function MobileTopBar() {
       </button>
       <div className="mobile-topbar-brand">
         <div className="mobile-topbar-brand-icon">
-          <span style={{ color: "#fff", display: "flex" }}>{Icons.fire}</span>
+          <Image
+            src="/cdn-fire-icon.png"
+            alt="CDN Fire Logo"
+            width={24}
+            height={24}
+            style={{ objectFit: "contain" }}
+          />
         </div>
-        <span className="mobile-topbar-brand-name">FIREPRO</span>
+        <span className="mobile-topbar-brand-name">CDNFIRE</span>
       </div>
     </div>
   );
@@ -368,9 +377,9 @@ export function Sidebar() {
       {
         title: "PROJECT MANAGEMENT",
         items: [
-          { label: "My Projects",       href: "/projects",          icon: Icons.projects },
+          { label: "My Projects", href: "/projects", icon: Icons.projects },
           { label: "Material Reque...", href: "/material-requests", icon: Icons.materialRequests, badge: pendingMRCount > 0 ? pendingMRCount : undefined },
-          { label: "Project Stock",     href: "/project-stock",     icon: Icons.projectStock },
+          { label: "Project Stock", href: "/project-stock", icon: Icons.projectStock },
         ],
       },
     ];
@@ -379,9 +388,9 @@ export function Sidebar() {
       {
         title: "PROJECT MANAGEMENT",
         items: [
-          { label: "My Projects",       href: "/projects",          icon: Icons.projects },
+          { label: "My Projects", href: "/projects", icon: Icons.projects },
           { label: "Material Reque...", href: "/material-requests", icon: Icons.materialRequests, badge: pendingMRCount > 0 ? pendingMRCount : undefined },
-          { label: "Project Stock",     href: "/project-stock",     icon: Icons.projectStock },
+          { label: "Project Stock", href: "/project-stock", icon: Icons.projectStock },
         ],
       },
     ];
@@ -522,11 +531,17 @@ export function Sidebar() {
         {/* ── Logo + Collapse Toggle ── */}
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
-            <span className="sidebar-logo-fire">{Icons.fire}</span>
+            <Image
+              src="/cdn-fire-logo-white.png"
+              alt="CDN Fire Logo"
+              width={28}
+              height={28}
+              style={{ objectFit: "contain" }}
+            />
           </div>
           {!collapsed && (
             <div className="sidebar-logo-text">
-              <span className="sidebar-logo-brand">FIREPRO</span>
+              <span className="sidebar-logo-brand">CDNFIRE</span>
               <span className="sidebar-logo-sub">Fire Protection Management</span>
             </div>
           )}

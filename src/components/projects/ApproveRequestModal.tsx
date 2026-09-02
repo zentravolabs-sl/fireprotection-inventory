@@ -17,7 +17,6 @@ interface RequestItem {
   inventory: {
     name: string;
     itemCode: string;
-    unit: string;
   };
 }
 
@@ -115,7 +114,7 @@ export function ApproveRequestModal({
                   <span className="font-mono text-red-600 dark:text-red-400">{item.inventory.itemCode}</span>
                   {" · "}Requested:{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {item.qtyRequested} {item.inventory.unit}
+                    {item.qtyRequested}
                   </span>
                 </div>
               </div>

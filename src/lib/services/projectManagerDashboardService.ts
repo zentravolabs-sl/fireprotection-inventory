@@ -425,7 +425,7 @@ export async function getPMMaterialRequests(pmUserId?: string): Promise<PMMateri
     include: {
       project: { select: { projectName: true } },
       engineer: { select: { name: true } },
-      items: { include: { inventory: { select: { name: true, unit: true } } } },
+      items: { include: { inventory: { select: { name: true } } } },
     },
   });
 
@@ -433,7 +433,7 @@ export async function getPMMaterialRequests(pmUserId?: string): Promise<PMMateri
     const firstItem = mr.items[0];
     const materialName = firstItem?.inventory?.name || "Fire Safety Equipment";
     const qty = firstItem?.qtyRequested || 1;
-    const unit = firstItem?.inventory?.unit || "Pcs";
+    const unit = "";
 
     let status: PMMaterialRequestItem["status"] = "Pending";
     const st = mr.status as string;

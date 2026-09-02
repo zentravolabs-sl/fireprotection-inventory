@@ -57,7 +57,7 @@ export default function InventoryForm({
       categoryId: initialData?.categoryId ?? 0,
       subCategoryId: initialData?.subCategoryId ?? 0,
       brand: initialData?.brand ?? "",
-      unit: initialData?.unit ?? "Pcs",
+
       minStock: initialData?.minStock ?? 0,
       barcode: initialData?.barcode ?? "",
       rackLocation: initialData?.rackLocation ?? "",
@@ -117,7 +117,7 @@ export default function InventoryForm({
         categoryId: initialData.categoryId,
         subCategoryId: initialData.subCategoryId,
         brand: initialData.brand ?? "",
-        unit: initialData.unit,
+
         minStock: initialData.minStock,
         barcode: initialData.barcode ?? "",
         rackLocation: initialData.rackLocation ?? "",
@@ -237,8 +237,8 @@ export default function InventoryForm({
         </div>
       </div>
 
-      {/* Brand, Unit & Min Stock */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Brand & Min Stock */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="brand" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
             Brand
@@ -251,21 +251,6 @@ export default function InventoryForm({
             disabled={isSubmitting}
             className={inputClass(!!errors.brand)}
           />
-        </div>
-
-        <div>
-          <label htmlFor="unit" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-            Unit *
-          </label>
-          <input
-            id="unit"
-            type="text"
-            {...register("unit")}
-            placeholder="e.g. Pcs / Mtr / Box"
-            disabled={isSubmitting}
-            className={inputClass(!!errors.unit)}
-          />
-          {errors.unit && <p className="mt-1 text-xs text-red-600 font-medium">{errors.unit.message}</p>}
         </div>
 
         <div>

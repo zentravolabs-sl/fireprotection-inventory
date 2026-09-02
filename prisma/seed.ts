@@ -1,6 +1,8 @@
 // ============================================================
 // prisma/seed.ts
-// Database seed script — idempotent upsert behaviour.
+// Clears ALL data, then seeds:
+//   • Role permissions
+//   • Super Admin user only
 // ============================================================
 
 import "dotenv/config";
@@ -14,372 +16,110 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter } as ConstructorParameters<typeof PrismaClient>[0]);
 
-type SeedUser = {
-  name: string;
-  email: string;
-  password: string;
-  role: "SUPER_ADMIN" | "ADMIN" | "USER";
+// ── Super Admin credentials ────────────────────────────────
+const SUPER_ADMIN = {
+  name: "Super Admin",
+  email: "cdnfiresuperadmin@gmail.com",
+  password: "CdnFire@SuperAdmin#2026!",
+  role: "SUPER_ADMIN" as const,
 };
 
-const adminUsers: SeedUser[] = [
-  { name: "Super Admin", email: "superadmin@example.com", password: "SuperAdmin@123", role: "SUPER_ADMIN" },
-  { name: "Admin 1", email: "admin1@example.com", password: "Admin@123", role: "ADMIN" },
-  { name: "Admin 2", email: "admin2@example.com", password: "Admin@123", role: "ADMIN" },
-];
+// ── Tables to truncate (leaf → root order to respect FK constraints) ─
+// Using raw SQL TRUNCATE … CASCADE which handles FK order automatically.
+async function clearDatabase() {
+  console.log("🗑️   Clearing all data...");
 
-const demoUsers: SeedUser[] = Array.from({ length: 5 }, (_, i) => ({
-  name: `Demo User ${i + 1}`,
-  email: `user${i + 1}@example.com`,
-  password: "User@123",
-  role: "USER" as const,
-}));
+  await prisma.$executeRawUnsafe(`
+    TRUNCATE TABLE
+      customer_refill_replacement,
+      customer_refill,
+      delivery_note_item,
+      delivery_note,
+      fire_extinguisher_assignment,
+      fire_extinguisher_unit,
+      project_estimate_material,
+      project_transfer_item,
+      project_transfer,
+      project_staff,
+      labour_ot,
+      project_labour,
+      tool_history,
+      tool_assignment_item,
+      tool_assignment,
+      tool,
+      material_return_item,
+      material_return,
+      project_material,
+      material_issue_item,
+      material_issue,
+      material_request_item,
+      material_request,
+      project_engineer,
+      project_assignment,
+      project_expense,
+      project_transport,
+      project,
+      customer,
+      pipe_cut_piece,
+      stock_movement,
+      stock_batch,
+      stock_receive_item,
+      stock_receive,
+      inventory,
+      sub_category,
+      category,
+      supplier,
+      audit_log,
+      verification,
+      "session",
+      account,
+      "user"
+    RESTART IDENTITY CASCADE
+  `);
 
-const allUsers: SeedUser[] = [...adminUsers, ...demoUsers];
+  console.log("  ✅ All tables cleared.\n");
+}
 
 async function main() {
   console.log("\n🌱  Starting database seed...\n");
 
+  // 1. Wipe everything
+  await clearDatabase();
+
+  // 2. Re-seed permissions (role_permission & permission tables are
+  //    NOT in the truncate list above so they survive — but seedPermissions
+  //    uses upsert so it's idempotent either way)
   await seedPermissions(prisma);
 
-  let createdUsers = 0;
-  let superAdminId = "";
+  // 3. Create Super Admin
+  const hashedPassword = await hashPassword(SUPER_ADMIN.password);
 
-  for (const seed of allUsers) {
-    let user = await prisma.user.findUnique({
-      where: { email: seed.email },
-      select: { id: true, role: true },
-    });
-
-    if (!user) {
-      const hashedPassword = await hashPassword(seed.password);
-      user = await prisma.user.create({
-        data: {
-          name: seed.name,
-          email: seed.email,
-          password: hashedPassword,
-          role: seed.role,
-          emailVerified: true,
-          isActive: true,
-        },
-        select: { id: true, role: true },
-      });
-
-      await prisma.account.create({
-        data: {
-          userId: user.id,
-          accountId: user.id,
-          providerId: "credential",
-          password: hashedPassword,
-        },
-      });
-
-      await prisma.auditLog.create({
-        data: {
-          action: "USER_SEEDED",
-          userId: user.id,
-          metadata: { email: seed.email, role: seed.role, seededAt: new Date().toISOString() },
-        },
-      });
-      createdUsers++;
-    }
-
-    if (seed.role === "SUPER_ADMIN") {
-      superAdminId = user.id;
-    }
-  }
-  console.log(`  ✅ Users seeded (${createdUsers} new).`);
-
-  // ── Seed Categories & SubCategories ─────────────────────────
-  const catPipes = await prisma.category.upsert({
-    where: { categoryName: "Pipes & Fittings" },
-    update: {},
-    create: { categoryName: "Pipes & Fittings" },
-  });
-
-  const catSprinklers = await prisma.category.upsert({
-    where: { categoryName: "Sprinkler Heads" },
-    update: {},
-    create: { categoryName: "Sprinkler Heads" },
-  });
-
-  const subSeamless = await prisma.subCategory.upsert({
-    where: { categoryId_name: { categoryId: catPipes.id, name: "Seamless Steel Pipes" } },
-    update: {},
-    create: { categoryId: catPipes.id, name: "Seamless Steel Pipes" },
-  });
-
-  const subPendent = await prisma.subCategory.upsert({
-    where: { categoryId_name: { categoryId: catSprinklers.id, name: "Pendent Sprinklers" } },
-    update: {},
-    create: { categoryId: catSprinklers.id, name: "Pendent Sprinklers" },
-  });
-
-  console.log("  ✅ Categories & SubCategories seeded.");
-
-  // ── Seed Suppliers ──────────────────────────────────────────
-  const supplier1 = await prisma.supplier.upsert({
-    where: { company: "Apex Fire Piping Ltd" },
-    update: {},
-    create: {
-      company: "Apex Fire Piping Ltd",
-      contactPerson: "David Miller",
-      phone: "+1 555-0192",
-      email: "sales@apexfirere.com",
-      address: "100 Industrial Way, Suite 400",
-    },
-  });
-
-  console.log("  ✅ Suppliers seeded.");
-
-  // ── Seed Inventory Master Items ─────────────────────────────
-  const pipeItem = await prisma.inventory.upsert({
-    where: { itemCode: "PIPE-GALV-001" },
-    update: {},
-    create: {
-      itemCode: "PIPE-GALV-001",
-      name: "2-Inch Galvanized Schedule 40 Pipe (6M)",
-      brand: "Victaulic",
-      unit: "Mtr",
-      minStock: 50,
-      barcode: "890123456701",
-      rackLocation: "Rack A-1",
-      warehouse: "Main Warehouse",
-      defaultSellPrice: 45.0,
-      categoryId: catPipes.id,
-      subCategoryId: subSeamless.id,
-    },
-  });
-
-  const sprinklerItem = await prisma.inventory.upsert({
-    where: { itemCode: "SPR-PEND-68C" },
-    update: {},
-    create: {
-      itemCode: "SPR-PEND-68C",
-      name: "Standard Response Pendent Sprinkler 68°C (K-5.6)",
-      brand: "Tyco",
-      unit: "Pcs",
-      minStock: 200,
-      barcode: "890123456702",
-      rackLocation: "Bin B-12",
-      warehouse: "Main Warehouse",
-      defaultSellPrice: 12.5,
-      categoryId: catSprinklers.id,
-      subCategoryId: subPendent.id,
-    },
-  });
-
-  console.log("  ✅ Inventory Master items seeded.");
-
-  // ── Seed Confirmed Stock Receive with Batches & Movements ────
-  const existingReceive = await prisma.stockReceive.findUnique({
-    where: { receiveNo: "GRN-20260801-001" },
-  });
-
-  if (!existingReceive && superAdminId) {
-    const receiveDate = new Date();
-    await prisma.$transaction(async (tx) => {
-      const rec = await tx.stockReceive.create({
-        data: {
-          receiveNo: "GRN-20260801-001",
-          supplierId: supplier1.id,
-          receiveDate,
-          referenceNo: "PO-2026-901",
-          remarks: "Initial stock delivery seed",
-          status: "CONFIRMED",
-          receivedBy: superAdminId,
-          items: {
-            create: [
-              {
-                inventoryId: pipeItem.id,
-                qty: 120,
-                unitCost: 32.0,
-                batchNo: "BATCH-PIPE-001",
-              },
-              {
-                inventoryId: sprinklerItem.id,
-                qty: 500,
-                unitCost: 8.5,
-                batchNo: "BATCH-SPR-001",
-              },
-            ],
-          },
-        },
-        include: { items: true },
-      });
-
-      for (const item of rec.items) {
-        const batch = await tx.stockBatch.create({
-          data: {
-            inventoryId: item.inventoryId,
-            stockReceiveItemId: item.id,
-            batchNo: item.batchNo,
-            receivedQty: item.qty,
-            availableQty: item.qty,
-            unitCost: item.unitCost,
-            receiveDate,
-            warehouse: "Main Warehouse",
-          },
-        });
-
-        await tx.stockMovement.create({
-          data: {
-            inventoryId: item.inventoryId,
-            stockBatchId: batch.id,
-            qty: item.qty,
-            movementType: "IN",
-            referenceType: "STOCK_RECEIVE",
-            referenceId: rec.id,
-            remarks: "Initial Goods Receive Confirmation",
-            createdBy: superAdminId,
-          },
-        });
-      }
-    });
-
-    console.log("  ✅ Sample Confirmed Stock Receive & Batches seeded.");
-  }
-
-  // ── Seed PM & Engineer Users ─────────────────────────────
-  const pmHashedPassword = await hashPassword("Pm@123");
-  const pmUser = await prisma.user.upsert({
-    where: { email: "pm1@example.com" },
-    update: { role: "PROJECT_MANAGER" as any },
-    create: {
-      name: "Alex Vance (PM)",
-      email: "pm1@example.com",
-      password: pmHashedPassword,
-      role: "PROJECT_MANAGER" as any,
+  const user = await prisma.user.create({
+    data: {
+      name: SUPER_ADMIN.name,
+      email: SUPER_ADMIN.email,
+      password: hashedPassword,
+      role: SUPER_ADMIN.role,
       emailVerified: true,
       isActive: true,
-      employeeCode: "EMP-PM-001",
-      designation: "Senior Project Manager",
+    },
+    select: { id: true },
+  });
+
+  await prisma.account.create({
+    data: {
+      userId: user.id,
+      accountId: user.id,
+      providerId: "credential",
+      password: hashedPassword,
     },
   });
 
-  const engHashedPassword = await hashPassword("Eng@123");
-  const engUser = await prisma.user.upsert({
-    where: { email: "engineer1@example.com" },
-    update: { role: "ENGINEER" as any },
-    create: {
-      name: "Sarah Conner (Eng)",
-      email: "engineer1@example.com",
-      password: engHashedPassword,
-      role: "ENGINEER" as any,
-      emailVerified: true,
-      isActive: true,
-      employeeCode: "EMP-ENG-001",
-      designation: "Site Fire Protection Engineer",
-    },
-  });
+  console.log(`  ✅ Super Admin created.`);
+  console.log(`     Email   : ${SUPER_ADMIN.email}`);
+  console.log(`     Password: ${SUPER_ADMIN.password}\n`);
 
-  console.log("  ✅ Project Manager & Engineer seeded.");
-
-  // ── Seed Customers ───────────────────────────────────────
-  const customer1 = await prisma.customer.upsert({
-    where: { companyName: "Metro Rail Infrastructure Corp" },
-    update: {},
-    create: {
-      companyName: "Metro Rail Infrastructure Corp",
-      contactPerson: "Robert Sterling",
-      phone: "+1 555-9012",
-      email: "r.sterling@metrorailcorp.com",
-      address: "500 Transit Plaza, Tower A",
-    },
-  });
-
-  const customer2 = await prisma.customer.upsert({
-    where: { companyName: "Apex Commercial Towers Ltd" },
-    update: {},
-    create: {
-      companyName: "Apex Commercial Towers Ltd",
-      contactPerson: "Elena Rostova",
-      phone: "+1 555-8833",
-      email: "elena@apextowers.com",
-      address: "777 Skyline Boulevard",
-    },
-  });
-
-  console.log("  ✅ Customers seeded.");
-
-  // ── Seed Sample Project ──────────────────────────────────
-  const existingProject = await prisma.project.findUnique({
-    where: { projectCode: "PRJ-2026-0001" },
-  });
-
-  if (!existingProject && pmUser && engUser && customer1) {
-    const project = await prisma.project.create({
-      data: {
-        projectCode: "PRJ-2026-0001",
-        projectName: "Central Terminal Sprinkler & Hydrant Retrofit",
-        customerId: customer1.id,
-        projectManagerId: pmUser.id,
-        location: "Terminal 2, Underground Level",
-        startDate: new Date("2026-08-01"),
-        endDate: new Date("2026-12-31"),
-        status: "IN_PROGRESS",
-        projectType: "GOVERNMENT",
-        description: "Complete design, installation, and commissioning of wet pipe automatic fire sprinkler system.",
-        projectValue: 350000,
-        estimatedMaterialCost: 150000,
-        estimatedLabourCost: 50000,
-        estimatedTransportCost: 10000,
-        estimatedEquipmentCost: 20000,
-        estimatedOtherCost: 5000,
-        estimatedTotalCost: 235000,
-      },
-    });
-
-    await prisma.projectAssignment.create({
-      data: {
-        projectId: project.id,
-        projectManagerId: pmUser.id,
-        assignedBy: superAdminId || pmUser.id,
-      },
-    });
-
-    await prisma.projectEngineer.create({
-      data: {
-        projectId: project.id,
-        engineerId: engUser.id,
-        isLead: true,
-        assignedBy: superAdminId || pmUser.id,
-      },
-    });
-
-    // Seed sample Transport & Expense entries
-    const transport = await prisma.projectTransport.create({
-      data: {
-        transportNo: "TRN-2026-0001",
-        projectId: project.id,
-        transportDate: new Date("2026-08-02"),
-        vehicleNumber: "WP-CP-1024",
-        driverName: "Sunil Perera",
-        fromLocation: "Main Warehouse",
-        toLocation: "Terminal 2 Site",
-        fuelCost: 3500,
-        vehicleHireCost: 5000,
-        totalCost: 8500,
-        createdBy: pmUser.id,
-      },
-    });
-
-    await prisma.projectExpense.create({
-      data: {
-        expenseNo: "EXP-2026-0001",
-        projectId: project.id,
-        expenseType: "TRANSPORT",
-        amount: 8500,
-        expenseDate: new Date("2026-08-02"),
-        description: `Project Transport (${transport.transportNo}): Main Warehouse to Terminal 2 Site`,
-        referenceNo: transport.transportNo,
-        createdBy: pmUser.id,
-      },
-    });
-
-    console.log("  ✅ Sample Project PRJ-2026-0001, Lead Engineer, & Expenses seeded.");
-  }
-
-  console.log("\n✨  Seed complete.\n");
+  console.log("✨  Seed complete.\n");
 }
 
 main()

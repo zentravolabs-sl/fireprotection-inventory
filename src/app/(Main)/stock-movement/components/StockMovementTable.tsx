@@ -83,7 +83,7 @@ export default function StockMovementTable({
                     <StatusBadge status={row.movementType} size="sm" />
                   </td>
                   <td className="px-4 py-3.5 text-right font-bold text-gray-900 dark:text-gray-100 tabular-nums">
-                    {row.movementType === "OUT" ? `-${row.qty}` : `+${row.qty}`} {row.inventory.unit}
+                    {row.movementType === "OUT" ? `-${row.qty}` : `+${row.qty}`}
                   </td>
                   <td className="px-4 py-3.5 text-gray-800 dark:text-gray-200">
                     <span className="font-medium px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs">
