@@ -11,17 +11,16 @@
 // Desktop: split layout with fire scene on left, form on right.
 // ============================================================
 
-import React, { Suspense, useActionState, useEffect, startTransition } from "react";
+import React, { Suspense, useActionState, useEffect, startTransition, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";
 import { loginAction } from "@/app/actions/auth";
-import FormInput from "@/components/ui/FormInput";
 import FormButton from "@/components/ui/FormButton";
 import type { ActionState } from "@/types/auth";
 
@@ -35,6 +34,7 @@ function LoginForm() {
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
 
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -79,28 +79,125 @@ function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       {/* Email */}
-      <FormInput
-        id="email"
-        label="Email Address"
-        type="email"
-        autoComplete="email"
-        placeholder="Enter your email address"
-        icon={<Mail size={17} />}
-        error={errors.email?.message}
-        {...register("email")}
-      />
+      <div style={{ marginBottom: 16 }}>
+        <label
+          htmlFor="email"
+          style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#374151", marginBottom: 6 }}
+        >
+          Email Address
+        </label>
+        <div style={{ position: "relative" }}>
+          <span
+            style={{
+              position: "absolute",
+              left: 14,
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#9ca3af",
+              pointerEvents: "none",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Mail size={17} />
+          </span>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="Enter your email address"
+            aria-invalid={!!errors.email}
+            style={{
+              width: "100%",
+              padding: "12px 16px 12px 40px",
+              borderRadius: 12,
+              border: errors.email ? "1px solid #f87171" : "1px solid #d1d5db",
+              backgroundColor: "#f3f4f6",
+              color: "#111827",
+              fontSize: "0.875rem",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+            {...register("email")}
+          />
+        </div>
+        {errors.email && (
+          <p role="alert" style={{ marginTop: 6, fontSize: "0.75rem", color: "#dc2626", fontWeight: 500 }}>
+            {errors.email.message}
+          </p>
+        )}
+      </div>
 
       {/* Password */}
-      <FormInput
-        id="password"
-        label="Password"
-        isPassword
-        autoComplete="current-password"
-        placeholder="Enter your password"
-        icon={<Lock size={17} />}
-        error={errors.password?.message}
-        {...register("password")}
-      />
+      <div style={{ marginBottom: 16 }}>
+        <label
+          htmlFor="password"
+          style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#374151", marginBottom: 6 }}
+        >
+          Password
+        </label>
+        <div style={{ position: "relative" }}>
+          <span
+            style={{
+              position: "absolute",
+              left: 14,
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#9ca3af",
+              pointerEvents: "none",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Lock size={17} />
+          </span>
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            aria-invalid={!!errors.password}
+            style={{
+              width: "100%",
+              padding: "12px 44px 12px 40px",
+              borderRadius: 12,
+              border: errors.password ? "1px solid #f87171" : "1px solid #d1d5db",
+              backgroundColor: "#f3f4f6",
+              color: "#111827",
+              fontSize: "0.875rem",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+            {...register("password")}
+          />
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            onClick={() => setShowPassword((v) => !v)}
+            style={{
+              position: "absolute",
+              right: 14,
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#9ca3af",
+              display: "flex",
+              alignItems: "center",
+              padding: 0,
+            }}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+        {errors.password && (
+          <p role="alert" style={{ marginTop: 6, fontSize: "0.75rem", color: "#dc2626", fontWeight: 500 }}>
+            {errors.password.message}
+          </p>
+        )}
+      </div>
 
       {/* Remember me & Forgot password */}
       <div
