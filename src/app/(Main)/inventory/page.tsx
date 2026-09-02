@@ -1,6 +1,6 @@
 // ============================================================
 // src/app/(Main)/inventory/page.tsx
-// Inventory Master page â€” React Server Component.
+// Inventory Master page React Server Component.
 // ============================================================
 
 import { Suspense } from "react";
@@ -16,7 +16,7 @@ import SearchInput from "@/components/ui/SearchInput";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Inventory Master â€” CDN Fire Engineering",
+  title: "Inventory Master CDN Fire Engineering",
   description: "Manage fire protection inventory master catalogue and minimum stock rules.",
 };
 
