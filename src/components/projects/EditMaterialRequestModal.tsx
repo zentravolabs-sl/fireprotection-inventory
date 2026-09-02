@@ -110,6 +110,34 @@ export function EditMaterialRequestModal({
     }
   }
 
+  const sortedInventoryItems = React.useMemo(() => {
+    return [...(inventoryItems || [])].sort((a, b) => {
+      const aIsEst = (a as any).estimatedQty !== undefined && (a as any).estimatedQty !== null ? 1 : 0;
+      const bIsEst = (b as any).estimatedQty !== undefined && (b as any).estimatedQty !== null ? 1 : 0;
+      if (aIsEst !== bIsEst) {
+        return bIsEst - aIsEst;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [inventoryItems]);
+
+  const selectOptions = React.useMemo(() => {
+    return sortedInventoryItems.map((inv: any) => ({
+      value: inv.id,
+      label: `${inv.estimatedQty !== undefined && inv.estimatedQty !== null ? "📐 [ESTIMATED] " : ""}${inv.itemCode} - ${inv.name}${
+        inv.estimatedQty !== undefined && inv.estimatedQty !== null
+          ? ` | Est: ${inv.estimatedQty}${
+              inv.remainingEstimate !== undefined && inv.remainingEstimate !== null && inv.remainingEstimate > 0
+                ? ` (Rem: ${inv.remainingEstimate})`
+                : inv.remainingEstimate === 0
+                ? " ✓ Est. done — additional OK"
+                : ""
+            }`
+          : ` (Stock: ${inv.availableStock})`
+      }`,
+    }));
+  }, [sortedInventoryItems]);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Edit & Resubmit Request #${requestNo}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -139,17 +167,9 @@ export function EditMaterialRequestModal({
                   <div className="flex-1">
                     <Select
                       instanceId={`edit-mat-req-select-${idx}`}
-                      options={inventoryItems.map((inv) => ({
-                        value: inv.id,
-                        label: `${inv.itemCode} - ${inv.name} (Stock: ${inv.availableStock})`,
-                      }))}
+                      options={selectOptions}
                       value={
-                        inventoryItems
-                          .filter((inv) => inv.id === item.inventoryId)
-                          .map((inv) => ({
-                            value: inv.id,
-                            label: `${inv.itemCode} - ${inv.name} (Stock: ${inv.availableStock})`,
-                          }))[0] || null
+                        selectOptions.find((opt) => opt.value === item.inventoryId) || null
                       }
                       onChange={(val) => handleItemChange(idx, "inventoryId", val ? val.value : 0)}
                       placeholder="Select Material..."

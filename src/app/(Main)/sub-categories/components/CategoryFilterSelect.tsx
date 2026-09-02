@@ -3,14 +3,27 @@
 // ============================================================
 // src/app/(Main)/sub-categories/components/CategoryFilterSelect.tsx
 // Client component dropdown that updates the categoryId URL param.
+// Uses react-select for a richer UI experience.
 // ============================================================
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
+import type { Props as SelectProps } from "react-select";
+import { getCustomSelectStyles } from "@/lib/selectStyles";
+
+// Disable SSR to prevent Emotion CSS hydration mismatches with react-select.
+// Cast via `as` so TypeScript preserves react-select's generic signature.
+const Select = dynamic(() => import("react-select"), {
+  ssr: false,
+}) as ComponentType<SelectProps<Option, false>>;
 
 interface CategoryFilterSelectProps {
   categories: { id: number; categoryName: string }[];
   currentCategoryId?: number;
 }
+
+type Option = { value: number; label: string };
 
 export default function CategoryFilterSelect({
   categories,
@@ -20,10 +33,17 @@ export default function CategoryFilterSelect({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const options: Option[] = categories.map((cat) => ({
+    value: cat.id,
+    label: cat.categoryName,
+  }));
+
+  const selected = options.find((o) => o.value === currentCategoryId) ?? null;
+
+  const handleChange = (option: Option | null) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (e.target.value) {
-      params.set("categoryId", e.target.value);
+    if (option) {
+      params.set("categoryId", String(option.value));
     } else {
       params.delete("categoryId");
     }
@@ -32,20 +52,16 @@ export default function CategoryFilterSelect({
   };
 
   return (
-    <select
-      id="category-filter"
-      value={currentCategoryId ? String(currentCategoryId) : ""}
+    <Select
+      instanceId="category-filter-select"
+      options={options}
+      value={selected}
       onChange={handleChange}
-      className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-xl shadow-sm
-        text-gray-700 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400
-        transition-all appearance-none cursor-pointer"
-    >
-      <option value="">All Categories</option>
-      {categories.map((cat) => (
-        <option key={cat.id} value={String(cat.id)}>
-          {cat.categoryName}
-        </option>
-      ))}
-    </select>
+      placeholder="All Categories"
+      isClearable
+      isSearchable
+      menuPortalTarget={typeof window !== "undefined" ? document.body : undefined}
+      styles={getCustomSelectStyles(false, "42px")}
+    />
   );
 }

@@ -38,16 +38,73 @@ export function MaterialRequestModal({
   onClose,
   projectId,
   engineerId,
-  inventoryItems,
+  inventoryItems = [],
 }: MaterialRequestModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [approvalNotice, setApprovalNotice] = useState<string | null>(null);
   const [remarks, setRemarks] = useState("");
 
+  const estimatedItems = React.useMemo(() => {
+    return (inventoryItems || []).filter((inv) => inv.estimatedQty !== null);
+  }, [inventoryItems]);
+
+  const getInitialRequestItems = React.useCallback(() => {
+    const est = (inventoryItems || []).filter((inv) => inv.estimatedQty !== null);
+    if (est.length > 0) {
+      return est.map((inv) => ({
+        inventoryId: inv.id,
+        qtyRequested:
+          inv.remainingEstimate !== null && inv.remainingEstimate > 0
+            ? inv.remainingEstimate
+            : 1,
+      }));
+    }
+    return [{ inventoryId: 0, qtyRequested: 1 }];
+  }, [inventoryItems]);
+
   const [requestItems, setRequestItems] = useState<
     { inventoryId: number; qtyRequested: number }[]
-  >([{ inventoryId: 0, qtyRequested: 1 }]);
+  >(getInitialRequestItems);
+
+  // Sync state when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setRequestItems(getInitialRequestItems());
+      setRemarks("");
+      setError(null);
+      setApprovalNotice(null);
+    }
+  }, [isOpen, getInitialRequestItems]);
+
+  // Sort options: Estimated items first, then alphabetical by name
+  const sortedInventoryItems = React.useMemo(() => {
+    return [...(inventoryItems || [])].sort((a, b) => {
+      const aIsEst = a.estimatedQty !== null ? 1 : 0;
+      const bIsEst = b.estimatedQty !== null ? 1 : 0;
+      if (aIsEst !== bIsEst) {
+        return bIsEst - aIsEst;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [inventoryItems]);
+
+  const selectOptions = React.useMemo(() => {
+    return sortedInventoryItems.map((inv) => ({
+      value: inv.id,
+      label: `${inv.estimatedQty !== null ? "📐 [ESTIMATED] " : ""}${inv.itemCode} - ${inv.name}${
+        inv.estimatedQty !== null
+          ? ` | Est: ${inv.estimatedQty}${
+              inv.remainingEstimate !== null && inv.remainingEstimate > 0
+                ? ` (Rem: ${inv.remainingEstimate})`
+                : inv.remainingEstimate === 0
+                ? " ✓ Est. done — additional OK"
+                : ""
+            }`
+          : ` (Stock: ${inv.availableStock})`
+      }`,
+    }));
+  }, [sortedInventoryItems]);
 
   function handleAddItem() {
     setRequestItems([...requestItems, { inventoryId: 0, qtyRequested: 1 }]);
@@ -148,6 +205,38 @@ export function MaterialRequestModal({
             </div>
           )}
 
+          {/* Banner for Estimated Materials */}
+          {estimatedItems.length > 0 ? (
+            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl text-xs text-blue-900 dark:text-blue-200">
+              <div className="flex items-center space-x-2">
+                <span className="text-base">📐</span>
+                <div>
+                  <span className="font-bold">Project Estimate Loaded:</span> Pre-filled with {estimatedItems.length} item(s) added in the Estimated tab.
+                </div>
+              </div>
+              <div className="flex items-center space-x-1.5 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setRequestItems(getInitialRequestItems())}
+                  className="px-2 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-800 dark:text-blue-100 text-[11px] font-semibold rounded-lg transition-colors"
+                >
+                  🔄 Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRequestItems([{ inventoryId: 0, qtyRequested: 1 }])}
+                  className="px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-[11px] font-semibold rounded-lg transition-colors"
+                >
+                  🗑️ Clear
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-500 dark:text-gray-400">
+              ℹ️ No materials estimated yet for this project. Select any warehouse inventory item below.
+            </div>
+          )}
+
           <div className="space-y-3">
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
               Requested Items *
@@ -179,27 +268,9 @@ export function MaterialRequestModal({
                     <div className="flex-1">
                       <Select
                         instanceId={`mat-req-select-${idx}`}
-                        options={inventoryItems.map((inv) => ({
-                          value: inv.id,
-                          label: `${inv.itemCode} - ${inv.name}${
-                            inv.estimatedQty !== null
-                              ? ` | Est: ${inv.estimatedQty}${
-                                  inv.remainingEstimate !== null && inv.remainingEstimate > 0
-                                    ? ` (Rem: ${inv.remainingEstimate})`
-                                    : inv.remainingEstimate === 0
-                                    ? " ✓ Est. done — additional OK"
-                                    : ""
-                                }`
-                              : ` (Stock: ${inv.availableStock})`
-                          }`,
-                        }))}
+                        options={selectOptions}
                         value={
-                          inventoryItems
-                            .filter((inv) => inv.id === item.inventoryId)
-                            .map((inv) => ({
-                              value: inv.id,
-                              label: `${inv.itemCode} - ${inv.name}`,
-                            }))[0] || null
+                          selectOptions.find((opt) => opt.value === item.inventoryId) || null
                         }
                         onChange={(val) =>
                           handleItemChange(idx, "inventoryId", val ? val.value : 0)
@@ -355,3 +426,4 @@ export function MaterialRequestModal({
     </>
   );
 }
+
