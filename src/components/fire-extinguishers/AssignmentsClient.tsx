@@ -43,7 +43,7 @@ interface AssignmentItem {
   fireExtinguisherUnit: {
     unitCode: string;
     serialNumber: string | null;
-    inventory: { name: string; itemCode: string; unit: string };
+    inventory: { name: string; itemCode: string };
   };
   project: { id: number; projectName: string; projectCode: string } | null;
   customer: { id: number; companyName: string } | null;

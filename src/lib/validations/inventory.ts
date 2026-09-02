@@ -37,11 +37,6 @@ export const inventorySchema = z.object({
     .nullable()
     .transform((v) => v?.trim() || null),
 
-  unit: z
-    .string()
-    .min(1, "Unit is required.")
-    .max(20, "Unit must be ≤ 20 characters.")
-    .trim(),
 
   minStock: z.coerce
     .number({ message: "Minimum stock must be a number." })

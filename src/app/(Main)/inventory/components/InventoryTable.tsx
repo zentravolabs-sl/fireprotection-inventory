@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { Pencil, Trash2, Package, Plus, AlertCircle, Image as ImageIcon } from "lucide-react";
+import { Pencil, Trash2, Package, Plus, AlertCircle, ZoomIn, Image as ImageIcon } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -51,6 +51,7 @@ export default function InventoryTable({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<InventoryRow | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<InventoryRow | undefined>(undefined);
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string; code: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -135,7 +136,7 @@ export default function InventoryTable({
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Sub Category</th>
                 <th className="px-4 py-3">Brand</th>
-                <th className="px-4 py-3 text-center">Unit</th>
+
                 <th className="px-4 py-3 text-right">Current Stock</th>
                 <th className="px-4 py-3 text-right">Min Stock</th>
                 <th className="px-4 py-3 text-center">Status</th>
@@ -145,7 +146,7 @@ export default function InventoryTable({
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               {inventories.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <td colSpan={11} className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <div className="flex flex-col items-center gap-3">
                       <Package size={28} className="text-gray-400 dark:text-gray-600" />
                       <p className="text-gray-500 dark:text-gray-400 font-medium text-sm">No inventory items found.</p>
@@ -167,14 +168,27 @@ export default function InventoryTable({
                       <td className="px-4 py-3.5 font-mono text-xs font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">{item.itemCode}</td>
                       <td className="px-4 py-3.5 text-center">
                         {item.imageUrl ? (
-                          <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            className="w-8 h-8 object-cover rounded-lg border border-gray-200 dark:border-gray-700 mx-auto"
-                          />
+                          <button
+                            type="button"
+                            onClick={() => setPreviewImage({ url: item.imageUrl!, title: item.name, code: item.itemCode })}
+                            title="Click to view item image"
+                            className="group/img relative w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-red-500 overflow-hidden flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-red-500/40 mx-auto"
+                          >
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-full h-full object-cover transition-transform duration-200 group-hover/img:scale-110"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "https://placehold.co/50x50?text=NA";
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                              <ZoomIn size={14} className="text-white" />
+                            </div>
+                          </button>
                         ) : (
-                          <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center mx-auto text-gray-400">
-                            <ImageIcon size={14} />
+                          <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden flex items-center justify-center mx-auto">
+                            <ImageIcon size={14} className="text-gray-400" />
                           </div>
                         )}
                       </td>
@@ -182,7 +196,7 @@ export default function InventoryTable({
                       <td className="px-4 py-3.5 text-gray-800 dark:text-gray-200">{item.category.categoryName}</td>
                       <td className="px-4 py-3.5 text-gray-500 dark:text-gray-400">{item.subCategory.name}</td>
                       <td className="px-4 py-3.5 text-gray-500 dark:text-gray-400">{item.brand || "—"}</td>
-                      <td className="px-4 py-3.5 text-center font-medium text-gray-800 dark:text-gray-200">{item.unit}</td>
+
                       <td className="px-4 py-3.5 text-right font-bold text-gray-900 dark:text-gray-100 tabular-nums">{item.currentStock}</td>
                       <td className="px-4 py-3.5 text-right text-gray-500 dark:text-gray-400 tabular-nums">{item.minStock}</td>
                       <td className="px-4 py-3.5 text-center">
@@ -253,6 +267,39 @@ export default function InventoryTable({
         confirmText="Delete Item"
         isLoading={isDeleting}
       />
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <Modal
+          isOpen={Boolean(previewImage)}
+          onClose={() => setPreviewImage(null)}
+          title={`Item Image Preview — ${previewImage.code}`}
+          maxWidth="max-w-xl"
+        >
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-full max-h-[70vh] rounded-2xl bg-gray-950 border border-gray-800 overflow-hidden flex items-center justify-center p-2">
+              <img
+                src={previewImage.url}
+                alt={previewImage.title}
+                className="max-h-[60vh] w-auto object-contain rounded-xl shadow-lg"
+              />
+            </div>
+            <div className="text-center">
+              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-base">{previewImage.title}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">Code: {previewImage.code}</p>
+            </div>
+            <div className="flex justify-end w-full pt-2 border-t border-gray-100 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="px-5 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

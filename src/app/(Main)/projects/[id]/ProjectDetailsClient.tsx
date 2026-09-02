@@ -49,7 +49,6 @@ interface ProjectDetailsClientProps {
     id: number;
     itemCode: string;
     name: string;
-    unit: string;
     availableStock: number;
     estimatedQty: number | null;
     alreadyRequestedQty: number;
@@ -819,9 +818,9 @@ export function ProjectDetailsClient({
                         <tr key={item.id}>
                           <td className="px-3 py-2 font-mono text-[11px] font-bold">{item.inventory.itemCode}</td>
                           <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">{item.inventory.name}</td>
-                          <td className="px-3 py-2 font-semibold text-gray-800 dark:text-gray-200">{item.qtyRequested} {item.inventory.unit}</td>
-                          <td className="px-3 py-2 text-indigo-600 font-semibold">{item.qtyApproved} {item.inventory.unit}</td>
-                          <td className="px-3 py-2 text-teal-600 font-semibold">{item.qtyIssued} {item.inventory.unit}</td>
+                          <td className="px-3 py-2 font-semibold text-gray-800 dark:text-gray-200">{item.qtyRequested}</td>
+                          <td className="px-3 py-2 text-indigo-600 font-semibold">{item.qtyApproved}</td>
+                          <td className="px-3 py-2 text-teal-600 font-semibold">{item.qtyIssued}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -867,9 +866,9 @@ export function ProjectDetailsClient({
                         {mat.materialIssueItem?.stockBatch?.batchNo || `Batch #${mat.materialIssueItem?.stockBatch?.id || mat.id}`}
                       </td>
                       <td className="px-4 py-3">{formatCurrency(mat.materialIssueItem?.stockBatch?.unitCost || 0)}</td>
-                      <td className="px-4 py-3 font-semibold text-gray-900 dark:text-gray-100">{mat.issuedQty} {mat.inventory.unit}</td>
-                      <td className="px-4 py-3 text-orange-600">{mat.returnedQty} {mat.inventory.unit}</td>
-                      <td className="px-4 py-3 font-bold text-teal-600 dark:text-teal-400">{mat.balanceQty} {mat.inventory.unit}</td>
+                      <td className="px-4 py-3 font-semibold text-gray-900 dark:text-gray-100">{mat.issuedQty}</td>
+                      <td className="px-4 py-3 text-orange-600">{mat.returnedQty}</td>
+                      <td className="px-4 py-3 font-bold text-teal-600 dark:text-teal-400">{mat.balanceQty}</td>
                       <td className="px-4 py-3 font-mono text-[11px]">{mat.status}</td>
                     </tr>
                   ))
@@ -933,7 +932,7 @@ export function ProjectDetailsClient({
                           {unit.inventory.name}
                         </td>
                         <td className="px-4 py-3 text-gray-600 dark:text-gray-400 font-mono">
-                          {unit.inventory.unit}
+                          —
                         </td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1218,7 +1217,7 @@ export function ProjectDetailsClient({
                       {ret.items?.map((item) => (
                         <tr key={item.id}>
                           <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">{item.inventory.name} ({item.inventory.itemCode})</td>
-                          <td className="px-3 py-2 font-semibold text-gray-800 dark:text-gray-200">{item.qtyReturned} {item.inventory.unit}</td>
+                          <td className="px-3 py-2 font-semibold text-gray-800 dark:text-gray-200">{item.qtyReturned}</td>
                           <td className="px-3 py-2">
                             <span
                               className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${item.condition === "GOOD"
@@ -1423,7 +1422,7 @@ export function ProjectDetailsClient({
             inventoryName: i.inventory.name,
             qtyApproved: i.qtyApproved,
             qtyIssued: i.qtyIssued,
-            unit: i.inventory.unit,
+            unit: "",
           }))}
         />
       )}

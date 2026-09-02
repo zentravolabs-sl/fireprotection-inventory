@@ -30,7 +30,7 @@ export async function getAvailableStockForProject(projectId: number) {
     },
     include: {
       inventory: {
-        select: { id: true, itemCode: true, name: true, unit: true, brand: true },
+        select: { id: true, itemCode: true, name: true, brand: true },
       },
       materialIssueItem: {
         include: {
@@ -48,7 +48,6 @@ export async function getAvailableStockForProject(projectId: number) {
     stockBatchId: number;
     itemCode: string;
     name: string;
-    unit: string;
     batchNo: string;
     unitCost: number;
     availableQty: number;
@@ -68,7 +67,6 @@ export async function getAvailableStockForProject(projectId: number) {
         stockBatchId: batchId,
         itemCode: pm.inventory.itemCode,
         name: pm.inventory.name,
-        unit: pm.inventory.unit,
         batchNo: pm.materialIssueItem?.stockBatch?.batchNo || `Batch #${batchId}`,
         unitCost: pm.materialIssueItem?.stockBatch?.unitCost || 0,
         availableQty: pm.balanceQty,
@@ -87,7 +85,7 @@ export async function getAvailableStockForProject(projectId: number) {
       status: "AVAILABLE",
     },
     include: {
-      inventory: { select: { id: true, itemCode: true, name: true, unit: true } },
+      inventory: { select: { id: true, itemCode: true, name: true } },
       stockBatch: { select: { id: true, batchNo: true, unitCost: true } },
     },
   });
@@ -173,7 +171,7 @@ async function validateSourceStock(
           balanceQty: { gt: 0 },
         },
         include: {
-          inventory: { select: { name: true, unit: true } },
+          inventory: { select: { name: true } },
           materialIssueItem: {
             include: { stockBatch: true },
           },
@@ -199,7 +197,7 @@ async function validateSourceStock(
       );
 
       const itemName = projectMaterials[0]?.inventory?.name || `Item #${item.inventoryId}`;
-      const itemUnit = projectMaterials[0]?.inventory?.unit || item.unit;
+      const itemUnit = item.unit;
 
       if (totalAvailable < item.qty) {
         throw new Error(
@@ -795,7 +793,7 @@ export async function getProjectTransfersService(filters?: ProjectTransferFilter
         approvedBy: { select: { id: true, name: true, email: true } },
         items: {
           include: {
-            inventory: { select: { id: true, itemCode: true, name: true, unit: true } },
+            inventory: { select: { id: true, itemCode: true, name: true } },
             pipeCutPiece: { select: { id: true, pieceLength: true, unit: true, barcode: true } },
             tool: { select: { id: true, toolCode: true, name: true } },
           },
@@ -845,7 +843,7 @@ export async function getProjectTransferByIdService(transferId: number) {
       approvedBy: { select: { id: true, name: true, email: true, role: true } },
       items: {
         include: {
-          inventory: { select: { id: true, itemCode: true, name: true, unit: true, brand: true } },
+          inventory: { select: { id: true, itemCode: true, name: true, brand: true } },
           stockBatch: { select: { id: true, batchNo: true, unitCost: true } },
           pipeCutPiece: { select: { id: true, pieceLength: true, unit: true, barcode: true } },
           tool: { select: { id: true, toolCode: true, name: true, serialNo: true } },

@@ -187,7 +187,7 @@ export default function BatchDetailsModal({ batchId, onClose }: BatchDetailsModa
                     Received Qty
                   </span>
                   <span className="text-sm font-black text-gray-900 dark:text-[#dce3ef] tabular-nums mt-0.5 block">
-                    {data.receivedQty} {data.inventory.unit}
+                    {data.receivedQty}
                   </span>
                 </div>
 
@@ -196,7 +196,7 @@ export default function BatchDetailsModal({ batchId, onClose }: BatchDetailsModa
                     Available Qty
                   </span>
                   <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 tabular-nums mt-0.5 block">
-                    {data.availableQty} {data.inventory.unit}
+                    {data.availableQty}
                   </span>
                 </div>
 
@@ -253,7 +253,7 @@ export default function BatchDetailsModal({ batchId, onClose }: BatchDetailsModa
                               {m.referenceType} #{m.referenceId || "--"}
                             </td>
                             <td className="px-4 py-3.5 text-right font-medium tabular-nums text-gray-900 dark:text-gray-100">
-                              {m.movementType === "OUT" ? `-${m.qty}` : `+${m.qty}`} {data.inventory.unit}
+                              {m.movementType === "OUT" ? `-${m.qty}` : `+${m.qty}`}
                             </td>
                             <td className="px-4 py-3.5 text-gray-800 dark:text-gray-200 font-medium">
                               {m.createdBy}

@@ -1,7 +1,5 @@
-// ============================================================
-// src/app/(Main)/material-requests/loading.tsx
-// Loading skeleton state for Material Requests page.
-// ============================================================
+import React from "react";
+import MaterialRequestsTableSkeleton from "@/components/projects/MaterialRequestsTableSkeleton";
 
 export default function MaterialRequestsLoading() {
   return (
@@ -13,14 +11,9 @@ export default function MaterialRequestsLoading() {
         </div>
         <div className="h-10 w-44 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
       </div>
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-6 space-y-4">
-        <div className="h-10 w-72 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
-        <div className="space-y-3 pt-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-12 w-full bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      </div>
+
+      <MaterialRequestsTableSkeleton />
     </div>
   );
 }
+

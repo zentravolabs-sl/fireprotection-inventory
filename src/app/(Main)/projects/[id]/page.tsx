@@ -56,7 +56,6 @@ export default async function ProjectDetailPage(props: PageProps) {
         id: true,
         itemCode: true,
         name: true,
-        unit: true,
         stockBatches: {
           select: { availableQty: true },
         },
@@ -96,7 +95,7 @@ export default async function ProjectDetailPage(props: PageProps) {
         approvedBy: { select: { id: true, name: true } },
         items: {
           include: {
-            inventory: { select: { id: true, itemCode: true, name: true, unit: true } },
+            inventory: { select: { id: true, itemCode: true, name: true } },
             pipeCutPiece: { select: { id: true, pieceLength: true, unit: true } },
             tool: { select: { id: true, toolCode: true, name: true } },
           },
@@ -170,7 +169,6 @@ export default async function ProjectDetailPage(props: PageProps) {
       id: item.id,
       itemCode: item.itemCode,
       name: item.name,
-      unit: item.unit,
       availableStock: (item.stockBatches || []).reduce((sum: number, b: any) => sum + (b.availableQty || 0), 0),
       estimatedQty,
       alreadyRequestedQty,

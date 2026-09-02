@@ -13,6 +13,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
   Row,
   Section,
@@ -101,45 +102,61 @@ const containerStyle: React.CSSProperties = {
 
 const headerSectionStyle: React.CSSProperties = {
   backgroundColor: "#b91c1c",
-  padding: "32px 40px 24px",
+  padding: "28px 40px 24px",
+};
+
+const headerLogoColStyle: React.CSSProperties = {
+  width: "72px",
+  verticalAlign: "middle",
+  paddingRight: "16px",
+};
+
+const headerTextColStyle: React.CSSProperties = {
+  verticalAlign: "middle",
 };
 
 const headerBrandStyle: React.CSSProperties = {
   color: "#fecaca",
-  fontSize: "11px",
+  fontSize: "10px",
   fontWeight: "700",
-  letterSpacing: "3px",
+  letterSpacing: "2.5px",
   textTransform: "uppercase",
-  margin: "0 0 4px",
+  margin: "0 0 3px",
 };
 
 const headerTitleStyle: React.CSSProperties = {
   color: "#ffffff",
-  fontSize: "22px",
-  fontWeight: "700",
-  margin: "0 0 2px",
+  fontSize: "24px",
+  fontWeight: "800",
+  margin: "0 0 3px",
+  letterSpacing: "-0.3px",
 };
 
 const headerSubStyle: React.CSSProperties = {
   color: "#fca5a5",
   fontSize: "12px",
   margin: "0",
+  fontWeight: "400",
+};
+
+const headerDividerStyle: React.CSSProperties = {
+  borderTop: "1px solid rgba(255,255,255,0.25)",
+  margin: "18px 0 14px",
 };
 
 const headerPeriodLabelStyle: React.CSSProperties = {
   color: "#fecaca",
-  fontSize: "11px",
-  fontWeight: "600",
-  letterSpacing: "1px",
+  fontSize: "10px",
+  fontWeight: "700",
+  letterSpacing: "1.5px",
   textTransform: "uppercase",
-  marginTop: "20px",
-  marginBottom: "2px",
+  margin: "0 0 4px",
 };
 
 const headerPeriodValueStyle: React.CSSProperties = {
   color: "#ffffff",
-  fontSize: "14px",
-  fontWeight: "600",
+  fontSize: "16px",
+  fontWeight: "700",
   margin: "0",
 };
 
@@ -322,9 +339,26 @@ export default function WeeklyStockReportEmail({
 
           {/* ── Header ── */}
           <Section style={headerSectionStyle}>
-            <Text style={headerBrandStyle}>{companyName}</Text>
-            <Heading as="h1" style={headerTitleStyle}>Weekly Stock Report</Heading>
-            <Text style={headerSubStyle}>Fire Protection Management System</Text>
+            {/* Logo + Title row */}
+            <Row>
+              <Column style={headerLogoColStyle}>
+                <Img
+                  src={appUrl ? `${appUrl}/cdn-fire-logo-white.png` : "/cdn-fire-logo-white.png"}
+                  alt="CDN Fire Logo"
+                  width="60"
+                  height="60"
+                  style={{ display: "block", objectFit: "contain" }}
+                />
+              </Column>
+              <Column style={headerTextColStyle}>
+                <Text style={headerBrandStyle}>{companyName.toUpperCase()}</Text>
+                <Heading as="h1" style={headerTitleStyle}>Weekly Stock Report</Heading>
+                <Text style={headerSubStyle}>Fire Protection Management System</Text>
+              </Column>
+            </Row>
+            {/* Divider */}
+            <Hr style={headerDividerStyle} />
+            {/* Period */}
             <Text style={headerPeriodLabelStyle}>Report Period</Text>
             <Text style={headerPeriodValueStyle}>{periodLabel}</Text>
           </Section>

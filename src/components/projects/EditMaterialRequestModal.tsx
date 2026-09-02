@@ -16,7 +16,6 @@ interface InventoryItemOption {
   id: number;
   itemCode: string;
   name: string;
-  unit: string;
   availableStock: number;
 }
 
@@ -28,7 +27,6 @@ interface ExistingItem {
     id: number;
     itemCode: string;
     name: string;
-    unit: string;
   };
 }
 
@@ -143,14 +141,14 @@ export function EditMaterialRequestModal({
                       instanceId={`edit-mat-req-select-${idx}`}
                       options={inventoryItems.map((inv) => ({
                         value: inv.id,
-                        label: `${inv.itemCode} - ${inv.name} (Stock: ${inv.availableStock} ${inv.unit})`,
+                        label: `${inv.itemCode} - ${inv.name} (Stock: ${inv.availableStock})`,
                       }))}
                       value={
                         inventoryItems
                           .filter((inv) => inv.id === item.inventoryId)
                           .map((inv) => ({
                             value: inv.id,
-                            label: `${inv.itemCode} - ${inv.name} (Stock: ${inv.availableStock} ${inv.unit})`,
+                            label: `${inv.itemCode} - ${inv.name} (Stock: ${inv.availableStock})`,
                           }))[0] || null
                       }
                       onChange={(val) => handleItemChange(idx, "inventoryId", val ? val.value : 0)}
@@ -190,13 +188,12 @@ export function EditMaterialRequestModal({
                 </div>
 
                 {selectedInv && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between pt-1">
-                    <span>Unit: {selectedInv.unit}</span>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-end pt-1">
                     <span
                       className={`font-medium ${selectedInv.availableStock > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                         }`}
                     >
-                      Available Stock: {selectedInv.availableStock} {selectedInv.unit}
+                      Available Stock: {selectedInv.availableStock}
                     </span>
                   </div>
                 )}

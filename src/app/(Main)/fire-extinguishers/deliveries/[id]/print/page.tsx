@@ -272,7 +272,7 @@ export default async function PrintDeliveryNotePage({ params }: PrintDeliveryNot
                           {item.fireExtinguisherUnit.serialNumber || "—"}
                         </td>
                         <td className="py-2.5 px-3 border border-gray-200 text-gray-600 text-center">
-                          {item.fireExtinguisherUnit.inventory.unit}
+                          Pcs
                         </td>
                       </tr>
                     ))}

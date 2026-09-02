@@ -176,7 +176,6 @@ export async function getWeeklyStockReport(
       select: {
         id: true,
         name: true,
-        unit: true,
         minStock: true,
         category: { select: { categoryName: true } },
       },
@@ -236,7 +235,7 @@ export async function getWeeklyStockReport(
         name: inv.name,
         categoryName: category,
         minStock: inv.minStock,
-        unit: inv.unit,
+        unit: "",
       });
     } else if (current > 0 && current < inv.minStock && lowStockItems.length < LOW_STOCK_LIMIT) {
       lowStockItems.push({
@@ -245,7 +244,7 @@ export async function getWeeklyStockReport(
         currentStock: current,
         minStock: inv.minStock,
         requiredQty: inv.minStock - current,
-        unit: inv.unit,
+        unit: "",
       });
     }
   }
@@ -281,7 +280,7 @@ export async function getWeeklyStockReport(
   // ── Top used items ────────────────────────────────────────
 
   // Build name→unit map for clean resolution
-  const nameToUnit = new Map(allInventory.map((i) => [i.name, i.unit]));
+  const nameToUnit = new Map(allInventory.map((i) => [i.name, ""]));
 
   const topUsedItems: TopUsedItem[] = stockMovementItems
     .filter((i) => i.usedQty > 0)

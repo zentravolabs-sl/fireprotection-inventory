@@ -27,7 +27,6 @@ export interface ExpiryBatchDetail {
     id: number;
     itemCode: string;
     name: string;
-    unit: string;
     brand: string | null;
     category: { id: number; categoryName: string };
     subCategory: { id: number; name: string };
@@ -79,7 +78,6 @@ export interface ExpiryCalendarEvent {
   supplierName: string;
   expiryDate: string; // ISO
   availableQty: number;
-  unit: string;
   unitCost: number;
   stockValue: number;
   daysRemaining: number | null;
@@ -167,7 +165,6 @@ function mapBatchToDetail(batch: any, thresholdDays: number): ExpiryBatchDetail 
       id: batch.inventory.id,
       itemCode: batch.inventory.itemCode,
       name: batch.inventory.name,
-      unit: batch.inventory.unit,
       brand: batch.inventory.brand,
       category: batch.inventory.category,
       subCategory: batch.inventory.subCategory,
@@ -532,7 +529,7 @@ export async function getExpiryCalendarEvents(
       },
     },
     include: {
-      inventory: { select: { itemCode: true, name: true, unit: true } },
+      inventory: { select: { itemCode: true, name: true } },
       stockReceiveItem: {
         include: { stockReceive: { include: { supplier: true } } },
       },
@@ -551,7 +548,7 @@ export async function getExpiryCalendarEvents(
       supplierName: b.stockReceiveItem?.stockReceive?.supplier?.company || "Unknown Supplier",
       expiryDate: b.expiryDate!.toISOString(),
       availableQty: b.availableQty,
-      unit: b.inventory.unit,
+      unit: "",
       unitCost: b.unitCost,
       stockValue,
       daysRemaining,

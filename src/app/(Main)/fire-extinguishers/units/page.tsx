@@ -30,7 +30,7 @@ export default async function PhysicalUnitsPage() {
     prisma.fireExtinguisherUnit.findMany({
       include: {
         inventory: {
-          select: { id: true, itemCode: true, name: true, unit: true },
+          select: { id: true, itemCode: true, name: true },
         },
         assignments: {
           where: { status: { in: ["ACTIVE", "UNDER_REFILL"] } },
@@ -42,7 +42,7 @@ export default async function PhysicalUnitsPage() {
       orderBy: { unitCode: "asc" },
     }),
     prisma.inventory.findMany({
-      select: { id: true, itemCode: true, name: true, unit: true },
+      select: { id: true, itemCode: true, name: true },
       orderBy: { name: "asc" },
     }),
   ]);

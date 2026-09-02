@@ -85,10 +85,10 @@ export default function StockBatchTable({
                       [{row.inventory.itemCode}] {row.inventory.name}
                     </td>
                     <td className="px-4 py-3.5 text-right text-gray-500 dark:text-gray-400 tabular-nums font-medium">
-                      {row.receivedQty} {row.inventory.unit}
+                      {row.receivedQty}
                     </td>
                     <td className="px-4 py-3.5 text-right font-bold text-gray-900 dark:text-gray-100 tabular-nums">
-                      {row.availableQty} {row.inventory.unit}
+                      {row.availableQty}
                     </td>
                     <td className="px-4 py-3.5 text-right text-gray-900 dark:text-gray-100 tabular-nums font-semibold">
                       ${row.unitCost.toFixed(2)}

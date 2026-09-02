@@ -34,7 +34,6 @@ export type StockReceiveItem = {
     id: number;
     itemCode: string;
     name: string;
-    unit: string;
   };
 };
 
@@ -107,7 +106,7 @@ const receiveSelect = {
       manufactureDate: true,
       expiryDate: true,
       inventory: {
-        select: { id: true, itemCode: true, name: true, unit: true },
+        select: { id: true, itemCode: true, name: true },
       },
     },
   },

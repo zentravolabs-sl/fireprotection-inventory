@@ -21,7 +21,6 @@ interface InventoryOption {
   id: number;
   itemCode: string;
   name: string;
-  unit: string;
 }
 
 interface StockReceiveFormProps {
@@ -354,7 +353,7 @@ export default function StockReceiveForm({
                         <option value={0}>Select Item</option>
                         {inventoryItems.map((inv) => (
                           <option key={inv.id} value={inv.id}>
-                            [{inv.itemCode}] {inv.name} ({inv.unit})
+                            [{inv.itemCode}] {inv.name}
                           </option>
                         ))}
                       </select>

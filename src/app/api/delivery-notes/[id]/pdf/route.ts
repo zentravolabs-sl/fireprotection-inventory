@@ -32,7 +32,7 @@ function wrappedText(doc: jsPDF, text: string, x: number, y: number, maxWidth: n
 
 export async function GET(
   _req: NextRequest,
-  ctx: RouteContext<"/api/delivery-notes/[id]/pdf">
+  ctx: { params: Promise<{ id: string }> }
 ) {
   // ── 1. Authentication ────────────────────────────────────────────────────────
   const requestHeaders = await headers();
@@ -348,7 +348,7 @@ export async function GET(
     doc.text(item.fireExtinguisherUnit.serialNumber ?? "—", rcx + 2, y + ROW_H - 2);
     rcx += COL_SERIAL;
     // Unit
-    doc.text(item.fireExtinguisherUnit.inventory.unit, rcx + 2, y + ROW_H - 2);
+    doc.text("Pcs", rcx + 2, y + ROW_H - 2);
 
     y += ROW_H;
   });

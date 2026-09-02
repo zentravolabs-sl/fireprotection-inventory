@@ -23,7 +23,6 @@ export type StockMovementRow = {
     id: number;
     itemCode: string;
     name: string;
-    unit: string;
   };
   stockBatch: {
     id: number;
@@ -106,7 +105,6 @@ export async function getStockMovements(
             id: true,
             itemCode: true,
             name: true,
-            unit: true,
           },
         },
         stockBatch: {

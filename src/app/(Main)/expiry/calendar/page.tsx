@@ -204,7 +204,7 @@ export default function ExpiryCalendarPage() {
                         <div className="truncate font-extrabold">{ev.itemName}</div>
                         <div className="text-[10px] opacity-80 flex items-center justify-between font-mono mt-0.5">
                           <span>{ev.batchNo}</span>
-                          <span>{ev.availableQty} {ev.unit}</span>
+                          <span>Qty: {ev.availableQty}</span>
                         </div>
                       </div>
                     );

@@ -21,7 +21,6 @@ interface InventoryItemOption {
   id: number;
   itemCode: string;
   name: string;
-  unit: string;
 }
 
 interface ProjectEstimatesTabProps {
@@ -169,7 +168,7 @@ export function ProjectEstimatesTab({
                       {est.inventory.name}
                     </td>
                     <td className="px-5 py-4 text-gray-600 dark:text-gray-400 font-medium">
-                      {est.inventory.unit}
+                      —
                     </td>
                     <td className="px-5 py-4 text-right font-extrabold text-blue-600 dark:text-blue-400 text-sm">
                       {est.estimatedQty.toLocaleString()}
@@ -224,14 +223,14 @@ export function ProjectEstimatesTab({
               instanceId="est-inventory-select"
               options={inventoryItems.map((inv) => ({
                 value: inv.id,
-                label: `${inv.itemCode} — ${inv.name} (${inv.unit})`,
+                label: `${inv.itemCode} — ${inv.name}`,
               }))}
               value={
                 inventoryItems
                   .filter((inv) => inv.id === selectedInventoryId)
                   .map((inv) => ({
                     value: inv.id,
-                    label: `${inv.itemCode} — ${inv.name} (${inv.unit})`,
+                    label: `${inv.itemCode} — ${inv.name}`,
                   }))[0] || null
               }
               onChange={(val) => setSelectedInventoryId(val ? val.value : 0)}

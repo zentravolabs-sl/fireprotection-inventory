@@ -20,7 +20,7 @@ export type InventoryRow = {
   itemCode: string;
   name: string;
   brand: string | null;
-  unit: string;
+
   minStock: number;
   barcode: string | null;
   rackLocation: string | null;
@@ -74,7 +74,7 @@ const inventorySelect = {
   itemCode: true,
   name: true,
   brand: true,
-  unit: true,
+
   minStock: true,
   barcode: true,
   rackLocation: true,
@@ -180,7 +180,7 @@ export async function getInventoryById(id: number): Promise<InventoryRow | null>
 /** For dropdown selectors in forms */
 export async function getInventoryList() {
   return prisma.inventory.findMany({
-    select: { id: true, itemCode: true, name: true, unit: true },
+    select: { id: true, itemCode: true, name: true },
     orderBy: { name: "asc" },
   });
 }
@@ -224,7 +224,7 @@ export async function createInventory(
         categoryId: data.categoryId,
         subCategoryId: data.subCategoryId,
         brand: data.brand ?? null,
-        unit: data.unit,
+
         minStock: data.minStock,
         barcode: data.barcode ?? null,
         rackLocation: data.rackLocation ?? null,
@@ -285,7 +285,7 @@ export async function updateInventory(
         categoryId: data.categoryId,
         subCategoryId: data.subCategoryId,
         brand: data.brand ?? null,
-        unit: data.unit,
+
         minStock: data.minStock,
         barcode: data.barcode ?? null,
         rackLocation: data.rackLocation ?? null,

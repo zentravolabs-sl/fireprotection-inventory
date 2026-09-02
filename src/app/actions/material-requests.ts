@@ -172,7 +172,6 @@ export async function getInventoryOptionsAction(projectId?: number) {
         id: true,
         itemCode: true,
         name: true,
-        unit: true,
         stockBatches: {
           select: { availableQty: true },
         },
@@ -222,7 +221,6 @@ export async function getInventoryOptionsAction(projectId?: number) {
           id: inv.id,
           itemCode: inv.itemCode,
           name: inv.name,
-          unit: inv.unit,
           availableStock: inv.stockBatches.reduce((acc, b) => acc + b.availableQty, 0),
           estimatedQty,
           alreadyRequestedQty,

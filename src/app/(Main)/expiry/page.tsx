@@ -477,7 +477,7 @@ export default function ExpiryManagementPage() {
                     </td>
 
                     <td className="px-4 py-3.5 text-right font-medium tabular-nums text-gray-900 dark:text-gray-100">
-                      {row.availableQty} {row.inventory.unit}
+                      {row.availableQty}
                     </td>
 
                     <td className="px-4 py-3.5 text-right font-medium tabular-nums text-gray-600 dark:text-gray-400">

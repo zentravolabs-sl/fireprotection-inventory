@@ -52,7 +52,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
               isPassword ? "pr-11" : "",
               error
                 ? "border-red-400 ring-1 ring-red-300 focus:border-red-500 focus:ring-red-300"
-                : "border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900",
+                : "border-gray-300 dark:border-gray-700 focus:border-red-500 focus:ring-1 focus:ring-red-200 dark:focus:ring-red-900",
               className ?? "",
             ]
               .filter(Boolean)

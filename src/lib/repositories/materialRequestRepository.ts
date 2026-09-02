@@ -30,7 +30,7 @@ export async function findMaterialRequestById(id: number) {
       items: {
         include: {
           inventory: {
-            select: { id: true, itemCode: true, name: true, unit: true, brand: true },
+            select: { id: true, itemCode: true, name: true, brand: true },
           },
         },
       },
@@ -116,7 +116,7 @@ export async function findMaterialRequests(params: {
         items: {
           include: {
             inventory: {
-              select: { id: true, itemCode: true, name: true, unit: true, brand: true },
+              select: { id: true, itemCode: true, name: true, brand: true },
             },
           },
         },

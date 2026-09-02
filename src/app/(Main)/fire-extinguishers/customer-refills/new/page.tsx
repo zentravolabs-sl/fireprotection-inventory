@@ -34,7 +34,6 @@ export default async function CreateCustomerRefillPage() {
         id: true,
         itemCode: true,
         name: true,
-        unit: true,
         stockBatches: {
           select: { availableQty: true },
         },
@@ -47,7 +46,6 @@ export default async function CreateCustomerRefillPage() {
     id: item.id,
     itemCode: item.itemCode,
     name: item.name,
-    unit: item.unit,
     availableStock: item.stockBatches.reduce((sum, b) => sum + b.availableQty, 0),
   }));
 

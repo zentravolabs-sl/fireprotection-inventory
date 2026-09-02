@@ -92,7 +92,6 @@ export default async function ProjectStockPage(props: PageProps) {
           id: true,
           name: true,
           itemCode: true,
-          unit: true,
         },
       },
       materialIssueItem: {

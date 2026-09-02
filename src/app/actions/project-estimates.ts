@@ -111,7 +111,6 @@ export async function getProjectMaterialSummariesAction(projectId: number) {
       inventoryId: number;
       itemCode: string;
       name: string;
-      unit: string;
       totalEstimatedQty: number;
       totalRequestedQty: number;
       totalIssuedQty: number;
@@ -119,13 +118,12 @@ export async function getProjectMaterialSummariesAction(projectId: number) {
     }>();
 
     // Helper to get or create map entry
-    const getEntry = (inv: { id: number; itemCode: string; name: string; unit: string }) => {
+    const getEntry = (inv: { id: number; itemCode: string; name: string }) => {
       if (!inventoryMap.has(inv.id)) {
         inventoryMap.set(inv.id, {
           inventoryId: inv.id,
           itemCode: inv.itemCode,
           name: inv.name,
-          unit: inv.unit,
           totalEstimatedQty: 0,
           totalRequestedQty: 0,
           totalIssuedQty: 0,

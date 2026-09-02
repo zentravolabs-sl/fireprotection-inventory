@@ -32,7 +32,7 @@ interface Replacement {
   issuedQty: number;
   returnedQty: number;
   status: string;
-  inventory: { itemCode: string; name: string; unit: string };
+  inventory: { itemCode: string; name: string };
 }
 
 interface Props {
@@ -313,7 +313,7 @@ export function CompleteReturnModal({ refillId, refillNo, items, replacements, o
                             <div className="text-[10px] font-mono text-gray-400">{repl.inventory.itemCode}</div>
                           </td>
                           <td className="py-2.5 px-3 text-center font-mono">
-                            {repl.issuedQty} {repl.inventory.unit}
+                            {repl.issuedQty}
                           </td>
                           <td className="py-2.5 px-3 text-center font-mono text-gray-400">{repl.returnedQty}</td>
                           <td className="py-2.5 px-3 text-center">

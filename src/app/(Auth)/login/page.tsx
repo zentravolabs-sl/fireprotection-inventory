@@ -156,25 +156,6 @@ function LoginForm() {
         <Lock size={17} aria-hidden="true" />
         Sign In
       </FormButton>
-
-      {/* Register link */}
-      <p
-        style={{
-          textAlign: "center",
-          marginTop: 18,
-          fontSize: "0.84rem",
-          color: "#6b7280",
-        }}
-      >
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/register"
-          style={{ color: "#dc2626", fontWeight: 700, textDecoration: "none" }}
-          className="hover:underline"
-        >
-          Register
-        </Link>
-      </p>
     </form>
   );
 }

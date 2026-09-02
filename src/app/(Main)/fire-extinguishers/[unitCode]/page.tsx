@@ -76,7 +76,6 @@ export default async function FireExtinguisherUnitDetailsPage({ params }: UnitDe
               </p>
               <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 mt-2">
                 <span>Serial No: <strong className="text-gray-800 dark:text-gray-200 font-mono">{unit.serialNumber || "N/A"}</strong></span>
-                <span>Unit Capacity: <strong className="text-gray-800 dark:text-gray-200">{unit.inventory.unit}</strong></span>
               </div>
             </div>
           </div>

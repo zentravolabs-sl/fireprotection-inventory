@@ -402,7 +402,6 @@ model Inventory {
   itemCode         String   @unique
   name             String
   brand            String?
-  unit             String
   minStock         Float    @default(0)
   barcode          String?  @unique
   rackLocation     String?
