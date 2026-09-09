@@ -37,6 +37,30 @@ select option {
   color-scheme: dark;
 }
 
+/* ── Autofill override ─────────────────────────────────────────────────────
+   Browsers force their own background on :-webkit-autofill and you cannot
+   override it with background-color. The only reliable fix is a large inset
+   box-shadow that visually covers the autofill tint, combined with
+   -webkit-text-fill-color to control the text colour.
+   This app is always dark (no .dark class toggle), so we use the dark
+   input background (#1f2937) and light text (#f9fafb) unconditionally.
+   ─────────────────────────────────────────────────────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #1f2937 inset !important;
+  -webkit-text-fill-color: #f9fafb !important;
+  caret-color: #f9fafb;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+
 /* Base interactive elements cursor behavior */
 button,
 [role="button"] {

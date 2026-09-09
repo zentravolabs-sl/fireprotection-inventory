@@ -224,7 +224,6 @@ export async function createInventory(
         categoryId: data.categoryId,
         subCategoryId: data.subCategoryId,
         brand: data.brand ?? null,
-
         minStock: data.minStock,
         barcode: data.barcode ?? null,
         rackLocation: data.rackLocation ?? null,
