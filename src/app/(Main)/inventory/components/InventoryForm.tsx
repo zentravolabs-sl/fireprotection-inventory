@@ -69,7 +69,7 @@ export default function InventoryForm({
   });
 
   const selectedCategory = watch("categoryId");
-  const imageUrlValue = useWatch({ control, name: "imageUrl" });
+  const imageUrlValue = useWatch({ control, name: "imageUrl" }) as string | undefined;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
