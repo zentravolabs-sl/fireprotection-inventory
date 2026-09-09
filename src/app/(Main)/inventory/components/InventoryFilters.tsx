@@ -38,6 +38,11 @@ export default function InventoryFilters({ categories }: InventoryFiltersProps) 
   const currentStockStatus = searchParams.get("stockStatus") || "all";
 
   const [subCategories, setSubCategories] = useState<{ id: number; name: string }[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!currentCategory) {
@@ -127,30 +132,38 @@ export default function InventoryFilters({ categories }: InventoryFiltersProps) 
         {/* Category Filter */}
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
-          <Select
-            instanceId="inventory-category-filter"
-            classNamePrefix="react-select"
-            options={categoryOptions}
-            value={selectedCategoryOption}
-            onChange={(val) => updateParam("categoryId", val ? val.value : "")}
-            isSearchable
-            styles={getCustomSelectStyles(false, "38px")}
-          />
+          {mounted ? (
+            <Select
+              instanceId="inventory-category-filter"
+              classNamePrefix="react-select"
+              options={categoryOptions}
+              value={selectedCategoryOption}
+              onChange={(val) => updateParam("categoryId", val ? val.value : "")}
+              isSearchable
+              styles={getCustomSelectStyles(false, "38px")}
+            />
+          ) : (
+            <div className="h-[38px] rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
+          )}
         </div>
 
         {/* SubCategory Filter */}
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Sub-Category</label>
-          <Select
-            instanceId="inventory-subcategory-filter"
-            classNamePrefix="react-select"
-            options={subCategoryOptions}
-            value={selectedSubCategoryOption}
-            onChange={(val) => updateParam("subCategoryId", val ? val.value : "")}
-            isDisabled={!currentCategory}
-            isSearchable
-            styles={getCustomSelectStyles(false, "38px")}
-          />
+          {mounted ? (
+            <Select
+              instanceId="inventory-subcategory-filter"
+              classNamePrefix="react-select"
+              options={subCategoryOptions}
+              value={selectedSubCategoryOption}
+              onChange={(val) => updateParam("subCategoryId", val ? val.value : "")}
+              isDisabled={!currentCategory}
+              isSearchable
+              styles={getCustomSelectStyles(false, "38px")}
+            />
+          ) : (
+            <div className="h-[38px] rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
+          )}
         </div>
 
         {/* Warehouse Filter */}
@@ -168,15 +181,19 @@ export default function InventoryFilters({ categories }: InventoryFiltersProps) 
         {/* Stock Status Filter */}
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Stock Status</label>
-          <Select
-            instanceId="inventory-stock-status-filter"
-            classNamePrefix="react-select"
-            options={STOCK_STATUS_OPTIONS}
-            value={selectedStockStatusOption}
-            onChange={(val) => updateParam("stockStatus", val ? val.value : "all")}
-            isSearchable={false}
-            styles={getCustomSelectStyles(false, "38px")}
-          />
+          {mounted ? (
+            <Select
+              instanceId="inventory-stock-status-filter"
+              classNamePrefix="react-select"
+              options={STOCK_STATUS_OPTIONS}
+              value={selectedStockStatusOption}
+              onChange={(val) => updateParam("stockStatus", val ? val.value : "all")}
+              isSearchable={false}
+              styles={getCustomSelectStyles(false, "38px")}
+            />
+          ) : (
+            <div className="h-[38px] rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
+          )}
         </div>
       </div>
     </div>

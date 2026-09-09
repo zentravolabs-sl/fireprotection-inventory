@@ -67,12 +67,10 @@ export const inventorySchema = z.object({
     .number({ message: "Default sell price must be a number." })
     .min(0, "Default sell price cannot be negative."),
 
-  imageUrl: z
-    .string()
-    .url()
-    .optional()
-    .nullable()
-    .transform((v) => v?.trim() || null),
+  imageUrl: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? null : v),
+    z.string().optional().nullable()
+  ),
 
   expiryControlled: z.boolean().default(false),
 });
