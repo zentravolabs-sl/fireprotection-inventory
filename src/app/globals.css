@@ -168,3 +168,44 @@ button:disabled,
   background-color: #dc2626 !important;
   color: #ffffff !important;
 }
+
+/* ── Custom Scrollbars ─────────────────────────────────────────────────────
+   Webkit-based (Chrome, Edge, Safari) — thin, red-accented scrollbar
+   aligned with the dark red theme.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* Scrollbar width */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #0f1623;
+  border-radius: 10px;
+}
+
+/* Thumb */
+::-webkit-scrollbar-thumb {
+  background: #2d3748;
+  border-radius: 10px;
+  border: 1px solid #0f1623;
+  transition: background 0.2s ease;
+}
+
+/* Thumb on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #4a5568;
+}
+
+/* Corner (where horizontal meets vertical scrollbar) */
+::-webkit-scrollbar-corner {
+  background: #0f1623;
+}
+
+/* Firefox — uses scrollbar-color + scrollbar-width */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2d3748 #0f1623;
+}

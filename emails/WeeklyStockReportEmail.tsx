@@ -590,7 +590,7 @@ export default function WeeklyStockReportEmail({
               This is an automated weekly stock report.
             </Text>
             <Text style={footerTextStyle}>
-              Generated automatically every Friday at 6:00 PM.
+              Generated automatically every Friday at 5:00 PM.
             </Text>
             <Text style={{ ...footerTextStyle, marginTop: "8px", fontStyle: "italic" }}>
               Please do not reply to this automated email.

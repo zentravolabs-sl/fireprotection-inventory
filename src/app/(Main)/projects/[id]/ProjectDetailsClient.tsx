@@ -27,6 +27,7 @@ import { TransferDetailModal } from "@/components/transfers/TransferDetailModal"
 import { ProjectDeliveryAndIssueNotesTab } from "@/components/projects/ProjectDeliveryAndIssueNotesTab";
 import { ProjectEstimatesTab } from "@/components/projects/ProjectEstimatesTab";
 import { ProjectMaterialSummaryTab } from "@/components/projects/ProjectMaterialSummaryTab";
+import { ProjectMaterialUsageTab } from "@/components/projects/ProjectMaterialUsageTab";
 import { ScrollableTabs, TabItem } from "@/components/ui/ScrollableTabs";
 import {
   completeProjectAction,
@@ -75,6 +76,7 @@ type TabType =
   | "overview"
   | "estimates"
   | "materialSummary"
+  | "materialUsage"
   | "engineers"
   | "tools"
   | "labour"
@@ -420,11 +422,12 @@ export function ProjectDetailsClient({
           { id: "overview", label: "Overview & Budget", icon: "📊", category: "general" },
           { id: "estimates", label: "Estimated Materials", count: project.estimateMaterials?.length || 0, icon: "📐", category: "materials" },
           { id: "materialSummary", label: "Material Summary", icon: "📊", category: "materials" },
+          { id: "materialUsage", label: "Material Usage", count: project.projectMaterials?.length || 0, icon: "✅", category: "materials" },
           { id: "engineers", label: "Engineers", count: project.engineers?.length || 0, icon: "👥", category: "personnel" },
           { id: "tools", label: "Assigned Tools", count: (toolAssignments || []).flatMap((a: any) => a?.items || []).length, icon: "🔧", category: "personnel" },
           { id: "labour", label: "Labour", count: (projectLabours || []).length, icon: "👷", category: "personnel" },
           { id: "staff", label: "Staff", count: (project.projectManager ? 1 : 0) + (project.engineers?.length || 0), icon: "👥", category: "personnel" },
-          { id: "requests", label: "Requests", count: project.materialRequests?.length || 0, icon: "📋", category: "materials" },
+          { id: "requests", label: "Material Requests", count: project.materialRequests?.length || 0, icon: "📋", category: "materials" },
           { id: "issues", label: "Material Issues", count: project.projectMaterials?.length || 0, icon: "📦", category: "materials" },
           { id: "fireExtinguishers", label: "Fire Extinguishers", count: (projectFireExtinguishers || []).length, icon: "🔥", category: "materials" },
           { id: "notes", label: "Delivery & Issue Notes", icon: "📜", category: "materials" },
@@ -626,6 +629,25 @@ export function ProjectDetailsClient({
         <ProjectMaterialSummaryTab
           projectId={project.id}
           materialRequestsCount={project.materialRequests?.length || 0}
+        />
+      )}
+
+      {/* TAB: MATERIAL USAGE */}
+      {activeTab === "materialUsage" && (
+        <ProjectMaterialUsageTab
+          projectId={project.id}
+          assignedMaterials={(project.projectMaterials || []).map((mat: any) => ({
+            id: mat.id,
+            issuedQty: mat.issuedQty,
+            returnedQty: mat.returnedQty,
+            balanceQty: mat.balanceQty,
+            usedQty: mat.usedQty ?? 0,
+            status: mat.status,
+            inventory: mat.inventory,
+            materialIssueItem: mat.materialIssueItem,
+          }))}
+          onRefresh={() => router.refresh()}
+          currentUserRole={currentUserRole}
         />
       )}
 

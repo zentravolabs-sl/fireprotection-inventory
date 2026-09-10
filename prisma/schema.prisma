@@ -997,6 +997,7 @@ model ProjectMaterial {
   issuedQty           Float
   returnedQty         Float    @default(0)
   balanceQty          Float
+  usedQty             Float    @default(0) // Actual quantity consumed/installed on site
   status              String   @default("ASSIGNED") // ASSIGNED, PARTIALLY_RETURNED, FULLY_RETURNED
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
