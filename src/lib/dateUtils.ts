@@ -28,9 +28,9 @@ export function formatDateTime(date: Date | string | number | null | undefined):
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-LK", {
     style: "currency",
-    currency: "USD",
+    currency: "LKR",
     minimumFractionDigits: 2,
   }).format(amount);
 }
