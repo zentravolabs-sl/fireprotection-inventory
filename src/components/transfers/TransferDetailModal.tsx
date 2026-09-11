@@ -13,6 +13,7 @@ import {
   cancelProjectTransferAction,
 } from "@/app/actions/transfers";
 import { formatDate, formatCurrency } from "@/lib/dateUtils";
+import { toast } from "react-toastify";
 
 interface TransferDetailModalProps {
   transfer: any;
@@ -46,9 +47,12 @@ export function TransferDetailModal({
     setLoading(false);
 
     if (res.success) {
-      setSuccessMsg(res.message);
-      if (onRefresh) onRefresh();
+      toast.success(res.message);
+      // onClose in the parent calls setSelectedTransfer(null) + router.refresh()
+      // which closes the modal and re-fetches the transfers table in one step
+      onClose();
     } else {
+      toast.error(res.message);
       setError(res.message);
     }
   }

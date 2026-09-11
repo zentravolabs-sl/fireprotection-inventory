@@ -5,10 +5,11 @@
 // Client component for Central Fire Protection ERP Reports
 // ============================================================
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { ScrollableTabs, TabItem } from "@/components/ui/ScrollableTabs";
+import { Download, Loader2 } from "lucide-react";
 
 interface ReportsClientPageProps {
   costSummaryReport: any[];
@@ -45,8 +46,274 @@ export function ReportsClientPage({
   const totalActualOverall = costSummaryReport.reduce((sum, r) => sum + r.actualTotalCost, 0);
   const totalVarianceOverall = totalEstimatedOverall - totalActualOverall;
 
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
+
+  async function handleDownloadWeeklyPDF() {
+    setPdfLoading(true);
+    setPdfError(null);
+    try {
+      // 1. Fetch report data
+      const res = await fetch("/api/reports/weekly-stock/download");
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error((json as { error?: string }).error || `HTTP ${res.status}`);
+      }
+      const data = await res.json() as {
+        reportPeriod: { from: string; to: string };
+        summary: {
+          openingStock: number; stockIn: number; stockOut: number;
+          adjustments: number; currentStock: number;
+          lowStockCount: number; outOfStockCount: number;
+        };
+        stockMovementItems: Array<{ name: string; categoryName: string; openingQty: number; receivedQty: number; usedQty: number; remainingQty: number; }>;
+        topUsedItems: Array<{ rank: number; name: string; categoryName: string; usedQty: number; unit: string; }>;
+        lowStockItems: Array<{ name: string; categoryName: string; currentStock: number; minStock: number; requiredQty: number; unit: string; }>;
+        outOfStockItems: Array<{ name: string; categoryName: string; minStock: number; unit: string; }>;
+      };
+
+      const from = new Date(data.reportPeriod.from);
+      const to = new Date(data.reportPeriod.to);
+      const fmtDate = (d: Date) => d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+      const fmtNum = (n: number) => n.toLocaleString("en-US");
+      const periodLabel = `${fmtDate(from)} – ${fmtDate(to)}`;
+
+      // 2. Build HTML string for the PDF
+      const buildSectionTitle = (title: string, color = "#b91c1c") =>
+        `<h3 style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${color};margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:6px;">${title}</h3>`;
+
+      const summaryRows = [
+        { label: "Opening Stock", value: data.summary.openingStock, color: "#111827" },
+        { label: "+ Received", value: data.summary.stockIn, color: "#16a34a" },
+        { label: "− Used / Issued", value: data.summary.stockOut, color: "#b91c1c" },
+        { label: "± Adjustments", value: data.summary.adjustments, color: "#6b7280" },
+        { label: "= Current Stock", value: data.summary.currentStock, color: "#1d4ed8" },
+      ];
+
+      const htmlContent = `
+        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#111827;max-width:900px;margin:0 auto;padding:32px 40px;background:#fff;">
+          <!-- Header -->
+          <div style="background:#b91c1c;border-radius:10px;padding:28px 32px 22px;margin-bottom:28px;">
+            <p style="color:#fecaca;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin:0 0 4px;">CDN FIRE ENGINEERING</p>
+            <h1 style="color:#fff;font-size:26px;font-weight:800;margin:0 0 4px;letter-spacing:-0.5px;">Weekly Stock Report</h1>
+            <p style="color:#fca5a5;font-size:12px;margin:0 0 14px;">Fire Protection Management System</p>
+            <hr style="border:none;border-top:1px solid rgba(255,255,255,0.25);margin:0 0 12px;"/>
+            <p style="color:#fecaca;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 3px;">Report Period</p>
+            <p style="color:#fff;font-size:16px;font-weight:700;margin:0;">${periodLabel}</p>
+          </div>
+
+          <!-- KPI Cards -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;">
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;text-align:center;">
+              <p style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 6px;">Opening Stock</p>
+              <p style="font-size:26px;font-weight:700;color:#111827;margin:0;">${fmtNum(data.summary.openingStock)}</p>
+            </div>
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-top:3px solid #16a34a;border-radius:8px;padding:14px;text-align:center;">
+              <p style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 6px;">Received</p>
+              <p style="font-size:26px;font-weight:700;color:#16a34a;margin:0;">${fmtNum(data.summary.stockIn)}</p>
+            </div>
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-top:3px solid #b91c1c;border-radius:8px;padding:14px;text-align:center;">
+              <p style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 6px;">Used / Issued</p>
+              <p style="font-size:26px;font-weight:700;color:#b91c1c;margin:0;">${fmtNum(data.summary.stockOut)}</p>
+            </div>
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-top:3px solid #1d4ed8;border-radius:8px;padding:14px;text-align:center;">
+              <p style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 6px;">Current Stock</p>
+              <p style="font-size:26px;font-weight:700;color:#1d4ed8;margin:0;">${fmtNum(data.summary.currentStock)}</p>
+            </div>
+          </div>
+
+          <!-- Stock Movement Summary -->
+          <div style="margin-bottom:28px;">
+            ${buildSectionTitle("Stock Movement Summary")}
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <tbody>
+                ${summaryRows.map((r, i) => `
+                  <tr style="border-top:${i === summaryRows.length - 1 ? "2px solid #e5e7eb" : "1px solid #f3f4f6"};">
+                    <td style="padding:8px 0;font-weight:${i === summaryRows.length - 1 ? "700" : "400"};color:#374151;">${r.label}</td>
+                    <td style="padding:8px 0;text-align:right;font-weight:600;color:${r.color};">${fmtNum(r.value)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Stock Used This Week -->
+          <div style="margin-bottom:28px;">
+            ${buildSectionTitle("Stock Used This Week")}
+            ${data.stockMovementItems.length === 0
+              ? `<p style="font-size:12px;color:#6b7280;">No stock movement was recorded during this reporting period.</p>`
+              : `<table style="width:100%;border-collapse:collapse;font-size:12px;">
+                  <thead>
+                    <tr style="background:#f9fafb;">
+                      <th style="text-align:left;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Item</th>
+                      <th style="text-align:left;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Category</th>
+                      <th style="text-align:right;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Opening</th>
+                      <th style="text-align:right;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Received</th>
+                      <th style="text-align:right;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Used</th>
+                      <th style="text-align:right;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Remaining</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${data.stockMovementItems.map(item => `
+                      <tr>
+                        <td style="padding:8px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${item.name}</td>
+                        <td style="padding:8px;color:#6b7280;font-size:11px;border-bottom:1px solid #f3f4f6;">${item.categoryName}</td>
+                        <td style="padding:8px;text-align:right;font-weight:600;border-bottom:1px solid #f3f4f6;">${fmtNum(item.openingQty)}</td>
+                        <td style="padding:8px;text-align:right;font-weight:600;color:#16a34a;border-bottom:1px solid #f3f4f6;">+${fmtNum(item.receivedQty)}</td>
+                        <td style="padding:8px;text-align:right;font-weight:600;color:#b91c1c;border-bottom:1px solid #f3f4f6;">−${fmtNum(item.usedQty)}</td>
+                        <td style="padding:8px;text-align:right;font-weight:600;border-bottom:1px solid #f3f4f6;">${fmtNum(item.remainingQty)}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>`
+            }
+          </div>
+
+          ${data.topUsedItems.length > 0 ? `
+          <!-- Top Used Materials -->
+          <div style="margin-bottom:28px;">
+            ${buildSectionTitle("Top Used Materials This Week")}
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="background:#f9fafb;">
+                  <th style="text-align:left;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;width:8%">#</th>
+                  <th style="text-align:left;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Item</th>
+                  <th style="text-align:left;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Category</th>
+                  <th style="text-align:right;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #e5e7eb;">Qty Used</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.topUsedItems.map(item => `
+                  <tr>
+                    <td style="padding:8px;color:#9ca3af;font-weight:700;border-bottom:1px solid #f3f4f6;">${item.rank}</td>
+                    <td style="padding:8px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${item.name}</td>
+                    <td style="padding:8px;color:#6b7280;font-size:11px;border-bottom:1px solid #f3f4f6;">${item.categoryName}</td>
+                    <td style="padding:8px;text-align:right;font-weight:600;color:#b91c1c;border-bottom:1px solid #f3f4f6;">${fmtNum(item.usedQty)} ${item.unit}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+          ` : ""}
+
+          <!-- Low Stock Alert -->
+          <div style="margin-bottom:28px;">
+            ${buildSectionTitle(data.summary.lowStockCount > 0 ? "⚠ Low Stock Alert" : "Low Stock Alert", data.summary.lowStockCount > 0 ? "#c2410c" : "#6b7280")}
+            ${data.lowStockItems.length === 0
+              ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px 14px;font-size:12px;color:#16a34a;">✓ No low-stock items this week.</div>`
+              : data.lowStockItems.map(item => `
+                  <div style="background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #f97316;border-radius:6px;padding:10px 14px;margin-bottom:8px;">
+                    <p style="font-size:12px;font-weight:700;color:#9a3412;margin:0 0 3px;">${item.name}</p>
+                    <p style="font-size:11px;color:#c2410c;margin:0;">${item.categoryName} | Current: <strong>${fmtNum(item.currentStock)}</strong> | Min: <strong>${fmtNum(item.minStock)}</strong> | Need: <strong style="color:#b91c1c;">${fmtNum(item.requiredQty)}</strong> | LOW STOCK</p>
+                  </div>
+                `).join("")
+            }
+          </div>
+
+          <!-- Out of Stock -->
+          <div style="margin-bottom:28px;">
+            ${buildSectionTitle(data.summary.outOfStockCount > 0 ? "🚨 Out of Stock" : "Out of Stock", data.summary.outOfStockCount > 0 ? "#b91c1c" : "#6b7280")}
+            ${data.outOfStockItems.length === 0
+              ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px 14px;font-size:12px;color:#16a34a;">✓ No items are currently out of stock.</div>`
+              : data.outOfStockItems.map(item => `
+                  <div style="background:#fef2f2;border:1px solid #fecaca;border-left:4px solid #ef4444;border-radius:6px;padding:10px 14px;margin-bottom:8px;">
+                    <p style="font-size:12px;font-weight:700;color:#7f1d1d;margin:0 0 3px;">${item.name}</p>
+                    <p style="font-size:11px;color:#b91c1c;margin:0;">${item.categoryName} | Current Stock: <strong>0</strong> | Min Level: <strong>${fmtNum(item.minStock)}</strong> | <strong>OUT OF STOCK</strong></p>
+                  </div>
+                `).join("")
+            }
+          </div>
+
+          <!-- Footer -->
+          <div style="background:#f9fafb;border-top:1px solid #e5e7eb;border-radius:8px;padding:16px 24px;margin-top:20px;text-align:center;">
+            <p style="font-size:11px;font-weight:700;color:#374151;margin:0 0 4px;">CDN Fire Engineering — Fire Protection Management System</p>
+            <p style="font-size:10px;color:#9ca3af;margin:0;">This report was generated on ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} IST</p>
+          </div>
+        </div>
+      `;
+
+      // 3. Render HTML into a hidden off-screen div
+      const container = document.createElement("div");
+      container.style.cssText = "position:fixed;left:-9999px;top:0;width:960px;background:#fff;z-index:-1;";
+      container.innerHTML = htmlContent;
+      document.body.appendChild(container);
+
+      // 4. Capture with html2canvas
+      // onclone strips all page stylesheets so html2canvas never encounters
+      // Tailwind v4's oklch()/lab() color functions it cannot parse.
+      // Our container uses only inline hex styles so the output is unaffected.
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        width: 960,
+        windowWidth: 960,
+        onclone: (_clonedDoc: Document, clonedEl: HTMLElement) => {
+          // Remove every <link> and <style> that Tailwind/Next injects so
+          // html2canvas never tries to parse oklch() / lab() color values.
+          _clonedDoc.querySelectorAll("link[rel='stylesheet'], style").forEach((el) => el.remove());
+          // Ensure the cloned root is also white
+          clonedEl.style.background = "#ffffff";
+        },
+      });
+
+      document.body.removeChild(container);
+
+      // 5. Build multi-page PDF with jsPDF
+      // We slice the canvas pixel-by-pixel per A4 page so content isn't cut.
+      const { jsPDF } = await import("jspdf");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 20; // px in jsPDF "px" unit
+      const usableW = pageW - margin * 2;
+
+      // Scale factor: how many canvas pixels per jsPDF px
+      const scale = canvas.width / usableW;
+      const usablePageH = pageH - margin * 2;
+      const pageHeightInCanvasPx = usablePageH * scale;
+
+      let yCanvasPx = 0;
+      while (yCanvasPx < canvas.height) {
+        if (yCanvasPx > 0) pdf.addPage();
+
+        const sliceH = Math.min(pageHeightInCanvasPx, canvas.height - yCanvasPx);
+
+        // Crop just this slice from the canvas
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceH;
+        const ctx = sliceCanvas.getContext("2d")!;
+        ctx.drawImage(canvas, 0, -yCanvasPx);
+
+        const sliceImg = sliceCanvas.toDataURL("image/png", 1.0);
+        const sliceHInPdf = sliceH / scale;
+        pdf.addImage(sliceImg, "PNG", margin, margin, usableW, sliceHInPdf);
+
+        yCanvasPx += sliceH;
+      }
+
+      // 6. Download
+      const fromStr = from.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+      const toStr = to.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+      pdf.save(`Weekly-Stock-Report_${fromStr}_to_${toStr}.pdf`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to generate PDF";
+      setPdfError(msg);
+    } finally {
+      setPdfLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto p-4 md:p-6">
+      {/* Hidden PDF render target */}
+      <div ref={pdfContentRef} className="hidden" aria-hidden />
+
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -56,6 +323,31 @@ export function ReportsClientPage({
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Comprehensive financial audit, budget variance, expense analysis & engineering project breakdown.
+            </p>
+          </div>
+
+          {/* Weekly Report PDF Download */}
+          <div className="flex flex-col items-start md:items-end gap-1.5">
+            <button
+              id="btn-download-weekly-report-pdf"
+              onClick={handleDownloadWeeklyPDF}
+              disabled={pdfLoading}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-red-700 hover:bg-red-800 active:bg-red-900 text-white shadow-sm transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {pdfLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {pdfLoading ? "Generating PDF…" : "Download Weekly Report"}
+            </button>
+            {pdfError && (
+              <p className="text-xs text-red-600 dark:text-red-400 max-w-xs text-right">
+                {pdfError}
+              </p>
+            )}
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Inventory report for this week as PDF
             </p>
           </div>
         </div>

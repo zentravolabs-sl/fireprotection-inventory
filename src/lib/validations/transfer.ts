@@ -12,7 +12,7 @@ export const projectTransferItemSchema = z
     pipeCutPieceId: z.number().int().positive().optional().nullable(),
     toolId: z.number().int().positive().optional().nullable(),
     qty: z.number().positive("Quantity must be greater than 0."),
-    unit: z.string().min(1, "Unit is required."),
+    unit: z.string().optional().default(""),
     unitCost: z.number().min(0, "Unit cost cannot be negative.").default(0),
     remarks: z.string().optional().nullable(),
   })
