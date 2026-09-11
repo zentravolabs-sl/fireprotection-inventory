@@ -857,7 +857,20 @@ export function ProjectDetailsClient({
       {/* TAB 4: MATERIAL ISSUES (FIFO & ASSIGNED MATERIALS) */}
       {activeTab === "issues" && (
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 space-y-4 shadow-sm">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Assigned Project Materials (FIFO Issued)</h3>
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Assigned Project Materials (FIFO Issued)</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Materials physically issued to this project site via FIFO batching.</p>
+            </div>
+            <a
+              href={`/api/projects/${project.id}/material-issues-pdf?month=${new Date().toISOString().slice(0, 7)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg shadow-sm transition-colors"
+            >
+              📥 This Month&apos;s PDF Report
+            </a>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-gray-600 dark:text-gray-300">
               <thead className="bg-gray-50 dark:bg-gray-800 uppercase font-semibold text-[11px]">
@@ -1332,11 +1345,32 @@ export function ProjectDetailsClient({
                           {(trf.items || []).length} Item(s)
                         </td>
                         <td className="px-4 py-3 text-gray-500">{trf.requestedBy?.name || "System"}</td>
-                        <td className="px-4 py-3 font-mono text-[11px]">{trf.status}</td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                            trf.status === "DRAFT"
+                              ? "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"
+                              : trf.status === "PENDING"
+                              ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700"
+                              : trf.status === "APPROVED"
+                              ? "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-700"
+                              : trf.status === "COMPLETED"
+                              ? "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-700"
+                              : trf.status === "CANCELLED"
+                              ? "bg-red-100 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-700"
+                              : "bg-gray-100 text-gray-600 border-gray-300"
+                          }`}>
+                            {trf.status === "DRAFT" && "📝 "}
+                            {trf.status === "PENDING" && "⏳ "}
+                            {trf.status === "APPROVED" && "✅ "}
+                            {trf.status === "COMPLETED" && "✓ "}
+                            {trf.status === "CANCELLED" && "✕ "}
+                            {trf.status}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => setSelectedTransfer(trf)}
-                            className="px-2.5 py-1 text-[11px] font-semibold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-800 dark:text-gray-200 rounded-md"
+                            className="px-2.5 py-1 text-[11px] font-semibold bg-gray-100 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-md transition-colors"
                           >
                             Details
                           </button>

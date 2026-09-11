@@ -15,6 +15,7 @@ import {
   getAvailableStockAction,
 } from "@/app/actions/transfers";
 import { formatCurrency } from "@/lib/dateUtils";
+import { toast } from "react-toastify";
 
 const formatDateToString = (date: Date | null): string => {
   if (!date) return "";
@@ -181,7 +182,7 @@ export function CreateTransferModal({
           code: `${found.itemCode} (${found.batchNo})`,
           qty: inputQty,
           availableQty: found.availableQty,
-          unit: found.unit,
+          unit: found.unit ?? "",
           unitCost: found.unitCost,
           remarks: itemRemarks || undefined,
         },
@@ -308,7 +309,7 @@ export function CreateTransferModal({
         pipeCutPieceId: i.pipeCutPieceId,
         toolId: i.toolId,
         qty: i.qty,
-        unit: i.unit,
+        unit: i.unit ?? "",
         unitCost: i.unitCost,
         remarks: i.remarks,
       })),
@@ -319,12 +320,13 @@ export function CreateTransferModal({
     setLoading(false);
 
     if (!res.success) {
+      toast.error(res.message || "Failed to save draft transfer.");
       setError(res.message);
       return;
     }
 
+    toast.success(`Draft transfer saved successfully! 🔄`);
     onClose();
-    if (onSuccess) onSuccess();
   }
 
   const totalTransferValue = items.reduce((sum, i) => sum + i.qty * i.unitCost, 0);
@@ -459,14 +461,14 @@ export function CreateTransferModal({
                       instanceId="transfer-material-select"
                       options={availableStock.materials.map((m) => ({
                         value: `${m.inventoryId}_${m.stockBatchId}`,
-                        label: `${m.name} [${m.itemCode}] — Avail: ${m.availableQty} ${m.unit} (${m.batchNo})`,
+                        label: `${m.name} [${m.itemCode}] — Avail: ${m.availableQty} (${m.batchNo})`,
                       }))}
                       value={
                         availableStock.materials
                           .filter((m) => `${m.inventoryId}_${m.stockBatchId}` === selectedMaterialKey)
                           .map((m) => ({
                             value: `${m.inventoryId}_${m.stockBatchId}`,
-                            label: `${m.name} [${m.itemCode}] — Avail: ${m.availableQty} ${m.unit} (${m.batchNo})`,
+                            label: `${m.name} [${m.itemCode}] — Avail: ${m.availableQty} (${m.batchNo})`,
                           }))[0] || null
                       }
                       onChange={(val) => setSelectedMaterialKey(val ? val.value : "")}

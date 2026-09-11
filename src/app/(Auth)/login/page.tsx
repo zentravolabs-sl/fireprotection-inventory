@@ -344,8 +344,9 @@ export default function LoginPage() {
         className="hidden sm:block"
         style={{
           position: "absolute",
-          left: "35%",
-          bottom: "1.5%",
+          left: "37%",
+          top: "50%",
+          transform: "translateY(-50%)",
           width: 335,
           height: "86vh",
           zIndex: 30,
@@ -362,7 +363,7 @@ export default function LoginPage() {
           sizes="335px"
           style={{
             objectFit: "contain",
-            objectPosition: "bottom center",
+            objectPosition: "center",
             filter: "drop-shadow(14px 24px 32px rgba(0,0,0,0.65))",
           }}
         />
