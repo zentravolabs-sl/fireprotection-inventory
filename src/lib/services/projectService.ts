@@ -67,7 +67,13 @@ async function validateActiveUser(userId: string, expectedRoleName: string) {
 export async function createProjectService(input: CreateProjectInput, userId: string) {
   await validateActiveUser(input.projectManagerId, "Project Manager");
 
-  const projectCode = await generateProjectCode();
+  const projectCode = input.projectCode.trim();
+  const existing = await prisma.project.findUnique({
+    where: { projectCode },
+  });
+  if (existing) {
+    throw new Error(`Project code "${projectCode}" already exists.`);
+  }
 
   const estMat = input.estimatedMaterialCost || 0;
   const estLab = input.estimatedLabourCost || 0;

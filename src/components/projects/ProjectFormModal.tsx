@@ -166,6 +166,7 @@ export function ProjectFormModal({
   } = useForm<CreateProjectFormValues, any, CreateProjectInput>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
+      projectCode: "",
       projectName: "",
       customerId: undefined,
       projectManagerId: "",
@@ -186,6 +187,7 @@ export function ProjectFormModal({
   useEffect(() => {
     if (isOpen) {
       reset({
+        projectCode: "",
         projectName: "",
         customerId: undefined,
         projectManagerId: "",
@@ -216,6 +218,7 @@ export function ProjectFormModal({
     setServerError(null);
 
     const formData = new FormData();
+    if (data.projectCode) formData.append("projectCode", data.projectCode);
     formData.append("projectName", data.projectName);
     formData.append("customerId", String(data.customerId));
     formData.append("projectManagerId", data.projectManagerId);
@@ -263,7 +266,16 @@ export function ProjectFormModal({
 
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
-          <div className="md:col-span-2">
+          <div>
+            <FormInput
+              label="Project Code *"
+              placeholder="e.g. PRJ-2026-0001"
+              {...register("projectCode")}
+              error={errors.projectCode?.message}
+            />
+          </div>
+
+          <div>
             <FormInput
               label="Project Name *"
               placeholder="e.g. Metro Station Fire Suppression Installation"

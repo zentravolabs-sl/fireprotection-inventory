@@ -205,24 +205,27 @@ export async function GET(
   doc.text(`Customer: ${project.customer.companyName}`, LM + 3, y + 15.5);
   doc.text(`Project Manager: ${project.projectManager?.name ?? "N/A"}`, LM + 3, y + 19.5);
 
-  // Right side stats
+  // Right side stats (Left-align labels at labelX, right-align values at valX to prevent overlap)
   const totalIssueItems = issues.reduce((s, i) => s + i.items.length, 0);
   const totalQty = issues.reduce((s, i) => s + i.items.reduce((qs, it) => qs + it.qty, 0), 0);
   const totalValue = issues.reduce((s, i) => s + i.items.reduce((vs, it) => vs + it.qty * (it.stockBatch?.unitCost ?? 0), 0), 0);
 
+  const labelX = RM - 52;
+  const valX = RM - 3;
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
   doc.setTextColor(...GRAY);
-  doc.text("ISSUE COUNT:", RM - 3, y + 5, { align: "right" });
-  doc.text("TOTAL ITEMS:", RM - 3, y + 10, { align: "right" });
-  doc.text("TOTAL QTY:", RM - 3, y + 15, { align: "right" });
-  doc.text("TOTAL VALUE:", RM - 3, y + 20, { align: "right" });
+  doc.text("ISSUE COUNT:", labelX, y + 5);
+  doc.text("TOTAL ITEMS:", labelX, y + 10);
+  doc.text("TOTAL QTY:", labelX, y + 15);
+  doc.text("TOTAL VALUE:", labelX, y + 20);
 
   doc.setTextColor(...DARK);
-  doc.text(String(issues.length), RM, y + 5, { align: "right" });
-  doc.text(String(totalIssueItems), RM, y + 10, { align: "right" });
-  doc.text(String(totalQty.toFixed(2)), RM, y + 15, { align: "right" });
-  doc.text(`LKR ${totalValue.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, RM, y + 20, { align: "right" });
+  doc.text(String(issues.length), valX, y + 5, { align: "right" });
+  doc.text(String(totalIssueItems), valX, y + 10, { align: "right" });
+  doc.text(String(totalQty.toFixed(2)), valX, y + 15, { align: "right" });
+  doc.text(`LKR ${totalValue.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, valX, y + 20, { align: "right" });
 
   y += 26;
 
@@ -234,15 +237,26 @@ export async function GET(
     drawPageFooter(doc, pageNum);
   } else {
     // ── Per-issue sections ───────────────────────────────────────────────────
-    // Table column widths
+    // Table column widths (Total CW = 182mm):
+    // 8 + 26 + 54 + 24 + 16 + 26 + 28 = 182mm ✓
     const COL_NO = 8;
-    const COL_CODE = 30;
-    const COL_NAME = 70;
-    const COL_BATCH = 32;
-    const COL_QTY = 18;
-    const COL_COST = 22;
-    const COL_TOTAL = CW - COL_NO - COL_CODE - COL_NAME - COL_BATCH - COL_QTY - COL_COST;
+    const COL_CODE = 26;
+    const COL_NAME = 54;
+    const COL_BATCH = 24;
+    const COL_QTY = 16;
+    const COL_COST = 26;
+    const COL_TOTAL = 28;
     const ROW_H = 7;
+
+    // Calculate column X boundaries
+    const xNo = LM;
+    const xCode = xNo + COL_NO;
+    const xName = xCode + COL_CODE;
+    const xBatch = xName + COL_NAME;
+    const xQty = xBatch + COL_BATCH;
+    const xCost = xQty + COL_QTY;
+    const xTotal = xCost + COL_COST;
+    const xEnd = xTotal + COL_TOTAL; // = RM (196)
 
     const drawTableHeader = (d: jsPDF) => {
       d.setFillColor(...RED);
@@ -250,14 +264,14 @@ export async function GET(
       d.setFont("helvetica", "bold");
       d.setFontSize(6.5);
       d.setTextColor(255, 255, 255);
-      let cx = LM + 2;
-      d.text("#", cx + COL_NO / 2, y + ROW_H - 2, { align: "center" }); cx += COL_NO;
-      d.text("ITEM CODE", cx + 2, y + ROW_H - 2); cx += COL_CODE;
-      d.text("MATERIAL NAME", cx + 2, y + ROW_H - 2); cx += COL_NAME;
-      d.text("BATCH NO.", cx + 2, y + ROW_H - 2); cx += COL_BATCH;
-      d.text("QTY", cx + 2, y + ROW_H - 2); cx += COL_QTY;
-      d.text("UNIT COST", cx + 2, y + ROW_H - 2); cx += COL_COST;
-      d.text("TOTAL", cx + 2, y + ROW_H - 2);
+
+      d.text("#", xNo + COL_NO / 2, y + ROW_H - 2, { align: "center" });
+      d.text("ITEM CODE", xCode + 2, y + ROW_H - 2);
+      d.text("MATERIAL NAME", xName + 2, y + ROW_H - 2);
+      d.text("BATCH NO.", xBatch + 2, y + ROW_H - 2);
+      d.text("QTY", xQty + COL_QTY - 2, y + ROW_H - 2, { align: "right" });
+      d.text("UNIT COST", xCost + COL_COST - 2, y + ROW_H - 2, { align: "right" });
+      d.text("TOTAL", xTotal + COL_TOTAL - 2, y + ROW_H - 2, { align: "right" });
       y += ROW_H;
     };
 
@@ -327,22 +341,34 @@ export async function GET(
         doc.setFontSize(7.5);
         doc.setTextColor(...DARK);
 
-        let cx = LM + 2;
-        doc.text(String(idx + 1), cx + COL_NO / 2, y + ROW_H - 2, { align: "center" }); cx += COL_NO;
+        // #
+        doc.text(String(idx + 1), xNo + COL_NO / 2, y + ROW_H - 2, { align: "center" });
+        
+        // Item Code
         doc.setFont("helvetica", "bold");
-        doc.text(item.inventory.itemCode, cx + 2, y + ROW_H - 2); cx += COL_CODE;
+        doc.text(item.inventory.itemCode, xCode + 2, y + ROW_H - 2);
+        
+        // Material Name
         doc.setFont("helvetica", "normal");
         const nameFit = doc.splitTextToSize(item.inventory.name, COL_NAME - 4) as string[];
-        doc.text(nameFit[0] ?? "", cx + 2, y + ROW_H - 2); cx += COL_NAME;
+        doc.text(nameFit[0] ?? "", xName + 2, y + ROW_H - 2);
+        
+        // Batch No
         doc.setTextColor(...GRAY);
-        doc.text(item.stockBatch?.batchNo ?? "—", cx + 2, y + ROW_H - 2); cx += COL_BATCH;
+        doc.text(item.stockBatch?.batchNo ?? "—", xBatch + 2, y + ROW_H - 2);
+        
+        // Qty (Right aligned)
         doc.setTextColor(...DARK);
-        doc.text(String(item.qty), cx + 2, y + ROW_H - 2); cx += COL_QTY;
+        doc.text(String(item.qty), xQty + COL_QTY - 2, y + ROW_H - 2, { align: "right" });
+        
+        // Unit Cost (Right aligned)
         doc.setTextColor(...GRAY);
-        doc.text(`LKR ${(item.stockBatch?.unitCost ?? 0).toFixed(2)}`, cx + 2, y + ROW_H - 2); cx += COL_COST;
+        doc.text(`LKR ${(item.stockBatch?.unitCost ?? 0).toFixed(2)}`, xCost + COL_COST - 2, y + ROW_H - 2, { align: "right" });
+        
+        // Total (Right aligned)
         doc.setFont("helvetica", "bold");
         doc.setTextColor(...DARK);
-        doc.text(`LKR ${lineTotal.toFixed(2)}`, cx + 2, y + ROW_H - 2);
+        doc.text(`LKR ${lineTotal.toFixed(2)}`, xTotal + COL_TOTAL - 2, y + ROW_H - 2, { align: "right" });
 
         y += ROW_H;
       });
@@ -353,9 +379,9 @@ export async function GET(
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(...DARK);
-      doc.text("ISSUE SUBTOTAL:", RM - COL_TOTAL - 4, y + ROW_H - 2, { align: "right" });
+      doc.text("ISSUE SUBTOTAL:", xCost + COL_COST - 4, y + ROW_H - 2, { align: "right" });
       doc.setTextColor(...RED);
-      doc.text(`LKR ${issueSubtotal.toFixed(2)}`, RM - 2, y + ROW_H - 2, { align: "right" });
+      doc.text(`LKR ${issueSubtotal.toFixed(2)}`, xTotal + COL_TOTAL - 2, y + ROW_H - 2, { align: "right" });
       y += ROW_H + 6;
     }
 

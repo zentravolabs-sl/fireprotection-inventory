@@ -6,6 +6,10 @@
 import { z } from "zod";
 
 export const baseProjectSchema = z.object({
+  projectCode: z
+    .string()
+    .min(1, "Project Code is required")
+    .trim(),
   projectName: z
     .string()
     .min(2, "Project name must be at least 2 characters")
