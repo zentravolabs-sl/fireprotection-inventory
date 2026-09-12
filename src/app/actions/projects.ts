@@ -51,6 +51,7 @@ export async function createProjectAction(formData: FormData) {
     const actorId = user.id;
 
     const raw = {
+      projectCode: formData.get("projectCode") || undefined,
       projectName: formData.get("projectName"),
       customerId: Number(formData.get("customerId")),
       projectManagerId: formData.get("projectManagerId"),

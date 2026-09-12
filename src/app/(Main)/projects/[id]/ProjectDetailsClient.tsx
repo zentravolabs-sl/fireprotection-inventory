@@ -134,6 +134,7 @@ export function ProjectDetailsClient({
   const [selectedTransfer, setSelectedTransfer] = useState<any | null>(null);
 
   const [actionLoading, setActionLoading] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const costBreakdown = project.costBreakdown || {
@@ -862,14 +863,45 @@ export function ProjectDetailsClient({
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Assigned Project Materials (FIFO Issued)</h3>
               <p className="text-xs text-gray-500 mt-0.5">Materials physically issued to this project site via FIFO batching.</p>
             </div>
-            <a
-              href={`/api/projects/${project.id}/material-issues-pdf?month=${new Date().toISOString().slice(0, 7)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg shadow-sm transition-colors"
+            <button
+              id="btn-material-issues-pdf"
+              disabled={isGeneratingPdf}
+              onClick={async () => {
+                setIsGeneratingPdf(true);
+                const month = new Date().toISOString().slice(0, 7);
+                const url = `/api/projects/${project.id}/material-issues-pdf?month=${month}`;
+                try {
+                  const res = await fetch(url);
+                  if (!res.ok) throw new Error(`Server error ${res.status}`);
+                  const blob = await res.blob();
+                  const blobUrl = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = blobUrl;
+                  a.download = `Material-Issues-${project.projectCode}-${month}.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(blobUrl);
+                } catch (err) {
+                  alert("Failed to download PDF: " + (err instanceof Error ? err.message : String(err)));
+                } finally {
+                  setIsGeneratingPdf(false);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg shadow-sm transition-colors"
             >
-              📥 This Month&apos;s PDF Report
-            </a>
+              {isGeneratingPdf ? (
+                <>
+                  <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Generating Report...</span>
+                </>
+              ) : (
+                <>📥 This Month Material Report</>
+              )}
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-gray-600 dark:text-gray-300">

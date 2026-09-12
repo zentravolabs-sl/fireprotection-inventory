@@ -3,7 +3,7 @@
 // ============================================================
 // src/components/projects/ProjectDeliveryAndIssueNotesTab.tsx
 // Delivery Note & Material Issue Note Document Generator with PDF Print & Download
-// Matches CDN ENGINEERS PVT LTD official paper format with full color support
+// Matches CDN FIRE ENGINEERS official paper format with full color support
 // ============================================================
 
 import React, { useState, useMemo, useRef } from "react";
@@ -691,7 +691,7 @@ export function ProjectDeliveryAndIssueNotesTab({
                 className="text-2xl font-black text-red-600 tracking-wide uppercase"
                 style={{ color: "#dc2626", fontSize: "22px", fontWeight: 900, textTransform: "uppercase", textAlign: "center", margin: 0, lineHeight: "1.2" }}
               >
-                CDN ENGINEERS PVT LTD
+                CDN FIRE ENGINEERS
               </h1>
               <h2
                 className="text-sm font-bold text-gray-900 tracking-wider uppercase underline pt-0.5"
