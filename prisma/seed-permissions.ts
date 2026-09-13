@@ -292,25 +292,20 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
 export async function seedPermissions(prisma: PrismaClient) {
   console.log("🔒 Seeding system permissions...");
 
-  const permissionMap = new Map<string, number>();
+  await prisma.permission.createMany({
+    data: PERMISSION_DEFINITIONS.map((perm) => ({
+      key: perm.key,
+      name: perm.name,
+      module: perm.module,
+      description: perm.description,
+    })),
+    skipDuplicates: true,
+  });
 
-  for (const perm of PERMISSION_DEFINITIONS) {
-    const record = await prisma.permission.upsert({
-      where: { key: perm.key },
-      update: {
-        name: perm.name,
-        module: perm.module,
-        description: perm.description,
-      },
-      create: {
-        key: perm.key,
-        name: perm.name,
-        module: perm.module,
-        description: perm.description,
-      },
-    });
-    permissionMap.set(record.key, record.id);
-  }
+  const allPermissions = await prisma.permission.findMany();
+  const permissionMap = new Map<string, number>(
+    allPermissions.map((p) => [p.key, p.id])
+  );
 
   console.log(`  ✓ Upserted ${PERMISSION_DEFINITIONS.length} permission keys.`);
 

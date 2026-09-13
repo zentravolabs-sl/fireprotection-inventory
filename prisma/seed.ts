@@ -32,7 +32,9 @@ async function clearDatabase() {
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
       customer_refill_replacement,
+      customer_refill_item,
       customer_refill,
+      extinguisher_refill,
       delivery_note_item,
       delivery_note,
       fire_extinguisher_assignment,
@@ -43,6 +45,8 @@ async function clearDatabase() {
       project_staff,
       labour_ot,
       project_labour,
+      labour,
+      labour_type,
       tool_history,
       tool_assignment_item,
       tool_assignment,
@@ -70,6 +74,8 @@ async function clearDatabase() {
       category,
       supplier,
       audit_log,
+      notification,
+      system_setting,
       verification,
       "session",
       account,
@@ -130,4 +136,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
     await pool.end();
+    process.exit(0);
   });
